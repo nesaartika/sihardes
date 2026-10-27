@@ -9,6 +9,7 @@ class Auth extends MY_Controller
     {
         parent::__construct();
         $this->load->model('pengguna_model', 'pengguna');
+        $this->load->model('catatan_model', 'catatan');
     }
 
     public function index()
@@ -39,9 +40,11 @@ class Auth extends MY_Controller
                         'role' => $u['role'], 'wajib_ganti' => (int) $u['wajib_ganti'], 'gagal' => 0, 'blok_sampai' => 0,
                     ));
                     $this->pengguna->catat_login($u['id']);
+                    $this->catatan->catat('login', 'Berhasil masuk', $u['username']);
                     redirect($u['wajib_ganti'] ? 'auth/ganti_sandi' : '/');
                 }
 
+                $this->catatan->catat('login_gagal', 'Percobaan masuk gagal', mb_substr(trim((string) $this->input->post('username')), 0, 50));
                 usleep(600000);          // memperlambat tebak-tebakan kata sandi
                 $gagal = (int) $this->session->userdata('gagal') + 1;
                 $this->session->set_userdata('gagal', $gagal);
@@ -61,6 +64,7 @@ class Auth extends MY_Controller
 
     public function logout()
     {
+        if ($this->session->userdata('user_id')) $this->catatan->catat('logout', 'Keluar');
         $this->session->sess_destroy();
         redirect('auth/login');
     }
@@ -85,6 +89,7 @@ class Auth extends MY_Controller
             else
             {
                 $this->pengguna->ganti_sandi($u['id'], $baru);
+                $this->catatan->catat('ganti_sandi', 'Kata sandi diganti');
                 $this->session->set_userdata('wajib_ganti', 0);
                 $this->session->set_flashdata('pesan', 'Kata sandi berhasil diganti.');
                 redirect('/');

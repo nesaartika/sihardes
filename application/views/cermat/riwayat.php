@@ -15,7 +15,8 @@
       <td style="white-space:nowrap">
         <a class="btn alt" href="<?= site_url('cermat?p=' . $d['id']) ?>">Buka</a>
         <a class="btn alt" href="<?= site_url('cermat/unduh/' . $d['id']) ?>">Excel</a>
-        <?= form_open('cermat/hapus/' . $d['id'], array('style' => 'display:inline', 'onsubmit' => "return confirm('Hapus periode ini?')")) ?>
+        <?= form_open('cermat/hapus/' . $d['id'], array('style' => 'display:inline', 'onsubmit' => 'return konfirmasiHapus(this, ' . json_encode($d['nama']) . ')')) ?>
+          <input type="hidden" name="konfirmasi" value="">
           <button class="btn red" type="submit">Hapus</button>
         <?= form_close() ?>
       </td>
@@ -24,3 +25,13 @@
   </tbody>
 </table></div>
 <?php endif; ?>
+
+<script>
+function konfirmasiHapus(form, nama){
+  var t = prompt('Menghapus periode akan menghapus seluruh data dan alasan di dalamnya, dan tidak bisa dikembalikan.\n\nKetik persis "' + nama + '" untuk melanjutkan:');
+  if (t === null) return false;
+  if (t.trim().toLowerCase() !== nama.toLowerCase()) { alert('Nama periode tidak sama. Penghapusan dibatalkan.'); return false; }
+  form.elements['konfirmasi'].value = t.trim();
+  return true;
+}
+</script>

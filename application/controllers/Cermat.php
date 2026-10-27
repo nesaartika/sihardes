@@ -12,6 +12,7 @@ class Cermat extends MY_Controller
         parent::__construct();
         $this->load->library('cermat_harga');
         $this->load->model('periode_model', 'periode');
+        $this->load->model('catatan_model', 'catatan');
         $this->dir_upload = FCPATH . 'writable/upload/';
         if ( ! is_dir($this->dir_upload)) @mkdir($this->dir_upload, 0775, true);
     }
@@ -79,6 +80,12 @@ class Cermat extends MY_Controller
         show_404();
     }
 
+    public function aktivitas()
+    {
+        $this->buka_periode();
+        $this->render('cermat/aktivitas', 'aktivitas', array('log' => $this->catatan->terbaru(500)));
+    }
+
     public function riwayat()
     {
         $this->buka_periode();
@@ -123,6 +130,8 @@ class Cermat extends MY_Controller
         {
             return $this->galat($e->getMessage());
         }
+        $r = $this->periode->muat($id);
+        $this->catatan->catat('unggah', $nama . ' - ' . $_FILES['berkas']['name'] . ' (' . $r['hasil']['ringkas']['jml_komoditas'] . ' komoditas)');
         redirect('cermat?p=' . $id);
     }
 
@@ -136,13 +145,26 @@ class Cermat extends MY_Controller
         }
         $kode  = preg_replace('/[^A-Za-z0-9]/', '', (string) $this->input->post('kode'));
         $teks  = trim((string) $this->input->post('teks'));
-        $terisi = $this->periode->set_alasan($this->aktif, $kode, (int) $this->input->post('kab'), $teks);
+        $kab   = (int) $this->input->post('kab');
+        $lama  = isset($this->data['alasan'][$kode . '|' . $kab]);
+        $terisi = $this->periode->set_alasan($this->aktif, $kode, $kab, $teks);
+        $jenis = $teks === '' ? 'dikosongkan' : ($lama ? 'diubah' : 'diisi');
+        $this->catatan->catat('isi_alasan', $this->data['nama'] . ' - ' . $kode . ' - ' . Cermat_harga::nama_kab($kab) . ' (' . $jenis . ')');
         $this->output->set_output(json_encode(array('ok' => true, 'terisi' => $terisi)));
     }
 
     public function hapus($id = '')
     {
-        if ($this->input->method() === 'post') $this->periode->hapus($id);
+        if ($this->input->method() === 'post')
+        {
+            $d = $this->periode->muat($id);
+            $ketik = trim((string) $this->input->post('konfirmasi'));
+            if ($d && strcasecmp($ketik, $d['nama']) === 0)
+            {
+                $this->periode->hapus($id);
+                $this->catatan->catat('hapus_periode', $d['nama'] . ' - ' . $d['file_asal']);
+            }
+        }
         redirect('cermat/riwayat');
     }
 
@@ -156,6 +178,7 @@ class Cermat extends MY_Controller
         $nama = 'Perubahan Sementara Harga Perdesaan_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . '.xlsx';
         $isi = file_get_contents($tmp);
         @unlink($tmp);
+        $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);
         force_download($nama, $isi);
     }
 
@@ -188,6 +211,7 @@ class Cermat extends MY_Controller
         }
         $d = $this->periode->muat($id);
         $r = $d['hasil']['ringkas'];
+        $this->catatan->catat('unggah', $nama . ' - ' . basename($berkas) . ' (' . $r['jml_komoditas'] . ' komoditas)', 'terminal');
         echo "{$r['jml_baris']} baris | {$r['jml_komoditas']} komoditas (naik {$r['naik']}, turun {$r['turun']}, stabil {$r['stabil']})\n";
         echo "Perlu konfirmasi: {$r['perlu_konfirmasi']} komoditas.\n";
         echo "Periode \"{$nama}\" tersimpan di database MySQL. Buka dashboard di browser.\n";
