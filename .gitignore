@@ -1,0 +1,20 @@
+# Data BPS dan hasil olahan: jangan diunggah ke GitHub
+*.xlsx
+*.xls
+~$*
+/writable/upload/*
+/writable/hasil/*
+!/writable/upload/.gitkeep
+!/writable/hasil/.gitkeep
+
+# Log dan cache CodeIgniter
+/application/logs/*
+!/application/logs/index.html
+/application/cache/*
+!/application/cache/index.html
+
+# Editor dan sistem operasi
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

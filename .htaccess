@@ -1,0 +1,30 @@
+# Pastikan alamat folder langsung membuka aplikasi (index.php)
+DirectoryIndex index.php
+
+# Alamat tanpa index.php:  /cermat_harga/cermat/rekap
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ index.php/$1 [L]
+</IfModule>
+
+# Menaikkan batas unggah agar file Hitung RH (~6 MB) dapat diproses.
+<IfModule mod_php.c>
+  php_value upload_max_filesize 64M
+  php_value post_max_size 64M
+  php_value memory_limit 1024M
+  php_value max_execution_time 600
+</IfModule>
+<IfModule mod_php7.c>
+  php_value upload_max_filesize 64M
+  php_value post_max_size 64M
+  php_value memory_limit 1024M
+  php_value max_execution_time 600
+</IfModule>
+<IfModule mod_php8.c>
+  php_value upload_max_filesize 64M
+  php_value post_max_size 64M
+  php_value memory_limit 1024M
+  php_value max_execution_time 600
+</IfModule>
