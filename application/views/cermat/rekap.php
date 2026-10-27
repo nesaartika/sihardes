@@ -1,29 +1,16 @@
-<?php
-$tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); });
-$jml_baris = 0; $jml_isi = 0;
-foreach ($tampil as $k)
-{
-    $rows = empty($k['kab']) ? array(0 => 1) : $k['kab'];
-    foreach ($rows as $kab => $_) { $jml_baris++; if (isset($alasan[$k['kode'] . '|' . $kab])) $jml_isi++; }
-}
-?>
-<div class="bar">
-  <span class="chip" id="chipTotal">Total: <?= $jml_baris ?> baris</span>
-  <span class="chip" style="color:var(--turun)" id="chipSudah">Sudah diisi: <?= $jml_isi ?></span>
-  <span class="chip" style="color:var(--warn)" id="chipBelum">Belum diisi: <?= $jml_baris - $jml_isi ?></span>
-</div>
+<?php $tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); }); ?>
 <div class="bar">
   <input type="text" id="q" placeholder="Cari komoditas / kode / kecamatan...">
   <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
   <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option></select>
   <select id="fkab"><option value="">Semua kabupaten</option>
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
-  <select id="fstatus"><option value="">Semua status</option><option value="belum">Belum diisi</option><option value="sudah">Sudah diisi</option></select>
+  <label><input type="checkbox" id="fkosong"> Alasan belum diisi</label>
   <span class="hint" id="cnt"></span>
 </div>
 <div class="tw">
 <table id="tbl">
-  <thead><tr><th style="width:70px">Dokumen</th><th style="width:230px">Komoditas</th><th style="width:140px">Perubahan Harga Perdesaan Provinsi</th><th>Kabupaten</th><th style="width:320px">Alasan</th><th style="width:120px">Status</th></tr></thead>
+  <thead><tr><th style="width:70px">Dokumen</th><th style="width:230px">Komoditas</th><th style="width:140px">Perubahan Harga Perdesaan Provinsi</th><th>Kabupaten</th><th style="width:380px">Alasan</th></tr></thead>
   <?php foreach ($tampil as $k):
       $rows = empty($k['kab']) ? array(0 => array()) : $k['kab'];
       $jml = count($rows); $pertama = true;
@@ -46,7 +33,6 @@ foreach ($tampil as $k)
         <?php endif; ?>
       </td>
       <td><textarea class="alasan" rows="2" data-kode="<?= html_escape($k['kode']) ?>" data-kab="<?= (int) $kab ?>" placeholder="Tulis alasan..."><?= html_escape($isi) ?></textarea></td>
-      <td><span class="badge st <?= $isi === '' ? 'belum' : 'sudah' ?>"><?= $isi === '' ? 'Belum diisi' : 'Sudah diisi' ?></span></td>
     </tr>
     <?php endforeach; ?>
   </tbody>
@@ -58,26 +44,19 @@ foreach ($tampil as $k)
   var URL = <?= json_encode(site_url('cermat/simpan_alasan?p=' . $p)) ?>;
   var grp = [].slice.call(document.querySelectorAll('#tbl tbody.grp'));
   var q = document.getElementById('q'), fd = document.getElementById('fdok'), fa = document.getElementById('farah'),
-      fk = document.getElementById('fkab'), fs = document.getElementById('fstatus'), cnt = document.getElementById('cnt');
+      fk = document.getElementById('fkab'), fo = document.getElementById('fkosong'), cnt = document.getElementById('cnt');
 
-  function hitungStatus(){
-    var rows = document.querySelectorAll('#tbl tbody.grp tr'), sudah = 0;
-    rows.forEach(function(r){ if (r.dataset.status === 'sudah') sudah++; });
-    document.getElementById('chipTotal').textContent = 'Total: ' + rows.length + ' baris';
-    document.getElementById('chipSudah').textContent = 'Sudah diisi: ' + sudah;
-    document.getElementById('chipBelum').textContent = 'Belum diisi: ' + (rows.length - sudah);
-  }
   function saring(){
     var t = q.value.trim().toLowerCase(), n = 0;
     grp.forEach(function(g){
       var ok = (!t || g.dataset.q.indexOf(t) > -1) && (!fd.value || g.dataset.dok === fd.value) &&
                (!fa.value || g.dataset.arah === fa.value) && (!fk.value || g.dataset.kab.indexOf(','+fk.value+',') > -1);
-      if (ok && fs.value) ok = !!g.querySelector('tr[data-status="' + fs.value + '"]');
+      if (ok && fo.checked) ok = !!g.querySelector('tr[data-status="belum"]');
       g.style.display = ok ? '' : 'none'; if (ok) n++;
     });
     cnt.textContent = n + ' komoditas ditampilkan';
   }
-  [q,fd,fa,fk,fs].forEach(function(e){ e.addEventListener('input', saring); e.addEventListener('change', saring); });
+  [q,fd,fa,fk,fo].forEach(function(e){ e.addEventListener('input', saring); e.addEventListener('change', saring); });
   saring();
 
   document.getElementById('tbl').addEventListener('change', function(e){
@@ -87,11 +66,10 @@ foreach ($tampil as $k)
       if (r.status === 401) { alert('Sesi habis. Silakan login lagi.'); location.reload(); throw 0; }
       return r.json();
     }).then(function(j){
-      var tr = el.closest('tr'), isi = el.value.trim() !== '', b = tr.querySelector('.badge.st');
+      var tr = el.closest('tr'), isi = el.value.trim() !== '';
       tr.dataset.status = isi ? 'sudah' : 'belum';
-      b.className = 'badge st ' + (isi ? 'sudah' : 'belum'); b.textContent = isi ? 'Sudah diisi' : 'Belum diisi';
       el.classList.toggle('ok', !!j.ok); setTimeout(function(){ el.classList.remove('ok') }, 1500);
-      hitungStatus(); saring();
+      saring();
     });
   });
 })();

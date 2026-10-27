@@ -262,6 +262,44 @@ class Periode_model extends CI_Model
         return $out;
     }
 
+    /**
+     * Baris data asli (sheet Data) untuk satu periode, dengan filter dan paginasi.
+     * @param array $f ['q'=>teks, 'dok'=>HD|HKD, 'kab'=>int, 'ubah'=>naik|turun|tetap]
+     * @return array ['baris'=>[...], 'total'=>int]
+     */
+    public function data_asli($periode_id, array $f, $limit, $offset)
+    {
+        $dari = ' FROM harga h JOIN kecamatan k ON k.id = h.kecamatan_id JOIN komoditas c ON c.id = k.komoditas_id WHERE c.periode_id = ?';
+        $par = array($periode_id);
+        if ( ! empty($f['dok']) && in_array($f['dok'], array('HD', 'HKD'), true)) { $dari .= ' AND c.dokumen = ?'; $par[] = $f['dok']; }
+        if ( ! empty($f['kab'])) { $dari .= ' AND k.kab = ?'; $par[] = (int) $f['kab']; }
+        if ( ! empty($f['q']))
+        {
+            $like = '%' . $this->db->escape_like_str($f['q']) . '%';
+            $dari .= ' AND (c.nama LIKE ? OR c.kode LIKE ? OR k.kecamatan LIKE ? OR h.kualitas LIKE ?)';
+            array_push($par, $like, $like, $like, $like);
+        }
+        if (isset($f['ubah']) && $f['ubah'] === 'naik')  $dari .= ' AND h.harga_ini > h.harga_lalu';
+        if (isset($f['ubah']) && $f['ubah'] === 'turun') $dari .= ' AND h.harga_ini < h.harga_lalu';
+        if (isset($f['ubah']) && $f['ubah'] === 'tetap') $dari .= ' AND h.harga_ini = h.harga_lalu';
+
+        $total = (int) $this->db->query('SELECT COUNT(*) AS n' . $dari, $par)->row()->n;
+        $baris = $this->db->query(
+            'SELECT k.kab, k.kecamatan, c.kode, c.nama, c.dokumen, h.kualitas, h.harga_lalu, h.harga_ini' . $dari .
+            ' ORDER BY c.urut, k.kab, k.kecamatan, h.id LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset, $par
+        )->result_array();
+        return array('baris' => $baris, 'total' => $total);
+    }
+
+    /** Kode kabupaten yang ada pada satu periode. */
+    public function kabupaten_periode($periode_id)
+    {
+        $out = array();
+        foreach ($this->db->query('SELECT DISTINCT k.kab FROM kecamatan k JOIN komoditas c ON c.id = k.komoditas_id
+                                    WHERE c.periode_id = ? ORDER BY k.kab', array($periode_id))->result_array() as $r) $out[] = (int) $r['kab'];
+        return $out;
+    }
+
     public function alasan($periode_id)
     {
         $out = array();

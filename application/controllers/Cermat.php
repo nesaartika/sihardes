@@ -86,6 +86,29 @@ class Cermat extends MY_Controller
         $this->render('cermat/aktivitas', 'aktivitas', array('log' => $this->catatan->terbaru(500)));
     }
 
+    /** Data asli (isi sheet Data) beserta pencarian, filter, dan paginasi */
+    public function data_asli()
+    {
+        if ( ! $this->buka_periode()) redirect('cermat/unggah');
+        $per = (int) $this->input->get('per');
+        if ( ! in_array($per, array(25, 50, 100), true)) $per = 50;
+        $hal = max(1, (int) $this->input->get('hal'));
+        $f = array(
+            'q'    => trim((string) $this->input->get('q')),
+            'dok'  => (string) $this->input->get('dok'),
+            'kab'  => (int) $this->input->get('kab'),
+            'ubah' => (string) $this->input->get('ubah'),
+        );
+        $hasil = $this->periode->data_asli($this->aktif, $f, $per, ($hal - 1) * $per);
+        $halaman = max(1, (int) ceil($hasil['total'] / $per));
+        if ($hal > $halaman) { $hal = $halaman; $hasil = $this->periode->data_asli($this->aktif, $f, $per, ($hal - 1) * $per); }
+
+        $this->render('cermat/data_asli', 'data', array(
+            'baris' => $hasil['baris'], 'total' => $hasil['total'], 'f' => $f, 'per' => $per, 'hal' => $hal, 'halaman' => $halaman,
+            'kab_ada' => $this->periode->kabupaten_periode($this->aktif),
+        ));
+    }
+
     public function riwayat()
     {
         $this->buka_periode();

@@ -60,3 +60,10 @@ tr:hover td{background:rgba(29,95,208,.04)}
 details summary{cursor:pointer;color:var(--pri);font-size:12px}
 .empty{text-align:center;padding:50px;color:var(--mut)}
 .pill{padding:2px 8px;border-radius:6px;background:var(--warnbg);color:var(--warn);font-size:12px;font-weight:700}
+
+.badge.belum{background:rgba(180,83,9,.14);color:var(--warn)}.badge.sudah{background:rgba(20,128,60,.14);color:var(--turun)}
+.chip{display:inline-block;padding:4px 12px;border:1px solid var(--br);border-radius:99px;font-size:12px;font-weight:700;background:var(--card)}
+.badge{white-space:nowrap}
+.pg{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.pg a,.pg span.on{padding:6px 11px;border:1px solid var(--br);border-radius:8px;background:var(--card);font-weight:700}
+.pg span.on{background:var(--pri);border-color:var(--pri);color:#fff}
