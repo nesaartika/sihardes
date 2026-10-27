@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Cermat extends CI_Controller
+class Cermat extends MY_Controller
 {
     private $dir_upload;
     private $aktif = null;   // id periode aktif

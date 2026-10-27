@@ -38,6 +38,11 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
 <div class="wrap">
   <header class="top">
     <h1><?= $judul[$menu] ?></h1>
+    <span class="hint" style="white-space:nowrap">
+      <?= html_escape($this->session->userdata('nama')) ?> &middot;
+      <a href="<?= site_url('auth/ganti_sandi') ?>">Ganti sandi</a> &middot;
+      <a href="<?= site_url('auth/logout') ?>">Keluar</a>
+    </span>
     <?php if ( ! empty($daftar_periode)): ?>
       <select onchange="location.href=location.pathname+'?p='+this.value" title="Periode">
         <?php foreach ($daftar_periode as $pd): ?>
@@ -48,3 +53,6 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
     <?php endif; ?>
   </header>
   <main>
+  <?php if ($pesan = $this->session->flashdata('pesan')): ?>
+    <div class="card" style="border-left:4px solid var(--turun);padding:10px 14px;margin-bottom:14px"><?= html_escape($pesan) ?></div>
+  <?php endif; ?>

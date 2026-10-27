@@ -7,6 +7,10 @@
 !/writable/upload/.gitkeep
 !/writable/hasil/.gitkeep
 
+# Sesi login
+/writable/sessions/*
+!/writable/sessions/.gitkeep
+
 # Log dan cache CodeIgniter
 /application/logs/*
 !/application/logs/index.html
