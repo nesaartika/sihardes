@@ -15,7 +15,8 @@
       <td style="white-space:nowrap">
         <a class="btn alt" href="<?= site_url('cermat?p=' . $d['id']) ?>">Buka</a>
         <a class="btn alt" href="<?= site_url('cermat/unduh/' . $d['id']) ?>">Excel</a>
-        <?= form_open('cermat/hapus/' . $d['id'], array('style' => 'display:inline', 'onsubmit' => 'return konfirmasiHapus(this, ' . json_encode($d['nama']) . ')')) ?>
+        <?= form_open('cermat/hapus/' . $d['id'], array('style' => 'display:inline', 'class' => 'hapus',
+              'data-nama' => html_escape($d['nama']), 'data-file' => html_escape($d['file_asal']))) ?>
           <input type="hidden" name="konfirmasi" value="">
           <button class="btn red" type="submit">Hapus</button>
         <?= form_close() ?>
@@ -27,11 +28,15 @@
 <?php endif; ?>
 
 <script>
-function konfirmasiHapus(form, nama){
-  var t = prompt('Menghapus periode akan menghapus seluruh data dan alasan di dalamnya, dan tidak bisa dikembalikan.\n\nKetik persis "' + nama + '" untuk melanjutkan:');
-  if (t === null) return false;
-  if (t.trim().toLowerCase() !== nama.toLowerCase()) { alert('Nama periode tidak sama. Penghapusan dibatalkan.'); return false; }
-  form.elements['konfirmasi'].value = t.trim();
-  return true;
-}
+document.querySelectorAll('form.hapus').forEach(function(f){
+  f.addEventListener('submit', function(e){
+    var nama = f.dataset.nama, file = f.dataset.file;
+    var t = prompt('Hapus periode "' + nama + '" (file: ' + file + ')?\n' +
+                   'Seluruh data dan alasan di dalamnya akan hilang dan tidak bisa dikembalikan.\n\n' +
+                   'Ketik persis "' + nama + '" untuk melanjutkan:');
+    if (t === null) { e.preventDefault(); return; }
+    if (t.trim().toLowerCase() !== nama.toLowerCase()) { alert('Nama periode tidak sama. Penghapusan dibatalkan.'); e.preventDefault(); return; }
+    f.elements['konfirmasi'].value = t.trim();
+  });
+});
 </script>
