@@ -177,8 +177,7 @@ class Cermat extends MY_Controller
         if ($this->input->method() === 'post')
         {
             $d = $this->periode->muat($id);
-            $ketik = trim((string) $this->input->post('konfirmasi'));
-            if ($d && strcasecmp($ketik, $d['nama']) === 0)
+            if ($d)
             {
                 $this->periode->hapus($id);
                 $this->catatan->catat('hapus_periode', $d['nama'] . ' - ' . $d['file_asal']);
