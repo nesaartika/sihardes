@@ -86,26 +86,22 @@ class Cermat extends MY_Controller
         $this->render('cermat/aktivitas', 'aktivitas', array('log' => $this->catatan->terbaru(500)));
     }
 
-    /** Data asli (isi sheet Data) beserta pencarian, filter, dan paginasi */
+    /** Data asli: isi sheet Data persis seperti di file Excel, dengan pencarian dan paginasi */
     public function data_asli()
     {
         if ( ! $this->buka_periode()) redirect('cermat/unggah');
         $per = (int) $this->input->get('per');
         if ( ! in_array($per, array(25, 50, 100), true)) $per = 50;
         $hal = max(1, (int) $this->input->get('hal'));
-        $f = array(
-            'q'    => trim((string) $this->input->get('q')),
-            'dok'  => (string) $this->input->get('dok'),
-            'kab'  => (int) $this->input->get('kab'),
-            'ubah' => (string) $this->input->get('ubah'),
-        );
-        $hasil = $this->periode->data_asli($this->aktif, $f, $per, ($hal - 1) * $per);
-        $halaman = max(1, (int) ceil($hasil['total'] / $per));
-        if ($hal > $halaman) { $hal = $halaman; $hasil = $this->periode->data_asli($this->aktif, $f, $per, ($hal - 1) * $per); }
+        $f = array('q' => trim((string) $this->input->get('q')), 'kab' => trim((string) $this->input->get('kab')));
+
+        $d = $this->periode->data_mentah($this->aktif, $f, $per, ($hal - 1) * $per);
+        $halaman = max(1, (int) ceil($d['total'] / $per));
+        if ($hal > $halaman) { $hal = $halaman; $d = $this->periode->data_mentah($this->aktif, $f, $per, ($hal - 1) * $per); }
 
         $this->render('cermat/data_asli', 'data', array(
-            'baris' => $hasil['baris'], 'total' => $hasil['total'], 'f' => $f, 'per' => $per, 'hal' => $hal, 'halaman' => $halaman,
-            'kab_ada' => $this->periode->kabupaten_periode($this->aktif),
+            'kolom' => $d['kolom'], 'baris' => $d['baris'], 'total' => $d['total'], 'ada' => $d['ada'], 'kab_nilai' => $d['kab_nilai'],
+            'f' => $f, 'per' => $per, 'hal' => $hal, 'halaman' => $halaman,
         ));
     }
 
@@ -250,6 +246,7 @@ class Cermat extends MY_Controller
         $baris = $this->cermat_harga->baca_xlsx($path);
         $hasil = $this->cermat_harga->hitung($baris, $opsi);
         unset($baris);
+        $mentah = $this->cermat_harga->baca_mentah($path);
 
         if ($nama === '') $nama = $this->tebak_periode($file_asal);
         $id = date('Ymd_His');
@@ -257,6 +254,7 @@ class Cermat extends MY_Controller
             'id' => $id, 'nama' => $nama, 'file_asal' => $file_asal, 'dibuat' => date('d-m-Y H:i'),
             'hasil' => $hasil, 'alasan' => array(),
         ));
+        $this->periode->simpan_mentah($id, $mentah);
         return $id;
     }
 

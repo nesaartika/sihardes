@@ -80,6 +80,34 @@ class Cermat_harga
         return $baris;
     }
 
+    /**
+     * Membaca isi sheet apa adanya (semua kolom, urutan baris asli, nilai tanpa diubah).
+     * @return array ['kolom' => [judul, ...], 'baris' => [ ['r' => nomorBarisExcel, 'v' => [nilai, ...]], ... ]]
+     */
+    public function baca_mentah($path, $sheet = 'Data', $maks_kolom = 15)
+    {
+        @ini_set('memory_limit', '1024M');
+        @set_time_limit(600);
+        require_once APPPATH . 'libraries/Xlsx_io.php';
+
+        $rows = Xlsx_io::baca($path, $sheet, true);
+        if (empty($rows)) throw new RuntimeException('Sheet "' . $sheet . '" kosong.');
+
+        $head = array_shift($rows);
+        $n = min($maks_kolom, max(array_keys($head['v'])) + 1);
+        $kolom = array();
+        for ($i = 0; $i < $n; $i++) $kolom[] = isset($head['v'][$i]) ? (string) $head['v'][$i] : '';
+
+        $baris = array();
+        foreach ($rows as $r)
+        {
+            $v = array();
+            for ($i = 0; $i < $n; $i++) $v[] = isset($r['v'][$i]) ? (string) $r['v'][$i] : null;
+            $baris[] = array('r' => $r['r'], 'v' => $v);
+        }
+        return array('kolom' => $kolom, 'baris' => $baris);
+    }
+
     private function petakan_header($r)
     {
         $kunci = array(

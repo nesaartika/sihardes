@@ -13,8 +13,10 @@ class Xlsx_io
     /**
      * Membaca satu sheet. Mengembalikan array baris; tiap baris = array [indeksKolom0 => nilai].
      * Baris tanpa nilai dilewati.
+     * $mentah = true: angka dikembalikan persis seperti tertulis di file (teks), dan tiap baris berbentuk
+     *               array('r' => nomorBarisExcel, 'v' => [indeksKolom => nilai]).
      */
-    public static function baca($path, $nama_sheet)
+    public static function baca($path, $nama_sheet, $mentah = false)
     {
         if ( ! class_exists('ZipArchive')) throw new RuntimeException('Ekstensi PHP zip belum aktif (php.ini: extension=zip).');
         $zip = new ZipArchive();
@@ -48,8 +50,9 @@ class Xlsx_io
         $file = (strpos($target, 'xl/') === 0) ? $target : 'xl/' . $target;
         $zip->close();
 
-        // 2. shared strings
+        // 2. shared strings & gaya sel (untuk sel berformat tanggal)
         $ss = self::shared_strings($path);
+        $tgl = self::gaya_tanggal($path);
 
         // 3. baca sheet (streaming)
         $xr = new XMLReader();
@@ -65,12 +68,12 @@ class Xlsx_io
             foreach ($node->childNodes as $c)
             {
                 if ($c->localName !== 'c') continue;
-                $v = self::nilai_sel($c, $ss);
+                $v = self::nilai_sel($c, $ss, $mentah, $tgl);
                 if ($v === null || $v === '') continue;
                 $baris[self::kolom_ke_indeks($c->getAttribute('r'))] = $v;
                 $ada = true;
             }
-            if ($ada) $rows[] = $baris;
+            if ($ada) $rows[] = $mentah ? array('r' => (int) $node->getAttribute('r'), 'v' => $baris) : $baris;
         }
         $xr->close();
         return $rows;
@@ -111,7 +114,7 @@ class Xlsx_io
         return $t;
     }
 
-    private static function nilai_sel($c, $ss)
+    private static function nilai_sel($c, $ss, $mentah = false, $tgl = array())
     {
         $tipe = $c->getAttribute('t');
         if ($tipe === 'inlineStr')
@@ -125,7 +128,89 @@ class Xlsx_io
         if ($tipe === 's') return isset($ss[(int) $v]) ? $ss[(int) $v] : null;
         if ($tipe === 'str' || $tipe === 'e') return $v;
         if ($tipe === 'b') return $v === '1';
+        // sel berformat tanggal: tampilkan seperti yang terlihat di Excel (mis. kualitas "3/4" yang berubah jadi "3-Apr")
+        if (is_numeric($v) && $tgl && isset($tgl[(int) $c->getAttribute('s')]))
+        {
+            return self::format_tanggal((float) $v, $tgl[(int) $c->getAttribute('s')]);
+        }
+        if ($mentah) return $v;
         return is_numeric($v) ? $v + 0 : $v;
+    }
+
+    /** Peta indeks gaya sel => kode format, hanya untuk gaya yang berformat tanggal/waktu */
+    private static function gaya_tanggal($path)
+    {
+        $zip = new ZipArchive();
+        if ($zip->open($path) !== true) return array();
+        $x = $zip->getFromName('xl/styles.xml');
+        $zip->close();
+        if ($x === false) return array();
+
+        $d = new DOMDocument();
+        if ( ! @$d->loadXML($x)) return array();
+        $kode = array();
+        foreach ($d->getElementsByTagName('numFmt') as $n) $kode[(int) $n->getAttribute('numFmtId')] = $n->getAttribute('formatCode');
+        $bawaan = array(14 => 'm/d/yyyy', 15 => 'd-mmm-yy', 16 => 'd-mmm', 17 => 'mmm-yy', 18 => 'h:mm AM/PM', 19 => 'h:mm:ss AM/PM',
+                        20 => 'h:mm', 21 => 'h:mm:ss', 22 => 'm/d/yyyy h:mm', 45 => 'mm:ss', 46 => '[h]:mm:ss', 47 => 'mm:ss.0');
+
+        $out = array();
+        $xfs = $d->getElementsByTagName('cellXfs')->item(0);
+        if ( ! $xfs) return $out;
+        $i = 0;
+        foreach ($xfs->getElementsByTagName('xf') as $xf)
+        {
+            $id = (int) $xf->getAttribute('numFmtId');
+            $c = isset($kode[$id]) ? $kode[$id] : (isset($bawaan[$id]) ? $bawaan[$id] : null);
+            if ($c !== null && self::kode_tanggal($c)) $out[$i] = $c;
+            $i++;
+        }
+        return $out;
+    }
+
+    private static function kode_tanggal($c)
+    {
+        $c = preg_replace('/"[^"]*"|\\\\.|\[[^\]]*\]|_.|\*./', '', $c);
+        return (bool) preg_match('/[dmyhs]/i', $c);
+    }
+
+    /** Menampilkan angka seri tanggal Excel sesuai kode formatnya (mis. d-mmm => 3-Apr) */
+    private static function format_tanggal($serial, $kode)
+    {
+        $kode = preg_replace('/\[[^\]]*\]|_.|\*./', '', $kode);
+        $kode = explode(';', $kode);
+        $kode = $kode[0];
+        $dt = new DateTime('1899-12-30 00:00:00');
+        $dt->modify('+' . (int) floor($serial) . ' days');
+        $detik = (int) round(($serial - floor($serial)) * 86400);
+        if ($detik > 0) $dt->modify('+' . $detik . ' seconds');
+
+        $pakai_ampm = (bool) preg_match('/AM\/PM|A\/P/i', $kode);
+        $out = ''; $n = strlen($kode); $i = 0; $terakhir_jam = false;
+        while ($i < $n)
+        {
+            $ch = $kode[$i];
+            if ($ch === '"') { $j = strpos($kode, '"', $i + 1); if ($j === false) $j = $n; $out .= substr($kode, $i + 1, $j - $i - 1); $i = $j + 1; continue; }
+            if ($ch === '\\') { $out .= isset($kode[$i + 1]) ? $kode[$i + 1] : ''; $i += 2; continue; }
+            $l = strtolower($ch);
+            if (in_array($l, array('d', 'm', 'y', 'h', 's'), true))
+            {
+                $j = $i; while ($j < $n && strtolower($kode[$j]) === $l) $j++;
+                $len = $j - $i; $i = $j;
+                if ($l === 'd') $out .= $len === 1 ? $dt->format('j') : ($len === 2 ? $dt->format('d') : ($len === 3 ? $dt->format('D') : $dt->format('l')));
+                elseif ($l === 'y') $out .= $len <= 2 ? $dt->format('y') : $dt->format('Y');
+                elseif ($l === 'h') { $terakhir_jam = true; $out .= $pakai_ampm ? ($len === 1 ? $dt->format('g') : $dt->format('h')) : ($len === 1 ? $dt->format('G') : $dt->format('H')); }
+                elseif ($l === 's') { $terakhir_jam = false; $out .= $len === 1 ? (string) (int) $dt->format('s') : $dt->format('s'); }
+                else // m: bulan, atau menit bila setelah jam
+                {
+                    if ($terakhir_jam) { $out .= $len === 1 ? (string) (int) $dt->format('i') : $dt->format('i'); $terakhir_jam = false; }
+                    else $out .= $len === 1 ? $dt->format('n') : ($len === 2 ? $dt->format('m') : ($len === 3 ? $dt->format('M') : $dt->format('F')));
+                }
+                continue;
+            }
+            if (preg_match('/^(AM\/PM|A\/P)/i', substr($kode, $i), $m)) { $out .= $dt->format('A'); $i += strlen($m[1]); continue; }
+            $out .= $ch; $i++;
+        }
+        return $out;
     }
 
     private static function kolom_ke_indeks($ref)

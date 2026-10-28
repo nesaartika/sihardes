@@ -49,6 +49,24 @@ class Periode_model extends CI_Model
         {
             $this->buat_struktur();
         }
+        // Database versi lama: simpan juga isi sheet Data apa adanya
+        if ( ! $this->db->field_exists('kolom_excel', 'periode'))
+        {
+            $this->db->query('ALTER TABLE periode ADD COLUMN kolom_excel TEXT NULL');
+        }
+        if ( ! $this->db->table_exists('data_excel'))
+        {
+            $kol = '';
+            for ($i = 1; $i <= 15; $i++) $kol .= '`c' . $i . '` VARCHAR(255) DEFAULT NULL, ';
+            $this->db->query('CREATE TABLE IF NOT EXISTS `data_excel` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `periode_id` VARCHAR(15) NOT NULL,
+                `baris` INT UNSIGNED NOT NULL, ' . $kol . '
+                PRIMARY KEY (`id`),
+                KEY `idx_periode_baris` (`periode_id`,`baris`),
+                CONSTRAINT `fk_data_excel_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+        }
         // Database versi lama: periode yang sama sempat dibatasi unik -> longgarkan agar beberapa file per periode dapat disimpan
         if ($this->db->query("SHOW INDEX FROM periode WHERE Key_name = 'uq_bulan_tahun'")->num_rows() > 0)
         {
@@ -70,7 +88,7 @@ class Periode_model extends CI_Model
 
         // bersihkan sisa data setengah jalan dari percobaan sebelumnya
         $conn->query('SET FOREIGN_KEY_CHECKS=0');
-        foreach (array('harga', 'kecamatan', 'komoditas', 'alasan', 'periode') as $t) $conn->query('DELETE FROM `' . $t . '`');
+        foreach (array('data_excel', 'harga', 'kecamatan', 'komoditas', 'alasan', 'periode') as $t) $conn->query('DELETE FROM `' . $t . '`');
 
         $conn->begin_transaction();
         $stmt = '';
@@ -262,42 +280,60 @@ class Periode_model extends CI_Model
         return $out;
     }
 
-    /**
-     * Baris data asli (sheet Data) untuk satu periode, dengan filter dan paginasi.
-     * @param array $f ['q'=>teks, 'dok'=>HD|HKD, 'kab'=>int, 'ubah'=>naik|turun|tetap]
-     * @return array ['baris'=>[...], 'total'=>int]
-     */
-    public function data_asli($periode_id, array $f, $limit, $offset)
+    /** Menyimpan isi sheet Data apa adanya (lihat Cermat_harga::baca_mentah). */
+    public function simpan_mentah($periode_id, array $mentah)
     {
-        $dari = ' FROM harga h JOIN kecamatan k ON k.id = h.kecamatan_id JOIN komoditas c ON c.id = k.komoditas_id WHERE c.periode_id = ?';
-        $par = array($periode_id);
-        if ( ! empty($f['dok']) && in_array($f['dok'], array('HD', 'HKD'), true)) { $dari .= ' AND c.dokumen = ?'; $par[] = $f['dok']; }
-        if ( ! empty($f['kab'])) { $dari .= ' AND k.kab = ?'; $par[] = (int) $f['kab']; }
-        if ( ! empty($f['q']))
+        $this->db->trans_start();
+        $this->db->update('periode', array('kolom_excel' => json_encode($mentah['kolom'], JSON_UNESCAPED_UNICODE)), array('id' => $periode_id));
+        $n = count($mentah['kolom']);
+        $batch = array();
+        foreach ($mentah['baris'] as $b)
         {
-            $like = '%' . $this->db->escape_like_str($f['q']) . '%';
-            $dari .= ' AND (c.nama LIKE ? OR c.kode LIKE ? OR k.kecamatan LIKE ? OR h.kualitas LIKE ?)';
-            array_push($par, $like, $like, $like, $like);
+            $row = array('periode_id' => $periode_id, 'baris' => $b['r']);
+            for ($i = 0; $i < $n; $i++) $row['c' . ($i + 1)] = $b['v'][$i];
+            $batch[] = $row;
         }
-        if (isset($f['ubah']) && $f['ubah'] === 'naik')  $dari .= ' AND h.harga_ini > h.harga_lalu';
-        if (isset($f['ubah']) && $f['ubah'] === 'turun') $dari .= ' AND h.harga_ini < h.harga_lalu';
-        if (isset($f['ubah']) && $f['ubah'] === 'tetap') $dari .= ' AND h.harga_ini = h.harga_lalu';
-
-        $total = (int) $this->db->query('SELECT COUNT(*) AS n' . $dari, $par)->row()->n;
-        $baris = $this->db->query(
-            'SELECT k.kab, k.kecamatan, c.kode, c.nama, c.dokumen, h.kualitas, h.harga_lalu, h.harga_ini' . $dari .
-            ' ORDER BY c.urut, k.kab, k.kecamatan, h.id LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset, $par
-        )->result_array();
-        return array('baris' => $baris, 'total' => $total);
+        foreach (array_chunk($batch, 500) as $potong) $this->db->insert_batch('data_excel', $potong);
+        $this->db->trans_complete();
     }
 
-    /** Kode kabupaten yang ada pada satu periode. */
-    public function kabupaten_periode($periode_id)
+    /**
+     * Isi sheet Data persis seperti di Excel, dengan pencarian dan paginasi.
+     * @param array $f ['q' => teks, 'kab' => nilai kolom Kabupaten]
+     * @return array ['kolom'=>[...], 'baris'=>[[nilai,...],...], 'total'=>int, 'ada'=>bool, 'kab_nilai'=>[...]]
+     */
+    public function data_mentah($periode_id, array $f, $limit, $offset)
     {
-        $out = array();
-        foreach ($this->db->query('SELECT DISTINCT k.kab FROM kecamatan k JOIN komoditas c ON c.id = k.komoditas_id
-                                    WHERE c.periode_id = ? ORDER BY k.kab', array($periode_id))->result_array() as $r) $out[] = (int) $r['kab'];
-        return $out;
+        $p = $this->db->get_where('periode', array('id' => $periode_id))->row_array();
+        $kolom = ($p && ! empty($p['kolom_excel'])) ? json_decode($p['kolom_excel'], true) : array();
+        if (empty($kolom)) return array('kolom' => array(), 'baris' => array(), 'total' => 0, 'ada' => false, 'kab_nilai' => array());
+
+        $n = count($kolom);
+        $cols = array(); for ($i = 1; $i <= $n; $i++) $cols[] = '`c' . $i . '`';
+        $idx_kab = null;
+        foreach ($kolom as $i => $nm) if (strcasecmp(trim($nm), 'Kabupaten') === 0) { $idx_kab = $i + 1; break; }
+
+        $dari = ' FROM data_excel WHERE periode_id = ?'; $par = array($periode_id);
+        if ($f['kab'] !== '' && $idx_kab) { $dari .= ' AND `c' . $idx_kab . '` = ?'; $par[] = $f['kab']; }
+        if ($f['q'] !== '')
+        {
+            $dari .= ' AND CONCAT_WS(\' \', ' . implode(', ', $cols) . ') LIKE ?';
+            $par[] = '%' . $this->db->escape_like_str($f['q']) . '%';
+        }
+        $total = (int) $this->db->query('SELECT COUNT(*) AS n' . $dari, $par)->row()->n;
+        $rows = $this->db->query('SELECT ' . implode(', ', $cols) . $dari . ' ORDER BY baris LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset, $par)->result_array();
+
+        $baris = array();
+        foreach ($rows as $r) $baris[] = array_values($r);
+
+        $kab_nilai = array();
+        if ($idx_kab)
+        {
+            foreach ($this->db->query('SELECT DISTINCT `c' . $idx_kab . '` AS v FROM data_excel WHERE periode_id = ?', array($periode_id))->result_array() as $r)
+                if ($r['v'] !== null) $kab_nilai[] = $r['v'];
+            sort($kab_nilai, SORT_NUMERIC);
+        }
+        return array('kolom' => $kolom, 'baris' => $baris, 'total' => $total, 'ada' => true, 'kab_nilai' => $kab_nilai);
     }
 
     public function alasan($periode_id)
