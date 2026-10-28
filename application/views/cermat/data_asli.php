@@ -6,12 +6,6 @@ $qs = function ($ubah = array()) use ($f, $per, $p) {
     return '?' . http_build_query(array_filter($a, function ($v) { return $v !== '' && $v !== null; }));
 };
 ?>
-<div class="card" style="margin-bottom:14px">
-  <b>Data asli periode <?= html_escape($periode['nama']) ?></b>
-  <span class="hint"> &middot; sumber: <?= html_escape($periode['file_asal']) ?> (sheet Data), diunggah <?= $periode['dibuat'] ?></span>
-  <div class="hint">Setiap baris adalah harga satu komoditas pada satu kualitas di satu kecamatan. Dari baris-baris inilah perubahan harga provinsi dan daftar konfirmasi dihitung.</div>
-</div>
-
 <form method="get" action="<?= site_url('cermat/data_asli') ?>" class="bar">
   <input type="hidden" name="p" value="<?= html_escape($p) ?>">
   <input type="text" name="q" value="<?= html_escape($f['q']) ?>" placeholder="Cari komoditas / kode / kecamatan / kualitas...">
