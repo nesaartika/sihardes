@@ -1,13 +1,15 @@
 <?php $tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); }); ?>
-<div class="bar">
+<form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari komoditas / kode / kecamatan...">
   <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
   <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option></select>
   <select id="fkab"><option value="">Semua kabupaten</option>
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
   <label><input type="checkbox" id="fkosong"> Alasan belum diisi</label>
-  <span class="hint" id="cnt"></span>
-</div>
+  <button class="btn" type="submit">Terapkan</button>
+  <button class="btn alt" type="button" id="breset">Reset</button>
+</form>
+<p class="hint" id="cnt"></p>
 <div class="tw">
 <table id="tbl">
   <thead><tr><th style="width:70px">Dokumen</th><th style="width:230px">Komoditas</th><th style="width:140px">Perubahan Harga Perdesaan Provinsi</th><th>Kabupaten</th><th style="width:380px">Alasan</th></tr></thead>
@@ -45,18 +47,26 @@
   var grp = [].slice.call(document.querySelectorAll('#tbl tbody.grp'));
   var q = document.getElementById('q'), fd = document.getElementById('fdok'), fa = document.getElementById('farah'),
       fk = document.getElementById('fkab'), fo = document.getElementById('fkosong'), cnt = document.getElementById('cnt');
+  var f = {q:'', dok:'', arah:'', kab:'', kosong:false};   // filter yang sedang diterapkan
 
   function saring(){
-    var t = q.value.trim().toLowerCase(), n = 0;
+    var n = 0;
     grp.forEach(function(g){
-      var ok = (!t || g.dataset.q.indexOf(t) > -1) && (!fd.value || g.dataset.dok === fd.value) &&
-               (!fa.value || g.dataset.arah === fa.value) && (!fk.value || g.dataset.kab.indexOf(','+fk.value+',') > -1);
-      if (ok && fo.checked) ok = !!g.querySelector('tr[data-status="belum"]');
+      var ok = (!f.q || g.dataset.q.indexOf(f.q) > -1) && (!f.dok || g.dataset.dok === f.dok) &&
+               (!f.arah || g.dataset.arah === f.arah) && (!f.kab || g.dataset.kab.indexOf(',' + f.kab + ',') > -1);
+      if (ok && f.kosong) ok = !!g.querySelector('tr[data-status="belum"]');
       g.style.display = ok ? '' : 'none'; if (ok) n++;
     });
-    cnt.textContent = n + ' komoditas ditampilkan';
+    cnt.textContent = 'Menampilkan ' + n + ' dari ' + grp.length + ' komoditas';
   }
-  [q,fd,fa,fk,fo].forEach(function(e){ e.addEventListener('input', saring); e.addEventListener('change', saring); });
+  document.getElementById('ffilter').addEventListener('submit', function(){
+    f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, kab: fk.value, kosong: fo.checked};
+    saring();
+  });
+  document.getElementById('breset').addEventListener('click', function(){
+    q.value = ''; fd.value = ''; fa.value = ''; fk.value = ''; fo.checked = false;
+    f = {q:'', dok:'', arah:'', kab:'', kosong:false}; saring();
+  });
   saring();
 
   document.getElementById('tbl').addEventListener('change', function(e){
@@ -69,7 +79,6 @@
       var tr = el.closest('tr'), isi = el.value.trim() !== '';
       tr.dataset.status = isi ? 'sudah' : 'belum';
       el.classList.toggle('ok', !!j.ok); setTimeout(function(){ el.classList.remove('ok') }, 1500);
-      saring();
     });
   });
 })();

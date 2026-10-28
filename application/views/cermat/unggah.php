@@ -7,7 +7,7 @@ $bln_default = (int) date('n') - 1;
   <h2>Unggah File Hitung RH</h2>
   <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
   <?= form_open_multipart('cermat/proses') ?>
-    <label for="berkas">File Excel (mis. 2609_Hitung_RH_September_2026_Kalbar.xlsx)</label>
+    <label for="berkas">File Excel Hitung RH</label>
     <input type="file" name="berkas" id="berkas" accept=".xlsx" required>
 
     <div style="display:flex;gap:14px;flex-wrap:wrap">
