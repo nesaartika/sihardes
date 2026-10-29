@@ -13,7 +13,7 @@
       <td><?= $r['perlu_konfirmasi'] ?></td>
       <td><?= $d['terisi'] ?></td>
       <td style="white-space:nowrap">
-        <a class="btn alt" href="<?= site_url('cermat?p=' . $d['id']) ?>">Buka</a>
+        <a class="btn alt" href="<?= site_url('cermat/data_asli?p=' . $d['id']) ?>">Buka</a>
         <a class="btn alt" href="<?= site_url('cermat/unduh/' . $d['id']) ?>">Excel</a>
         <?= form_open('cermat/hapus/' . $d['id'], array('style' => 'display:inline', 'class' => 'hapus',
               'data-nama' => html_escape($d['nama']), 'data-file' => html_escape($d['file_asal']))) ?>

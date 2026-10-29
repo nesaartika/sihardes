@@ -11,14 +11,23 @@ $persen_isi = $total_konfirmasi > 0 ? min(100, round($terisi / $total_konfirmasi
   <div class="card kpi"><div class="l">Perlu Konfirmasi</div><div class="v"><?= $r['perlu_konfirmasi'] ?></div><div class="s"><?= $total_konfirmasi ?> baris kabupaten</div></div>
 </div>
 
-<div class="grid g3">
-  <div class="card"><h2>Arah Perubahan Harga Provinsi</h2><div class="chart"><canvas id="cArah"></canvas></div></div>
+<div class="grid g2">
+  <div class="card"><h2>Arah Perubahan Harga Provinsi - HD</h2><div class="chart"><canvas id="cArahHD"></canvas></div></div>
+  <div class="card"><h2>Arah Perubahan Harga Provinsi - HKD</h2><div class="chart"><canvas id="cArahHKD"></canvas></div></div>
+</div>
+
+<div class="grid">
   <div class="card"><h2>Kecamatan Perlu Konfirmasi per Kabupaten</h2><div class="chart"><canvas id="cKab"></canvas></div></div>
 </div>
 
 <div class="grid g2">
-  <div class="card"><h2>10 Komoditas Naik Tertinggi (%)</h2><div class="chart"><canvas id="cNaik"></canvas></div></div>
-  <div class="card"><h2>10 Komoditas Turun Terdalam (%)</h2><div class="chart"><canvas id="cTurun"></canvas></div></div>
+  <div class="card"><h2>HD: 10 Komoditas Naik Tertinggi (%)</h2><div class="chart"><canvas id="cNaikHD"></canvas></div></div>
+  <div class="card"><h2>HD: 10 Komoditas Turun Terdalam (%)</h2><div class="chart"><canvas id="cTurunHD"></canvas></div></div>
+</div>
+
+<div class="grid g2">
+  <div class="card"><h2>HKD: 10 Komoditas Naik Tertinggi (%)</h2><div class="chart"><canvas id="cNaikHKD"></canvas></div></div>
+  <div class="card"><h2>HKD: 10 Komoditas Turun Terdalam (%)</h2><div class="chart"><canvas id="cTurunHKD"></canvas></div></div>
 </div>
 
 <div class="grid g2">
@@ -45,28 +54,34 @@ $persen_isi = $total_konfirmasi > 0 ? min(100, round($terisi / $total_konfirmasi
 <script>
 (function(){
   var css = getComputedStyle(document.documentElement);
-  var tx = css.getPropertyValue('--tx').trim(), br = css.getPropertyValue('--br').trim();
   Chart.defaults.color = css.getPropertyValue('--mut').trim();
-  Chart.defaults.borderColor = br;
+  Chart.defaults.borderColor = css.getPropertyValue('--br').trim();
   Chart.defaults.font.family = 'Arial, Helvetica, sans-serif';
-  var naik = css.getPropertyValue('--naik').trim(), turun = css.getPropertyValue('--turun').trim(), stb = css.getPropertyValue('--stb').trim(), pri = css.getPropertyValue('--pri').trim();
+  var naik = css.getPropertyValue('--naik').trim(), turun = css.getPropertyValue('--turun').trim(),
+      stb = css.getPropertyValue('--stb').trim(), pri = css.getPropertyValue('--pri').trim();
   var opt = {responsive:true, maintainAspectRatio:false};
+  var arah = <?= json_encode($dash['arah']) ?>, top = <?= json_encode($dash['top']) ?>, kab = <?= json_encode($dash['per_kab']) ?>;
 
-  new Chart(document.getElementById('cArah'), {type:'doughnut',
-    data:{labels:['Naik','Turun','Stabil'], datasets:[{data:[<?= $r['naik'] ?>,<?= $r['turun'] ?>,<?= $r['stabil'] ?>], backgroundColor:[naik,turun,stb], borderWidth:0}]},
-    options:Object.assign({cutout:'62%', plugins:{legend:{position:'bottom'}}}, opt)});
+  function donat(id, a){
+    new Chart(document.getElementById(id), {type:'doughnut',
+      data:{labels:['Naik','Turun','Stabil'], datasets:[{data:[a.naik, a.turun, a.stabil], backgroundColor:[naik, turun, stb], borderWidth:0}]},
+      options:Object.assign({cutout:'62%', plugins:{legend:{position:'bottom'}}}, opt)});
+  }
+  donat('cArahHD', arah.HD); donat('cArahHKD', arah.HKD);
 
-  var kab = <?= json_encode($dash['per_kab']) ?>;
+  var nama = Object.keys(kab);
   new Chart(document.getElementById('cKab'), {type:'bar',
-    data:{labels:Object.keys(kab), datasets:[{label:'Baris konfirmasi', data:Object.values(kab), backgroundColor:pri, borderRadius:4}]},
-    options:Object.assign({plugins:{legend:{display:false}}, scales:{x:{ticks:{maxRotation:55,minRotation:30}}}}, opt)});
+    data:{labels:nama, datasets:[
+      {label:'HD',  data:nama.map(function(n){return kab[n].HD}),  backgroundColor:pri, borderRadius:3},
+      {label:'HKD', data:nama.map(function(n){return kab[n].HKD}), backgroundColor:'#f59e0b', borderRadius:3}]},
+    options:Object.assign({plugins:{legend:{position:'bottom'}}, scales:{x:{stacked:true, ticks:{maxRotation:55, minRotation:30}}, y:{stacked:true}}}, opt)});
 
-  function horiz(id, arr, color){
+  function horiz(id, arr, warna){
     new Chart(document.getElementById(id), {type:'bar',
-      data:{labels:arr.map(function(a){return a[0]}), datasets:[{data:arr.map(function(a){return a[1]}), backgroundColor:color, borderRadius:4}]},
+      data:{labels:arr.map(function(a){return a[0]}), datasets:[{data:arr.map(function(a){return a[1]}), backgroundColor:warna, borderRadius:4}]},
       options:Object.assign({indexAxis:'y', plugins:{legend:{display:false}}}, opt)});
   }
-  horiz('cNaik', <?= json_encode($dash['top_naik']) ?>, naik);
-  horiz('cTurun', <?= json_encode($dash['top_turun']) ?>, turun);
+  horiz('cNaikHD', top.HD.naik, naik);   horiz('cTurunHD', top.HD.turun, turun);
+  horiz('cNaikHKD', top.HKD.naik, naik); horiz('cTurunHKD', top.HKD.turun, turun);
 })();
 </script>

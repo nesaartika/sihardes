@@ -273,28 +273,40 @@ class Cermat_harga
     /** Data siap pakai untuk dashboard */
     public function dashboard(array $hasil)
     {
-        $per_kab = array(); $kec = array(); $naik = array(); $turun = array();
+        $per_kab = array(); $kec = array();
+        $arah = array('HD' => array('naik' => 0, 'turun' => 0, 'stabil' => 0), 'HKD' => array('naik' => 0, 'turun' => 0, 'stabil' => 0));
+        $naik = array('HD' => array(), 'HKD' => array()); $turun = array('HD' => array(), 'HKD' => array());
+
         foreach ($hasil['komoditas'] as $k)
         {
+            $dok = $k['dokumen'];
+            $arah[$dok][$k['arah']]++;
             foreach ($k['kec_semua'] as $c) $kec[$c['kab'] . '|' . $c['kec']] = 1;
             if ($k['jumlah'] >= 3)
             {
-                if ($k['arah'] === 'naik')  $naik[]  = array($k['nama'] . ' (' . $k['dokumen'] . ')', round($k['prov_pct'], 2));
-                if ($k['arah'] === 'turun') $turun[] = array($k['nama'] . ' (' . $k['dokumen'] . ')', round($k['prov_pct'], 2));
+                if ($k['arah'] === 'naik')  $naik[$dok][]  = array($k['nama'], round($k['prov_pct'], 2));
+                if ($k['arah'] === 'turun') $turun[$dok][] = array($k['nama'], round($k['prov_pct'], 2));
             }
             foreach ($k['kab'] as $kab => $lst)
             {
                 $nm = self::nama_kab($kab);
-                $per_kab[$nm] = (isset($per_kab[$nm]) ? $per_kab[$nm] : 0) + count($lst);
+                if ( ! isset($per_kab[$nm])) $per_kab[$nm] = array('HD' => 0, 'HKD' => 0);
+                $per_kab[$nm][$dok] += count($lst);
             }
         }
-        arsort($per_kab);
-        usort($naik,  function ($x, $y) { return $y[1] <=> $x[1]; });
-        usort($turun, function ($x, $y) { return $x[1] <=> $y[1]; });
+        uasort($per_kab, function ($x, $y) { return ($y['HD'] + $y['HKD']) <=> ($x['HD'] + $x['HKD']); });
+
+        $top = array();
+        foreach (array('HD', 'HKD') as $dok)
+        {
+            usort($naik[$dok],  function ($x, $y) { return $y[1] <=> $x[1]; });
+            usort($turun[$dok], function ($x, $y) { return $x[1] <=> $y[1]; });
+            $top[$dok] = array('naik' => array_slice($naik[$dok], 0, 10), 'turun' => array_slice($turun[$dok], 0, 10));
+        }
         return array(
-            'per_kab'      => $per_kab,
-            'top_naik'     => array_slice($naik, 0, 10),
-            'top_turun'    => array_slice($turun, 0, 10),
+            'per_kab'       => $per_kab,   // [kabupaten => ['HD' => n, 'HKD' => n]]
+            'arah'          => $arah,      // [dokumen => ['naik','turun','stabil']]
+            'top'           => $top,       // [dokumen => ['naik' => [...], 'turun' => [...]]]
             'jml_kecamatan' => count($kec),
         );
     }
