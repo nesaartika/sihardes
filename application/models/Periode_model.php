@@ -95,43 +95,6 @@ class Periode_model extends CI_Model
         {
             $this->db->query('ALTER TABLE periode DROP INDEX uq_bulan_tahun, ADD INDEX idx_bulan_tahun (tahun, bulan)');
         }
-        // Database masih kosong: muat data awal (September 2026) bila tersedia
-        if ($this->db->count_all('periode') === 0 && is_file(FCPATH . 'database/data_awal.sql'))
-        {
-            $this->muat_data_awal();
-        }
-    }
-
-    /** Memuat database/data_awal.sql per pernyataan (kecil-kecil) agar tidak melewati max_allowed_packet MySQL */
-    private function muat_data_awal()
-    {
-        $conn = $this->db->conn_id;
-        $fh = fopen(FCPATH . 'database/data_awal.sql', 'r');
-        if ( ! $fh) return;
-
-        // bersihkan sisa data setengah jalan dari percobaan sebelumnya
-        $conn->query('SET FOREIGN_KEY_CHECKS=0');
-        foreach (array('sheet_excel', 'data_excel', 'harga', 'kecamatan', 'komoditas', 'alasan', 'periode') as $t) $conn->query('DELETE FROM `' . $t . '`');
-
-        $conn->begin_transaction();
-        $stmt = '';
-        $gagal = null;
-        while (($baris = fgets($fh)) !== false)
-        {
-            $stmt .= $baris;
-            if (substr(rtrim($baris), -1) !== ';') continue;   // pernyataan belum selesai
-            if ( ! $conn->query($stmt)) { $gagal = $conn->error; break; }
-            $stmt = '';
-        }
-        fclose($fh);
-
-        if ($gagal !== null)
-        {
-            $conn->rollback();
-            show_error('Gagal memuat data awal: ' . html_escape($gagal), 500, 'Database');
-        }
-        $conn->commit();
-        $conn->query('SET FOREIGN_KEY_CHECKS=1');
     }
 
     private function buat_struktur()
