@@ -137,6 +137,20 @@ class Xlsx_io
         return is_numeric($v) ? $v + 0 : $v;
     }
 
+    /** Nama semua sheet pada file, sesuai urutan tab di Excel. */
+    public static function daftar_sheet($path)
+    {
+        $zip = new ZipArchive();
+        if ($zip->open($path) !== true) throw new RuntimeException('File bukan .xlsx yang valid.');
+        $wb = $zip->getFromName('xl/workbook.xml');
+        $zip->close();
+        if ($wb === false) throw new RuntimeException('Struktur .xlsx tidak dikenali.');
+        $d = new DOMDocument(); $d->loadXML($wb);
+        $out = array();
+        foreach ($d->getElementsByTagName('sheet') as $s) $out[] = $s->getAttribute('name');
+        return $out;
+    }
+
     /** Peta indeks gaya sel => kode format, hanya untuk gaya yang berformat tanggal/waktu */
     private static function gaya_tanggal($path)
     {

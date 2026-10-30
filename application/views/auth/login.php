@@ -21,7 +21,7 @@
   <p class="sub">Pencermatan dan Rekapitulasi Perubahan Harga<br>BPS Provinsi Kalimantan Barat</p>
   <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
   <?= form_open('auth/login') ?>
-    <label for="username">Nama pengguna</label>
+    <label for="username">Email atau nama pengguna</label>
     <input type="text" name="username" id="username" autocomplete="username" required autofocus>
     <label for="password">Kata sandi</label>
     <input type="password" name="password" id="password" autocomplete="current-password" required>

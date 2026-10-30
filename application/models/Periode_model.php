@@ -67,6 +67,24 @@ class Periode_model extends CI_Model
                 CONSTRAINT `fk_data_excel_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
+        // Database versi lama: simpan semua sheet di file Excel
+        if ( ! $this->db->field_exists('daftar_sheet', 'periode'))
+        {
+            $this->db->query('ALTER TABLE periode ADD COLUMN daftar_sheet TEXT NULL');
+        }
+        if ( ! $this->db->table_exists('sheet_excel'))
+        {
+            $this->db->query('CREATE TABLE IF NOT EXISTS `sheet_excel` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `periode_id` VARCHAR(15) NOT NULL,
+                `sheet` VARCHAR(64) NOT NULL,
+                `baris` INT UNSIGNED NOT NULL,
+                `isi` TEXT NOT NULL,
+                PRIMARY KEY (`id`),
+                KEY `idx_sheet` (`periode_id`,`sheet`,`baris`),
+                CONSTRAINT `fk_sheet_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+        }
         // Database versi lama: periode yang sama sempat dibatasi unik -> longgarkan agar beberapa file per periode dapat disimpan
         if ($this->db->query("SHOW INDEX FROM periode WHERE Key_name = 'uq_bulan_tahun'")->num_rows() > 0)
         {
@@ -88,7 +106,7 @@ class Periode_model extends CI_Model
 
         // bersihkan sisa data setengah jalan dari percobaan sebelumnya
         $conn->query('SET FOREIGN_KEY_CHECKS=0');
-        foreach (array('data_excel', 'harga', 'kecamatan', 'komoditas', 'alasan', 'periode') as $t) $conn->query('DELETE FROM `' . $t . '`');
+        foreach (array('sheet_excel', 'data_excel', 'harga', 'kecamatan', 'komoditas', 'alasan', 'periode') as $t) $conn->query('DELETE FROM `' . $t . '`');
 
         $conn->begin_transaction();
         $stmt = '';
@@ -334,6 +352,68 @@ class Periode_model extends CI_Model
             sort($kab_nilai, SORT_NUMERIC);
         }
         return array('kolom' => $kolom, 'baris' => $baris, 'total' => $total, 'ada' => true, 'kab_nilai' => $kab_nilai);
+    }
+
+    /** Menyimpan semua sheet selain Data. $meta = daftar semua sheet (termasuk Data) untuk tab. */
+    public function simpan_sheets($periode_id, array $sheets, array $meta)
+    {
+        $this->db->trans_start();
+        $this->db->update('periode', array('daftar_sheet' => json_encode($meta, JSON_UNESCAPED_UNICODE)), array('id' => $periode_id));
+        $batch = array();
+        foreach ($sheets as $sh)
+        {
+            foreach ($sh['baris'] as $b)
+            {
+                $batch[] = array('periode_id' => $periode_id, 'sheet' => $sh['nama'], 'baris' => $b['r'],
+                                 'isi' => json_encode($b['v'], JSON_UNESCAPED_UNICODE));
+            }
+        }
+        foreach (array_chunk($batch, 500) as $potong) $this->db->insert_batch('sheet_excel', $potong);
+        $this->db->trans_complete();
+    }
+
+    /** Daftar sheet pada file yang diunggah: [ ['nama'=>, 'baris'=>, 'kolom'=>], ... ] */
+    public function daftar_sheet($periode_id)
+    {
+        $p = $this->db->select('daftar_sheet')->get_where('periode', array('id' => $periode_id))->row_array();
+        $d = ($p && ! empty($p['daftar_sheet'])) ? json_decode($p['daftar_sheet'], true) : array();
+        return is_array($d) ? $d : array();
+    }
+
+    /** Isi satu sheet (selain Data) apa adanya, dengan pencarian dan paginasi. */
+    public function data_sheet($periode_id, $sheet, $q, $limit, $offset)
+    {
+        $dari = ' FROM sheet_excel WHERE periode_id = ? AND sheet = ?'; $par = array($periode_id, $sheet);
+        if ($q !== '') { $dari .= ' AND isi LIKE ?'; $par[] = '%' . $this->db->escape_like_str($q) . '%'; }
+        $total = (int) $this->db->query('SELECT COUNT(*) AS n' . $dari, $par)->row()->n;
+        $rows = $this->db->query('SELECT baris, isi' . $dari . ' ORDER BY baris LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset, $par)->result_array();
+        $baris = array();
+        foreach ($rows as $r) $baris[] = array('r' => (int) $r['baris'], 'v' => json_decode($r['isi'], true));
+        return array('baris' => $baris, 'total' => $total);
+    }
+
+    /**
+     * Hasil RH dihitung dari sheet Data (tabel harga): rata-rata geometrik harga bulan lalu dan bulan ini per komoditas, dan RHt.
+     * @return array [ ['kode','nama','dokumen','g_lalu','g_ini','rht'], ... ] sesuai urutan komoditas pada file
+     */
+    public function hasil_rh($periode_id)
+    {
+        $rows = $this->db->query(
+            'SELECT c.kode, c.nama, c.dokumen, EXP(AVG(LN(h.harga_lalu))) AS g_lalu, EXP(AVG(LN(h.harga_ini))) AS g_ini
+               FROM komoditas c
+               JOIN kecamatan k ON k.komoditas_id = c.id
+               JOIN harga h ON h.kecamatan_id = k.id
+              WHERE c.periode_id = ? AND h.harga_ini > 0 AND h.harga_lalu > 0
+              GROUP BY c.id, c.kode, c.nama, c.dokumen, c.urut
+              ORDER BY c.urut', array($periode_id))->result_array();
+        $out = array();
+        foreach ($rows as $r)
+        {
+            $gl = (float) $r['g_lalu']; $gi = (float) $r['g_ini'];
+            $out[] = array('kode' => $r['kode'], 'nama' => $r['nama'], 'dokumen' => $r['dokumen'],
+                           'g_lalu' => $gl, 'g_ini' => $gi, 'rht' => $gl > 0 ? ($gi / $gl - 1) * 100 : 0.0);
+        }
+        return $out;
     }
 
     public function alasan($periode_id)

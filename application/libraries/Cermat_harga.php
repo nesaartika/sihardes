@@ -108,6 +108,45 @@ class Cermat_harga
         return array('kolom' => $kolom, 'baris' => $baris);
     }
 
+    /**
+     * Membaca semua sheet selain $kecuali apa adanya (tanpa judul kolom; kolom diberi huruf seperti Excel).
+     * @return array [ ['nama'=>, 'kolom'=>int, 'baris'=>[ ['r'=>no, 'v'=>[nilai|null,...]], ... ]], ... ]
+     */
+    public function baca_sheet_lain($path, $kecuali = 'Data', $maks_kolom = 120)
+    {
+        @ini_set('memory_limit', '1024M');
+        @set_time_limit(600);
+        require_once APPPATH . 'libraries/Xlsx_io.php';
+
+        $out = array();
+        foreach (Xlsx_io::daftar_sheet($path) as $nama)
+        {
+            if (strcasecmp($nama, $kecuali) === 0) continue;
+            $rows = Xlsx_io::baca($path, $nama, true);
+            $n = 0;
+            foreach ($rows as $r) $n = max($n, max(array_keys($r['v'])) + 1);
+            $n = min($n, $maks_kolom);
+            $baris = array();
+            foreach ($rows as $r)
+            {
+                $v = array();
+                for ($i = 0; $i < $n; $i++) $v[] = isset($r['v'][$i]) ? (string) $r['v'][$i] : null;
+                while ($v && end($v) === null) array_pop($v);      // buang sel kosong di ujung baris
+                $baris[] = array('r' => $r['r'], 'v' => $v);
+            }
+            $out[] = array('nama' => $nama, 'kolom' => $n, 'baris' => $baris);
+        }
+        return $out;
+    }
+
+    /** Huruf kolom Excel: 0 => A, 25 => Z, 26 => AA */
+    public static function huruf_kolom($i)
+    {
+        $s = '';
+        for ($i = $i + 1; $i > 0; $i = intdiv($i - 1, 26)) $s = chr(65 + ($i - 1) % 26) . $s;
+        return $s;
+    }
+
     private function petakan_header($r)
     {
         $kunci = array(

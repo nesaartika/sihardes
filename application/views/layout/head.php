@@ -16,6 +16,7 @@ $ikon = array(
  'data'      => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>',
  'unggah'    => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>',
  'aktivitas' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>',
+ 'pengguna'  => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>',
  'riwayat'   => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
 );
 $menu_item = array(
@@ -26,15 +27,21 @@ $menu_item = array(
  'unggah'    => array('Unggah Data', 'cermat/unggah'),
  'riwayat'   => array('Riwayat Periode', 'cermat/riwayat'),
  'aktivitas' => array('Log Aktivitas', 'cermat/aktivitas'),
+ 'pengguna'  => array('Kelola Pengguna', 'cermat/pengguna'),
 );
+$role = $this->session->userdata('role');
+$akun_kab = ($role === 'kabupaten');
+if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('rekap', 'data')));   // akun kabupaten: Rekap dan Data Asli saja
+$nm_user = (string) $this->session->userdata('nama');
+$nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
 $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data Asli',
-               'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas');
+               'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
 <aside class="side">
   <div class="brand"><b>CERMAT HARGA</b><span>BPS Provinsi Kalimantan Barat</span></div>
   <nav class="nav">
     <?php foreach ($menu_item as $k => $m): ?>
-      <a class="<?= $menu === $k ? 'on' : '' ?>" href="<?= site_url($m[1]) . (in_array($k, array('unggah', 'aktivitas')) ? '' : $q) ?>"><?= $ikon[$k] ?><?= $m[0] ?></a>
+      <a class="<?= $menu === $k ? 'on' : '' ?>" href="<?= site_url($m[1]) . (in_array($k, array('unggah', 'aktivitas', 'pengguna')) ? '' : $q) ?>"><?= $ikon[$k] ?><?= $m[0] ?></a>
     <?php endforeach; ?>
   </nav>
   <small>Survei Harga Perdesaan<br>Pencermatan &amp; Rekapitulasi Perubahan Harga</small>
@@ -43,7 +50,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
   <header class="top">
     <h1><?= $judul[$menu] ?></h1>
     <span class="hint" style="white-space:nowrap">
-      <?= html_escape($this->session->userdata('nama')) ?> &middot;
+      <?= html_escape($nm_user) ?><?= ($akun_kab ? stripos($nm_user, Cermat_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? ' (' . html_escape($nama_peran) . ')' : '' ?> &middot;
       <a href="<?= site_url('auth/ganti_sandi') ?>">Ganti sandi</a> &middot;
       <a href="<?= site_url('auth/logout') ?>">Keluar</a>
     </span>
@@ -53,7 +60,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
           <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 38, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
         <?php endforeach; ?>
       </select>
-      <?php if ($p): ?><a class="btn alt" href="<?= site_url('cermat/unduh/' . $p) ?>">Unduh Excel</a><?php endif; ?>
+      <?php if ($p && ! $akun_kab): ?><a class="btn alt" href="<?= site_url('cermat/unduh/' . $p) ?>">Unduh Excel</a><?php endif; ?>
     <?php endif; ?>
   </header>
   <main>

@@ -3,8 +3,13 @@
   <input type="text" id="q" placeholder="Cari komoditas / kode / kecamatan...">
   <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
   <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option></select>
+  <?php if (empty($kunci_kab)): ?>
   <select id="fkab"><option value="">Semua kabupaten</option>
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
+  <?php else: ?>
+  <input type="hidden" id="fkab" value="">
+  <span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span>
+  <?php endif; ?>
   <label><input type="checkbox" id="fkosong"> Alasan belum diisi</label>
   <button class="btn" type="submit">Terapkan</button>
   <button class="btn alt" type="button" id="breset">Reset</button>

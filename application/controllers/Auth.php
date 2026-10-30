@@ -37,11 +37,11 @@ class Auth extends MY_Controller
                     $this->session->sess_regenerate(TRUE);
                     $this->session->set_userdata(array(
                         'user_id' => (int) $u['id'], 'username' => $u['username'], 'nama' => $u['nama'],
-                        'role' => $u['role'], 'wajib_ganti' => (int) $u['wajib_ganti'], 'gagal' => 0, 'blok_sampai' => 0,
+                        'role' => $u['role'], 'kab' => (int) $u['kab'], 'wajib_ganti' => (int) $u['wajib_ganti'], 'gagal' => 0, 'blok_sampai' => 0,
                     ));
                     $this->pengguna->catat_login($u['id']);
                     $this->catatan->catat('login', 'Berhasil masuk', $u['username']);
-                    redirect($u['wajib_ganti'] ? 'auth/ganti_sandi' : '/');
+                    redirect($u['wajib_ganti'] ? 'auth/ganti_sandi' : ($u['role'] === 'kabupaten' ? 'cermat/rekap' : '/'));
                 }
 
                 $this->catatan->catat('login_gagal', 'Percobaan masuk gagal', mb_substr(trim((string) $this->input->post('username')), 0, 50));
