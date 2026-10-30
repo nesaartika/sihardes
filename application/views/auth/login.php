@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Masuk - CERMAT Harga</title>
+<title>Masuk - Fenomena Harga</title>
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 <style>
   body{align-items:center;justify-content:center;min-height:100vh;background:var(--side)}
@@ -17,8 +17,8 @@
 </head>
 <body>
 <div class="card kotak">
-  <h1>CERMAT Harga</h1>
-  <p class="sub">Pencermatan dan Rekapitulasi Perubahan Harga<br>BPS Provinsi Kalimantan Barat</p>
+  <h1>Fenomena Harga</h1>
+  <p class="sub">Pengumpulan Fenomena Perubahan Harga Perdesaan<br>BPS Provinsi Kalimantan Barat</p>
   <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
   <?= form_open('auth/login') ?>
     <label for="username">Email atau nama pengguna</label>

@@ -4,7 +4,7 @@
     <div class="s"><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span> <?= html_escape($k['kode']) ?></div></div>
   <div class="card kpi"><div class="l">Perubahan Provinsi</div><div class="v <?= $k['arah'] ?>"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></div><div class="s"><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span></div></div>
   <div class="card kpi"><div class="l">Observasi</div><div class="v"><?= $k['jumlah'] ?></div><div class="s">kombinasi kecamatan x kualitas</div></div>
-  <div class="card kpi"><div class="l">Kecamatan</div><div class="v"><?= count($k['kec_semua']) ?></div><div class="s"><?= array_sum(array_map('count', $k['kab'])) ?> perlu konfirmasi</div></div>
+  <div class="card kpi"><div class="l">Kecamatan</div><div class="v"><?= count($k['kec_semua']) ?></div><div class="s"><?= array_sum(array_map('count', isset($k['kab_asli']) ? $k['kab_asli'] : $k['kab'])) ?> perlu konfirmasi</div></div>
 </div>
 <div class="tw"><table>
   <thead><tr><th>Kabupaten</th><th>Kecamatan</th><th>Perubahan</th><th>Observasi</th><th>Status</th><th>Rincian Kualitas</th></tr></thead>

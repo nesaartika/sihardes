@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CERMAT Harga - BPS Provinsi Kalimantan Barat</title>
+<title>Fenomena Harga - BPS Provinsi Kalimantan Barat</title>
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 </head>
 <body>
@@ -38,13 +38,13 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
                'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
 <aside class="side">
-  <div class="brand"><b>CERMAT HARGA</b><span>BPS Provinsi Kalimantan Barat</span></div>
+  <div class="brand"><b>FENOMENA HARGA</b><span>BPS Provinsi Kalimantan Barat</span></div>
   <nav class="nav">
     <?php foreach ($menu_item as $k => $m): ?>
       <a class="<?= $menu === $k ? 'on' : '' ?>" href="<?= site_url($m[1]) . (in_array($k, array('unggah', 'aktivitas', 'pengguna')) ? '' : $q) ?>"><?= $ikon[$k] ?><?= $m[0] ?></a>
     <?php endforeach; ?>
   </nav>
-  <small>Survei Harga Perdesaan<br>Pencermatan &amp; Rekapitulasi Perubahan Harga</small>
+  <small>Pengumpulan Fenomena<br>Perubahan Harga Perdesaan</small>
 </aside>
 <div class="wrap">
   <header class="top">

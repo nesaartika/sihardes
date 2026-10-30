@@ -43,7 +43,7 @@ class Cermat extends MY_Controller
         $this->render('cermat/dashboard', 'dashboard', array(
             'ringkas' => $d['hasil']['ringkas'],
             'dash'    => $this->cermat_harga->dashboard($d['hasil']),
-            'terisi'  => count($d['alasan']),
+            'terisi'  => $this->hitung_terisi($d),
             'total_konfirmasi' => $this->hitung_baris_konfirmasi($d['hasil']),
             'progres_kab' => $this->progres_kabupaten($d),
         ));
@@ -310,6 +310,25 @@ class Cermat extends MY_Controller
         redirect('cermat?p=' . $id);
     }
 
+    /** Memilih / membatalkan komoditas yang akan dikonfirmasi (AJAX). Parameter: kode[] dan dipilih = 1|0 */
+    public function pilih_komoditas()
+    {
+        $this->output->set_content_type('application/json');
+        if ($this->input->method() !== 'post' || ! $this->buka_periode())
+        {
+            return $this->output->set_status_header(400)->set_output(json_encode(array('ok' => false)));
+        }
+        $kode = $this->input->post('kode');
+        if ( ! is_array($kode)) $kode = array($kode);
+        $bersih = array();
+        foreach ($kode as $c) { $c = preg_replace('/[^A-Za-z0-9]/', '', (string) $c); if ($c !== '') $bersih[] = $c; }
+        $nilai = $this->input->post('dipilih') ? 1 : 0;
+        $this->periode->set_dipilih($this->aktif, $bersih, $nilai);
+        $total = $this->periode->hitung_dipilih($this->aktif);
+        $this->catatan->catat('pilih_komoditas', $this->data['nama'] . ' - ' . count($bersih) . ' komoditas ' . ($nilai ? 'dipilih' : 'dikeluarkan') . ' (dipilih sekarang: ' . $total . ')');
+        $this->output->set_output(json_encode(array('ok' => true, 'dipilih' => $total)));
+    }
+
     /** Simpan alasan (AJAX) */
     public function simpan_alasan()
     {
@@ -350,6 +369,7 @@ class Cermat extends MY_Controller
     {
         $d = $this->periode->muat($id);
         if ( ! $d) show_404();
+        $this->terapkan_pilihan($d);
         $tmp = tempnam(sys_get_temp_dir(), 'cmt');
         $this->cermat_harga->tulis_xlsx($d['hasil'], $tmp, '', $d['alasan']);
         $this->load->helper('download');
@@ -452,8 +472,33 @@ class Cermat extends MY_Controller
         $d = $id ? $this->periode->muat($id) : null;
         if ( ! $d) { $this->aktif = null; $this->data = null; return false; }
         $this->aktif = $id;
+        $this->terapkan_pilihan($d);
         $this->data = $d;
         return true;
+    }
+
+    /**
+     * Hanya komoditas yang dipilih admin yang dikonfirmasi: yang tidak dipilih tidak punya baris kabupaten
+     * (tidak tampil di Rekap, akun kabupaten, dashboard, dan Excel). Data aslinya disimpan di 'kab_asli'.
+     */
+    private function terapkan_pilihan(array &$d)
+    {
+        $n = 0;
+        foreach ($d['hasil']['komoditas'] as &$k)
+        {
+            $k['kab_asli'] = $k['kab'];
+            if (isset($k['dipilih']) && ! $k['dipilih']) { $k['kab'] = array(); $k['tampil'] = false; }
+            if ( ! empty($k['tampil'])) $n++;
+        }
+        unset($k);
+        $d['hasil']['ringkas']['perlu_konfirmasi'] = $n;
+    }
+
+    private function hitung_terisi($d)
+    {
+        $ada = array();
+        foreach ($d['hasil']['komoditas'] as $k) foreach ($k['kab'] as $kb => $_) $ada[$k['kode'] . '|' . $kb] = 1;
+        return count(array_intersect_key($d['alasan'], $ada));
     }
 
     private function hitung_baris_konfirmasi($hasil)

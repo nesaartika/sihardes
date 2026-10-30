@@ -67,6 +67,11 @@ class Periode_model extends CI_Model
                 CONSTRAINT `fk_data_excel_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
+        // Database versi lama: admin dapat memilih komoditas yang akan dikonfirmasi
+        if ( ! $this->db->field_exists('dipilih', 'komoditas'))
+        {
+            $this->db->query('ALTER TABLE komoditas ADD COLUMN dipilih TINYINT(1) NOT NULL DEFAULT 1');
+        }
         // Database versi lama: simpan semua sheet di file Excel
         if ( ! $this->db->field_exists('daftar_sheet', 'periode'))
         {
@@ -267,6 +272,7 @@ class Periode_model extends CI_Model
                 'dokumen' => $k['dokumen'], 'kode' => $k['kode'], 'nama' => $k['nama'],
                 'label' => $k['nama'] . ' (' . $k['kode'] . ')', 'prov_pct' => (float) $k['prov_pct'],
                 'arah' => $k['arah'], 'jumlah' => (int) $k['jumlah'], 'tampil' => (bool) $k['tampil'],
+                'dipilih' => isset($k['dipilih']) ? (bool) $k['dipilih'] : true,
                 'kab' => $per_kab, 'kec_semua' => $semua,
             );
         }
@@ -414,6 +420,23 @@ class Periode_model extends CI_Model
                            'g_lalu' => $gl, 'g_ini' => $gi, 'rht' => $gl > 0 ? ($gi / $gl - 1) * 100 : 0.0);
         }
         return $out;
+    }
+
+    /** Menandai komoditas (menurut kode) sebagai dipilih / tidak dipilih untuk dikonfirmasi. */
+    public function set_dipilih($periode_id, array $kode, $nilai)
+    {
+        foreach (array_chunk(array_values(array_unique($kode)), 500) as $potong)
+        {
+            $this->db->where('periode_id', $periode_id)->where_in('kode', $potong)->update('komoditas', array('dipilih' => $nilai ? 1 : 0));
+        }
+    }
+
+    /** Jumlah komoditas yang dipilih untuk dikonfirmasi; sekaligus memperbarui ringkasan periode. */
+    public function hitung_dipilih($periode_id)
+    {
+        $n = (int) $this->db->query('SELECT COUNT(*) AS n FROM komoditas WHERE periode_id = ? AND tampil = 1 AND dipilih = 1', array($periode_id))->row()->n;
+        $this->db->update('periode', array('perlu_konfirmasi' => $n), array('id' => $periode_id));
+        return $n;
     }
 
     public function alasan($periode_id)
