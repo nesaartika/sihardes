@@ -167,12 +167,13 @@ class Cermat_harga
                 if (in_array($j, $cocok, true) && ! isset($peta[$k])) $peta[$k] = $i;
             }
         }
-        foreach (array_keys($kunci) as $k)
+        $nama = array('kab' => 'Kabupaten', 'kec' => 'Nama Kecamatan', 'kode' => 'Kode Komoditas', 'nama' => 'Nama Komoditas',
+                      'kualitas' => 'Nama Kualitas', 'ini' => 'Harga Bulan Ini', 'lalu' => 'Harga Bulan Sebelumnya');
+        $hilang = array();
+        foreach (array_keys($kunci) as $k) if ( ! isset($peta[$k])) $hilang[] = $nama[$k];
+        if ($hilang)
         {
-            if ( ! isset($peta[$k]))
-            {
-                throw new RuntimeException("Kolom wajib tidak ditemukan pada header sheet Data: {$k}");
-            }
+            throw new RuntimeException('Kolom yang diperlukan tidak ditemukan di sheet Data: ' . implode(', ', $hilang) . '.');
         }
         return $peta;
     }
@@ -192,6 +193,12 @@ class Cermat_harga
      * @param array $opsi  lihat self::$opsi_default
      * @return array ['ringkas'=>[...], 'komoditas'=>[...]]
      */
+    /**
+     * Alur pengolahan (sesuai alur di BPS):
+     *   1. Sheet Data  -> HASIL RH per komoditas: rata-rata geometrik harga bulan lalu dan bulan ini, lalu RHt = (ini / lalu - 1) x 100
+     *   2. HASIL RH    -> arah perubahan di tingkat provinsi (naik / turun / stabil) menurut RHt
+     *   3. Arah + data kecamatan di sheet Data -> kabupaten dan kecamatan yang perlu dikonfirmasi (isi tabel konfirmasi)
+     */
     public function hitung(array $baris, array $opsi = array())
     {
         $o = array_merge(self::$opsi_default, $opsi);
@@ -210,9 +217,11 @@ class Cermat_harga
             $k = $r['kode'];
             if ( ! isset($kom[$k]))
             {
-                $kom[$k] = array('nama' => $r['nama'], 'sum' => 0.0, 'n' => 0, 'kec' => array());
+                $kom[$k] = array('nama' => $r['nama'], 'sum' => 0.0, 'si' => 0.0, 'sl' => 0.0, 'n' => 0, 'kec' => array());
             }
             $kom[$k]['sum'] += $ln;
+            $kom[$k]['si']  += log($r['ini']);
+            $kom[$k]['sl']  += log($r['lalu']);
             $kom[$k]['n']++;
 
             $kk = $r['kab'] . '|' . $r['kec'];
@@ -230,7 +239,11 @@ class Cermat_harga
 
         foreach ($kom as $kode => $a)
         {
-            $prov = (exp($a['sum'] / $a['n']) - 1) * 100;
+            // Tahap 1: Hasil RH (rata-rata geometrik bulan ini dan bulan lalu, lalu RHt)
+            $g_ini  = exp($a['si'] / $a['n']);
+            $g_lalu = exp($a['sl'] / $a['n']);
+            $prov   = ($g_ini / $g_lalu - 1) * 100;     // RHt
+            // Tahap 2: arah perubahan provinsi menurut RHt
             if (abs($prov) < $o['ambang_stabil']) { $arah = 'stabil'; $jml_stabil++; }
             elseif ($prov > 0)                     { $arah = 'naik';   $jml_naik++; }
             else                                   { $arah = 'turun';  $jml_turun++; }
@@ -279,7 +292,9 @@ class Cermat_harga
                 'kode'      => $kode,
                 'nama'      => $a['nama'],
                 'label'     => $a['nama'] . ' (' . $kode . ')',
-                'prov_pct'  => $prov,
+                'prov_pct'  => $prov,       // RHt
+                'g_ini'     => $g_ini,      // rata-rata geometrik bulan ini
+                'g_lalu'    => $g_lalu,     // rata-rata geometrik bulan sebelumnya
                 'arah'      => $arah,
                 'jumlah'    => $a['n'],
                 'tampil'    => $tampil,

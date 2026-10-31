@@ -67,6 +67,11 @@ class Periode_model extends CI_Model
                 CONSTRAINT `fk_data_excel_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
+        // Database versi lama: simpan Hasil RH (rata-rata geometrik) per komoditas
+        if ( ! $this->db->field_exists('g_ini', 'komoditas'))
+        {
+            $this->db->query('ALTER TABLE komoditas ADD COLUMN g_ini DOUBLE NULL, ADD COLUMN g_lalu DOUBLE NULL');
+        }
         // Database versi lama: admin dapat memilih komoditas yang akan dikonfirmasi
         if ( ! $this->db->field_exists('dipilih', 'komoditas'))
         {
@@ -95,6 +100,43 @@ class Periode_model extends CI_Model
         {
             $this->db->query('ALTER TABLE periode DROP INDEX uq_bulan_tahun, ADD INDEX idx_bulan_tahun (tahun, bulan)');
         }
+        // Database masih kosong: muat data awal (September 2026) bila tersedia
+        if ($this->db->count_all('periode') === 0 && is_file(FCPATH . 'database/data_awal.sql'))
+        {
+            $this->muat_data_awal();
+        }
+    }
+
+    /** Memuat database/data_awal.sql per pernyataan (kecil-kecil) agar tidak melewati max_allowed_packet MySQL */
+    private function muat_data_awal()
+    {
+        $conn = $this->db->conn_id;
+        $fh = fopen(FCPATH . 'database/data_awal.sql', 'r');
+        if ( ! $fh) return;
+
+        // bersihkan sisa data setengah jalan dari percobaan sebelumnya
+        $conn->query('SET FOREIGN_KEY_CHECKS=0');
+        foreach (array('sheet_excel', 'data_excel', 'harga', 'kecamatan', 'komoditas', 'alasan', 'periode') as $t) $conn->query('DELETE FROM `' . $t . '`');
+
+        $conn->begin_transaction();
+        $stmt = '';
+        $gagal = null;
+        while (($baris = fgets($fh)) !== false)
+        {
+            $stmt .= $baris;
+            if (substr(rtrim($baris), -1) !== ';') continue;   // pernyataan belum selesai
+            if ( ! $conn->query($stmt)) { $gagal = $conn->error; break; }
+            $stmt = '';
+        }
+        fclose($fh);
+
+        if ($gagal !== null)
+        {
+            $conn->rollback();
+            show_error('Gagal memuat data awal: ' . html_escape($gagal), 500, 'Database');
+        }
+        $conn->commit();
+        $conn->query('SET FOREIGN_KEY_CHECKS=1');
     }
 
     private function buat_struktur()
@@ -151,7 +193,8 @@ class Periode_model extends CI_Model
         {
             $id_kom++;
             $b_kom[] = array('id' => $id_kom, 'periode_id' => $id, 'urut' => $urut, 'kode' => $k['kode'], 'nama' => $k['nama'],
-                'dokumen' => $k['dokumen'], 'prov_pct' => round($k['prov_pct'], 4), 'arah' => $k['arah'],
+                'dokumen' => $k['dokumen'], 'prov_pct' => round($k['prov_pct'], 4),
+                'g_ini' => isset($k['g_ini']) ? $k['g_ini'] : null, 'g_lalu' => isset($k['g_lalu']) ? $k['g_lalu'] : null, 'arah' => $k['arah'],
                 'jumlah' => $k['jumlah'], 'tampil' => $k['tampil'] ? 1 : 0);
             foreach ($k['kec_semua'] as $c)
             {
@@ -234,6 +277,8 @@ class Periode_model extends CI_Model
             $hasil[] = array(
                 'dokumen' => $k['dokumen'], 'kode' => $k['kode'], 'nama' => $k['nama'],
                 'label' => $k['nama'] . ' (' . $k['kode'] . ')', 'prov_pct' => (float) $k['prov_pct'],
+                'g_ini' => isset($k['g_ini']) && $k['g_ini'] !== null ? (float) $k['g_ini'] : null,
+                'g_lalu' => isset($k['g_lalu']) && $k['g_lalu'] !== null ? (float) $k['g_lalu'] : null,
                 'arah' => $k['arah'], 'jumlah' => (int) $k['jumlah'], 'tampil' => (bool) $k['tampil'],
                 'dipilih' => isset($k['dipilih']) ? (bool) $k['dipilih'] : true,
                 'kab' => $per_kab, 'kec_semua' => $semua,
@@ -367,14 +412,20 @@ class Periode_model extends CI_Model
      */
     public function hasil_rh($periode_id)
     {
-        $rows = $this->db->query(
-            'SELECT c.kode, c.nama, c.dokumen, EXP(AVG(LN(h.harga_lalu))) AS g_lalu, EXP(AVG(LN(h.harga_ini))) AS g_ini
-               FROM komoditas c
-               JOIN kecamatan k ON k.komoditas_id = c.id
-               JOIN harga h ON h.kecamatan_id = k.id
-              WHERE c.periode_id = ? AND h.harga_ini > 0 AND h.harga_lalu > 0
-              GROUP BY c.id, c.kode, c.nama, c.dokumen, c.urut
-              ORDER BY c.urut', array($periode_id))->result_array();
+        // Periode baru: Hasil RH sudah dihitung dan disimpan saat unggah (tahap 1 pengolahan)
+        $rows = $this->db->query('SELECT kode, nama, dokumen, g_lalu, g_ini FROM komoditas
+                                   WHERE periode_id = ? AND g_ini IS NOT NULL AND g_lalu IS NOT NULL ORDER BY urut', array($periode_id))->result_array();
+        if ( ! $rows)   // periode lama: hitung dari tabel harga
+        {
+            $rows = $this->db->query(
+                'SELECT c.kode, c.nama, c.dokumen, EXP(AVG(LN(h.harga_lalu))) AS g_lalu, EXP(AVG(LN(h.harga_ini))) AS g_ini
+                   FROM komoditas c
+                   JOIN kecamatan k ON k.komoditas_id = c.id
+                   JOIN harga h ON h.kecamatan_id = k.id
+                  WHERE c.periode_id = ? AND h.harga_ini > 0 AND h.harga_lalu > 0
+                  GROUP BY c.id, c.kode, c.nama, c.dokumen, c.urut
+                  ORDER BY c.urut', array($periode_id))->result_array();
+        }
         $out = array();
         foreach ($rows as $r)
         {
@@ -383,6 +434,39 @@ class Periode_model extends CI_Model
                            'g_lalu' => $gl, 'g_ini' => $gi, 'rht' => $gl > 0 ? ($gi / $gl - 1) * 100 : 0.0);
         }
         return $out;
+    }
+
+    /**
+     * Membandingkan Hasil RH aplikasi dengan sheet RH yang ada di file Excel (hasil hitung BPS).
+     * @return array|null null bila file tidak punya sheet RH; selain itu ['peta' => [kode => rht_file], 'ditemukan', 'cocok', 'selisih_maks']
+     */
+    public function banding_rh_file($periode_id, array $hasil_rh)
+    {
+        $ada = false;
+        foreach ($this->daftar_sheet($periode_id) as $m) if ($m['nama'] === 'RH') $ada = true;
+        if ( ! $ada) return null;
+
+        $rows = $this->db->query("SELECT isi FROM sheet_excel WHERE periode_id = ? AND sheet = 'RH' ORDER BY baris", array($periode_id))->result_array();
+        $peta = array();
+        foreach ($rows as $r)
+        {
+            $v = json_decode($r['isi'], true);
+            if ( ! is_array($v)) continue;
+            $kode = isset($v[1]) && $v[1] !== null && $v[1] !== '' ? (string) $v[1] : (isset($v[0]) && $v[0] !== null ? (string) $v[0] : '');
+            if ($kode === '' || ! isset($v[9]) || ! is_numeric($v[9]) || ! isset($v[7]) || ! is_numeric($v[7])) continue;
+            $peta[$kode] = (float) $v[9];
+        }
+        $ditemukan = 0; $cocok = 0; $maks = 0.0; $selisih = array();
+        foreach ($hasil_rh as $r)
+        {
+            if ( ! isset($peta[$r['kode']])) continue;
+            $ditemukan++;
+            $d = abs($r['rht'] - $peta[$r['kode']]);
+            $selisih[$r['kode']] = $d;
+            if ($d < 0.005) $cocok++;
+            if ($d > $maks) $maks = $d;
+        }
+        return array('peta' => $peta, 'selisih' => $selisih, 'ditemukan' => $ditemukan, 'cocok' => $cocok, 'selisih_maks' => $maks);
     }
 
     /** Menandai komoditas (menurut kode) sebagai dipilih / tidak dipilih untuk dikonfirmasi. */

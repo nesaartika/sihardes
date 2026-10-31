@@ -6,6 +6,7 @@ class Cermat extends MY_Controller
     private $dir_upload;
     private $aktif = null;   // id periode aktif
     private $data  = null;   // isi periode aktif
+    private $catatan_unggah = null;   // pesan bila rekap tidak dapat dibuat dari file yang diunggah
 
     public function __construct()
     {
@@ -131,7 +132,7 @@ class Cermat extends MY_Controller
             $ada_data = true; $meta = array(array('nama' => 'Data', 'baris' => 0, 'kolom' => 0));
         }
         $tabs = array();
-        if ($ada_data) { $tabs[] = 'Data'; if ( ! $ku) $tabs[] = 'Hasil RH'; }
+        if ($ada_data) { $tabs[] = 'Data'; if ( ! $ku && ! empty($this->data['hasil']['komoditas'])) $tabs[] = 'Hasil RH'; }
         if ( ! $ku) foreach ($meta as $m) if ($m['nama'] !== 'Data') $tabs[] = $m['nama'];
         $sheet = (string) $this->input->get('sheet');
         if ( ! in_array($sheet, $tabs, true)) $sheet = $tabs ? $tabs[0] : 'Data';
@@ -142,11 +143,12 @@ class Cermat extends MY_Controller
         if ($sheet === 'Hasil RH')
         {
             $rh = $this->periode->hasil_rh($this->aktif);
+            $banding = $this->periode->banding_rh_file($this->aktif, $rh);
             if ($q !== '') $rh = array_values(array_filter($rh, function ($r) use ($q) {
                 return stripos($r['kode'], $q) !== false || stripos($r['nama'], $q) !== false;
             }));
             $total = count($rh); $halaman = max(1, (int) ceil($total / $per)); if ($hal > $halaman) $hal = $halaman;
-            $data = array_merge($data, array('mode' => 'rh', 'rh' => array_slice($rh, ($hal - 1) * $per, $per), 'total' => $total, 'hal' => $hal, 'halaman' => $halaman));
+            $data = array_merge($data, array('mode' => 'rh', 'banding' => $banding, 'rh' => array_slice($rh, ($hal - 1) * $per, $per), 'total' => $total, 'hal' => $hal, 'halaman' => $halaman));
         }
         elseif ($sheet !== 'Data' && $tabs)
         {
@@ -305,6 +307,10 @@ class Cermat extends MY_Controller
         {
             return $this->galat($e->getMessage());
         }
+        if ($this->catatan_unggah)
+        {
+            $this->session->set_flashdata('pesan', 'Perhatian: file tersimpan dan semua sheet bisa dilihat di Data Asli, tetapi Rekap Konfirmasi tidak dibuat. ' . $this->catatan_unggah);
+        }
         $r = $this->periode->muat($id);
         $this->catatan->catat('unggah', $nama . ' - ' . $_FILES['berkas']['name'] . ' (' . $r['hasil']['ringkas']['jml_komoditas'] . ' komoditas)');
         redirect('cermat?p=' . $id);
@@ -407,6 +413,7 @@ class Cermat extends MY_Controller
             echo 'GAGAL: ' . $e->getMessage() . "\n";
             return;
         }
+        if ($this->catatan_unggah) echo "Perhatian: rekap tidak dibuat. {$this->catatan_unggah}\n";
         $d = $this->periode->muat($id);
         $r = $d['hasil']['ringkas'];
         $this->catatan->catat('unggah', $nama . ' - ' . basename($berkas) . ' (' . $r['jml_komoditas'] . ' komoditas)', 'terminal');
@@ -428,9 +435,17 @@ class Cermat extends MY_Controller
 
         if ($ada_data)
         {
-            $baris = $this->cermat_harga->baca_xlsx($path);
-            $hasil = $this->cermat_harga->hitung($baris, $opsi);
-            unset($baris);
+            try
+            {
+                $baris = $this->cermat_harga->baca_xlsx($path);
+                $hasil = $this->cermat_harga->hitung($baris, $opsi);
+                unset($baris);
+            }
+            catch (RuntimeException $e)    // sheet Data berformat lain: tetap disimpan apa adanya, rekap tidak dibuat
+            {
+                $hasil = $this->cermat_harga->hitung(array(), $opsi);
+                $this->catatan_unggah = $e->getMessage();
+            }
             $mentah = $this->cermat_harga->baca_mentah($path);
         }
         else    // file tanpa sheet Data (mis. file lain): semua sheet disimpan dan tampil sebagai tab, rekap kosong

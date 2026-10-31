@@ -36,7 +36,15 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
 </form>
 
 <?php if ($mode === 'rh'): ?>
-  <p class="hint">Hasil RH dihitung aplikasi dari sheet Data: rata-rata geometrik harga seluruh kecamatan dan kualitas untuk tiap komoditas, lalu RHt = (bulan ini / bulan sebelumnya - 1) x 100.</p>
+  <p class="hint">Hasil RH dihitung aplikasi dari sheet Data: rata-rata geometrik harga seluruh kecamatan dan kualitas untuk tiap komoditas, lalu RHt = (bulan ini / bulan sebelumnya - 1) x 100. Hasil RH inilah yang menjadi dasar arah naik / turun / stabil di Rekap Konfirmasi.</p>
+  <?php if ( ! empty($banding)): ?>
+  <div class="card" style="margin-bottom:12px;padding:10px 14px;border-left:4px solid <?= $banding['cocok'] === $banding['ditemukan'] ? 'var(--turun)' : 'var(--warn)' ?>">
+    <b>Dicocokkan dengan sheet RH di file:</b>
+    <?= number_format($banding['cocok'], 0, ',', '.') ?> dari <?= number_format($banding['ditemukan'], 0, ',', '.') ?> komoditas yang ada di sheet RH sama persis
+    (selisih RHt terbesar <?= $banding['selisih_maks'] < 1e-9 ? 'praktis nol' : number_format($banding['selisih_maks'], 6, ',', '.') ?>).
+    <span class="hint">Sheet RH hanya memuat sebagian komoditas, sisanya hanya ada di hasil aplikasi.</span>
+  </div>
+  <?php endif; ?>
 <?php endif; ?>
 <p class="hint"><?= $total ? 'Menampilkan ' . number_format($awal, 0, ',', '.') . '-' . number_format($akhir, 0, ',', '.') . ' dari ' . number_format($total, 0, ',', '.') . ' baris' : 'Tidak ada baris yang cocok.' ?></p>
 
@@ -63,6 +71,10 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
     <th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:right">Rata-Rata Geometrik</th>
     <th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:right">Rata-Rata Geometrik Bulan Sebelumnya</th>
     <th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:right">RHt</th>
+    <?php if ( ! empty($banding)): ?>
+    <th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:right">RHt di sheet RH (file)</th>
+    <th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:right">Selisih</th>
+    <?php endif; ?>
   </tr></thead>
   <tbody>
   <?php foreach ($rh as $r): ?>
@@ -72,6 +84,10 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
       <td style="text-align:right"><?= number_format($r['g_ini'], 2, '.', ',') ?></td>
       <td style="text-align:right"><?= number_format($r['g_lalu'], 2, '.', ',') ?></td>
       <td style="text-align:right"><?= number_format($r['rht'], 2, '.', ',') ?></td>
+      <?php if ( ! empty($banding)): $ada = isset($banding['peta'][$r['kode']]); ?>
+      <td style="text-align:right"><?= $ada ? number_format($banding['peta'][$r['kode']], 2, '.', ',') : '<span class="hint">-</span>' ?></td>
+      <td style="text-align:right"><?= $ada ? ($banding['selisih'][$r['kode']] < 0.005 ? '<span class="turun">sama</span>' : '<span class="naik">' . number_format($banding['selisih'][$r['kode']], 4, '.', ',') . '</span>') : '<span class="hint">-</span>' ?></td>
+      <?php endif; ?>
     </tr>
   <?php endforeach; ?>
   </tbody>
