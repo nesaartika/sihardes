@@ -199,7 +199,7 @@ class Cermat extends MY_Controller
         $tmp = tempnam(sys_get_temp_dir(), 'rh');
         Xlsx_io::tulis($tmp, array(array('nama' => 'RH', 'baris' => $baris, 'header' => true, 'beku' => true, 'filter' => true,
                                          'garis' => true, 'lebar' => array(16, 38, 22, 34, 12))));
-        $nama = 'Hasil RH_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . '.xlsx';
+        $nama = 'RH_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . '.xlsx';
         $isi = file_get_contents($tmp); @unlink($tmp);
         $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);
         $this->load->helper('download');
@@ -328,7 +328,7 @@ class Cermat extends MY_Controller
         }
         if ($this->catatan_unggah)
         {
-            $this->session->set_flashdata('pesan', 'Perhatian: file tersimpan dan semua sheet bisa dilihat di Data Asli, tetapi Rekap Konfirmasi tidak dibuat. ' . $this->catatan_unggah);
+            $this->session->set_flashdata('pesan', 'Perhatian: file tersimpan dan semua sheet bisa dilihat di menu Data, tetapi Rekap Konfirmasi tidak dibuat. ' . $this->catatan_unggah);
         }
         $r = $this->periode->muat($id);
         $this->catatan->catat('unggah', $nama . ' - ' . $_FILES['berkas']['name'] . ' (' . $r['hasil']['ringkas']['jml_komoditas'] . ' komoditas)');

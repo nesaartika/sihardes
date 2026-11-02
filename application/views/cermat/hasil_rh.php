@@ -17,7 +17,7 @@ $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
   <a class="btn alt" href="<?= site_url('cermat/unduh_rh/' . $p) ?>">Unduh RH (Excel)</a>
 </form>
 
-<p class="hint">Hasil RH dihitung aplikasi dari data mentah (sheet Data di menu <a href="<?= site_url('cermat/data_asli?p=' . $p) ?>">Data Asli</a>): rata-rata geometrik harga seluruh kecamatan dan kualitas untuk tiap komoditas, lalu RHt = (bulan ini / bulan sebelumnya - 1) x 100. Arah naik / turun / stabil dari RHt inilah yang dipakai untuk mencari kabupaten dan kecamatan di <a href="<?= site_url('cermat/rekap?p=' . $p) ?>">Rekap Konfirmasi</a>.</p>
+<p class="hint">RH dihitung aplikasi dari data mentah (sheet Data di menu <a href="<?= site_url('cermat/data_asli?p=' . $p) ?>">Data</a>): rata-rata geometrik harga seluruh kecamatan dan kualitas untuk tiap komoditas, lalu RHt = (bulan ini / bulan sebelumnya - 1) x 100. Arah naik / turun / stabil dari RHt inilah yang dipakai untuk mencari kabupaten dan kecamatan di <a href="<?= site_url('cermat/rekap?p=' . $p) ?>">Rekap Konfirmasi</a>.</p>
 
 <?php if ( ! empty($banding)): ?>
 <div class="card" style="margin-bottom:12px;padding:10px 14px;border-left:4px solid <?= $banding['cocok'] === $banding['ditemukan'] ? 'var(--turun)' : 'var(--warn)' ?>">

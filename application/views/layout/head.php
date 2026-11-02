@@ -23,8 +23,8 @@ $ikon = array(
 $menu_item = array(
  'dashboard' => array('Dashboard', ''),
  'unggah'    => array('Unggah Data', 'cermat/unggah'),
- 'data'      => array('Data Asli', 'cermat/data_asli'),
- 'rh'        => array('Hasil RH', 'cermat/hasil_rh'),
+ 'data'      => array('Data', 'cermat/data_asli'),
+ 'rh'        => array('RH', 'cermat/hasil_rh'),
  'rekap'     => array('Rekap Konfirmasi', 'cermat/rekap'),
  'komoditas' => array('Semua Komoditas', 'cermat/komoditas'),
  'riwayat'   => array('Riwayat Periode', 'cermat/riwayat'),
@@ -36,7 +36,7 @@ $akun_kab = ($role === 'kabupaten');
 if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rekap')));   // akun kabupaten: Data Asli dan Rekap saja
 $nm_user = (string) $this->session->userdata('nama');
 $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
-$judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data Asli', 'rh' => 'Hasil RH',
+$judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data', 'rh' => 'RH',
                'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
 <aside class="side">
