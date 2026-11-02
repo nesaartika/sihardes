@@ -5,11 +5,6 @@ $bln_default = (int) date('n') - 1;
 ?>
 <div class="card f" style="max-width:640px">
   <h2>Unggah Data</h2>
-  <ol class="hint" style="margin:0 0 14px 18px;padding:0;line-height:1.7">
-    <li><b>Unggah data</b> - file Excel yang berisi data harga mentah per kecamatan (sheet <b>Data</b>), sebelum menjadi RH.</li>
-    <li><b>RH</b> - aplikasi menghitung RH sendiri dari data tersebut (menu RH).</li>
-    <li><b>Rekap Konfirmasi</b> - dari arah RH, aplikasi mencari kabupaten dan kecamatan yang berpengaruh.</li>
-  </ol>
   <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
   <?= form_open_multipart('cermat/proses') ?>
     <label for="berkas">File Excel Data (.xlsx)</label>
@@ -25,7 +20,6 @@ $bln_default = (int) date('n') - 1;
           <?php for ($t = $tahun_ini + 1; $t >= $tahun_ini - 4; $t--): ?><option value="<?= $t ?>" <?= $t === $tahun_ini ? 'selected' : '' ?>><?= $t ?></option><?php endfor; ?>
         </select></div>
     </div>
-    <p class="hint">Yang dibaca adalah sheet <b>Data</b> (kolom Kabupaten, Nama Kecamatan, Kode Komoditas, Nama Komoditas, Nama Kualitas, Harga Bulan Ini, Harga Bulan Sebelumnya). Sheet lain di file ikut tersimpan dan bisa dilihat di menu Data. File tidak harus sudah berisi RH.</p>
     <p class="hint">Bulan dan tahun terisi otomatis dari nama file bila terbaca. Periode yang sama boleh diunggah lebih dari sekali; setiap file tersimpan sendiri dan data lama tidak dihapus (lihat Riwayat Periode).</p>
     <p><button class="btn" type="submit" onclick="if(document.getElementById('berkas').value)this.textContent='Memproses...'">Proses Data</button></p>
   <?= form_close() ?>
