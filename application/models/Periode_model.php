@@ -95,6 +95,17 @@ class Periode_model extends CI_Model
                 CONSTRAINT `fk_sheet_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
+        // Satuan komoditas (kolom Satuan di sheet Data, bila ada)
+        if ( ! $this->db->table_exists('satuan_komoditas'))
+        {
+            $this->db->query('CREATE TABLE IF NOT EXISTS `satuan_komoditas` (
+                `periode_id` VARCHAR(15) NOT NULL,
+                `kode` VARCHAR(12) NOT NULL,
+                `satuan` VARCHAR(80) NOT NULL,
+                PRIMARY KEY (`periode_id`,`kode`),
+                CONSTRAINT `fk_satuan_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+        }
         // Database versi lama: periode yang sama sempat dibatasi unik -> longgarkan agar beberapa file per periode dapat disimpan
         if ($this->db->query("SHOW INDEX FROM periode WHERE Key_name = 'uq_bulan_tahun'")->num_rows() > 0)
         {
@@ -170,7 +181,13 @@ class Periode_model extends CI_Model
                 }
             }
         }
+        $b_sat = array();
+        foreach ($data['hasil']['komoditas'] as $k)
+        {
+            if ( ! empty($k['satuan'])) $b_sat[] = array('periode_id' => $id, 'kode' => $k['kode'], 'satuan' => mb_substr($k['satuan'], 0, 80));
+        }
         $this->sisip('komoditas', $b_kom);
+        $this->sisip('satuan_komoditas', $b_sat);
         $this->sisip('kecamatan', $b_kec);
         $this->sisip('harga', $b_hrg);
 
@@ -224,6 +241,7 @@ class Periode_model extends CI_Model
             );
         }
 
+        $sat = $this->satuan_peta($id);
         $hasil = array();
         foreach ($kom as $k)
         {
@@ -239,7 +257,7 @@ class Periode_model extends CI_Model
 
             $hasil[] = array(
                 'dokumen' => $k['dokumen'], 'kode' => $k['kode'], 'nama' => $k['nama'],
-                'label' => $k['nama'] . ' (' . $k['kode'] . ')', 'prov_pct' => (float) $k['prov_pct'],
+                'label' => $k['nama'] . ' (' . $k['kode'] . ')', 'satuan' => isset($sat[$k['kode']]) ? $sat[$k['kode']] : '', 'prov_pct' => (float) $k['prov_pct'],
                 'g_ini' => isset($k['g_ini']) && $k['g_ini'] !== null ? (float) $k['g_ini'] : null,
                 'g_lalu' => isset($k['g_lalu']) && $k['g_lalu'] !== null ? (float) $k['g_lalu'] : null,
                 'arah' => $k['arah'], 'jumlah' => (int) $k['jumlah'], 'tampil' => (bool) $k['tampil'],
@@ -254,6 +272,14 @@ class Periode_model extends CI_Model
             'hasil' => array('ringkas' => $ringkas, 'komoditas' => $hasil),
             'alasan' => $this->alasan($id),
         );
+    }
+
+    /** Satuan per komoditas: [kode => satuan] (kosong bila file tidak punya kolom Satuan) */
+    public function satuan_peta($periode_id)
+    {
+        $out = array();
+        foreach ($this->db->get_where('satuan_komoditas', array('periode_id' => $periode_id))->result_array() as $r) $out[$r['kode']] = $r['satuan'];
+        return $out;
     }
 
     /** Rincian harga per kualitas untuk satu komoditas: ["kab|Kecamatan" => [[kualitas, lalu, ini], ...]] */
@@ -390,11 +416,12 @@ class Periode_model extends CI_Model
                   ORDER BY c.urut', array($periode_id))->result_array();
         }
         $out = array();
+        $sat = $this->satuan_peta($periode_id);
         foreach ($rows as $r)
         {
             $gl = (float) $r['g_lalu']; $gi = (float) $r['g_ini'];
             $out[] = array('kode' => $r['kode'], 'nama' => $r['nama'], 'dokumen' => $r['dokumen'],
-                           'g_lalu' => $gl, 'g_ini' => $gi, 'rht' => $gl > 0 ? ($gi / $gl - 1) * 100 : 0.0);
+                           'satuan' => isset($sat[$r['kode']]) ? $sat[$r['kode']] : '', 'g_lalu' => $gl, 'g_ini' => $gi, 'rht' => $gl > 0 ? ($gi / $gl - 1) * 100 : 0.0);
         }
         return $out;
     }

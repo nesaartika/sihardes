@@ -13,6 +13,7 @@
   <label><input type="checkbox" id="fkosong"> Alasan belum diisi</label>
   <button class="btn" type="submit">Terapkan</button>
   <button class="btn alt" type="button" id="breset">Reset</button>
+  <?php if (empty($kunci_kab)): ?><a class="btn alt" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Pilih komoditas yang dikonfirmasi</a><?php endif; ?>
 </form>
 <p class="hint" id="cnt"></p>
 <div class="tw">
@@ -30,7 +31,7 @@
     <tr data-status="<?= $isi === '' ? 'belum' : 'sudah' ?>">
       <?php if ($pertama): ?>
         <td rowspan="<?= $jml ?>"><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
-        <td rowspan="<?= $jml ?>"><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a></td>
+        <td rowspan="<?= $jml ?>"><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
         <td rowspan="<?= $jml ?>"><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></div></td>
       <?php $pertama = false; endif; ?>
       <td>

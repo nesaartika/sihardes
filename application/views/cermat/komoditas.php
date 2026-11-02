@@ -30,7 +30,7 @@ foreach ($komoditas as $k) { if ( ! empty($k['kab_asli'])) { $bisa++; if ($k['di
       <td style="text-align:center"><?php if ($nf > 0): ?><input type="checkbox" class="pilih" <?= $k['dipilih'] ? 'checked' : '' ?> title="Konfirmasi komoditas ini"><?php else: ?><span class="hint">-</span><?php endif; ?></td>
       <td><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
       <td><?= html_escape($k['kode']) ?></td>
-      <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a></td>
+      <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a><?php if ( ! empty($k['satuan'])): ?> <span class="hint">(<?= html_escape($k['satuan']) ?>)</span><?php endif; ?></td>
       <td><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span></td>
       <td class="<?= $k['arah'] ?>"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></td>
       <td><?= $k['jumlah'] ?></td>

@@ -5,6 +5,7 @@ $url = function ($ubah = array()) use ($p, $q, $per) {
     $a = array_merge(array('p' => $p, 'q' => $q, 'per' => $per), $ubah);
     return '?' . http_build_query(array_filter($a, function ($v) { return $v !== '' && $v !== null; }));
 };
+$ada_satuan = false; foreach ($rh as $r) if ($r['satuan'] !== '') { $ada_satuan = true; break; }
 $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
 ?>
 <form method="get" action="<?= site_url('cermat/hasil_rh') ?>" class="bar">
@@ -14,7 +15,7 @@ $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
     <?php foreach (array(25, 50, 100) as $n): ?><option value="<?= $n ?>" <?= $per === $n ? 'selected' : '' ?>><?= $n ?> baris</option><?php endforeach; ?></select>
   <button class="btn" type="submit">Terapkan</button>
   <a class="btn alt" href="<?= site_url('cermat/hasil_rh?p=' . $p) ?>">Reset</a>
-  <a class="btn alt" href="<?= site_url('cermat/unduh_rh/' . $p) ?>">Unduh RH (Excel)</a>
+  <?php if ($this->session->userdata('role') !== 'kabupaten'): ?><a class="btn alt" href="<?= site_url('cermat/unduh_rh/' . $p) ?>">Unduh RH (Excel)</a><?php endif; ?>
 </form>
 
 <p class="hint">RH dihitung aplikasi dari data mentah (sheet Data di menu <a href="<?= site_url('cermat/data_asli?p=' . $p) ?>">Data</a>): rata-rata geometrik harga seluruh kecamatan dan kualitas untuk tiap komoditas, lalu RHt = (bulan ini / bulan sebelumnya - 1) x 100. Arah naik / turun / stabil dari RHt inilah yang dipakai untuk mencari kabupaten dan kecamatan di <a href="<?= site_url('cermat/rekap?p=' . $p) ?>">Rekap Konfirmasi</a>.</p>
@@ -34,6 +35,7 @@ $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
   <thead><tr>
     <th <?= $th ?>">Kode Baru</th>
     <th <?= $th ?>">Nama Komoditas</th>
+    <?php if ($ada_satuan): ?><th <?= $th ?>">Satuan</th><?php endif; ?>
     <th <?= $th ?>;text-align:right">Rata-Rata Geometrik</th>
     <th <?= $th ?>;text-align:right">Rata-Rata Geometrik Bulan Sebelumnya</th>
     <th <?= $th ?>;text-align:right">RHt</th>
@@ -49,7 +51,8 @@ $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
       $arah = abs($r['rht']) < $stb ? 'stabil' : ($r['rht'] > 0 ? 'naik' : 'turun'); ?>
     <tr>
       <td><?= html_escape($r['kode']) ?></td>
-      <td><a href="<?= site_url('cermat/detail/' . $r['kode'] . '?p=' . $p) ?>"><?= html_escape($r['nama']) ?></a></td>
+      <td><?php if ($this->session->userdata('role') !== 'kabupaten'): ?><a href="<?= site_url('cermat/detail/' . $r['kode'] . '?p=' . $p) ?>"><?= html_escape($r['nama']) ?></a><?php else: echo html_escape($r['nama']); endif; ?></td>
+      <?php if ($ada_satuan): ?><td><?= html_escape($r['satuan']) ?></td><?php endif; ?>
       <td style="text-align:right"><?= number_format($r['g_ini'], 2, '.', ',') ?></td>
       <td style="text-align:right"><?= number_format($r['g_lalu'], 2, '.', ',') ?></td>
       <td style="text-align:right"><?= number_format($r['rht'], 2, '.', ',') ?></td>

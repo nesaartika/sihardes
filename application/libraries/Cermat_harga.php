@@ -4,7 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * Cermat_harga
  * ------------------------------------------------------------------
- * Otomatisasi pencermatan & rekapitulasi perubahan harga perdesaan
+ * Pengumpulan fenomena perubahan harga perdesaan
  * BPS Provinsi Kalimantan Barat.
  *
  * Alur:
@@ -75,6 +75,7 @@ class Cermat_harga
                 'kualitas' => isset($r[$peta['kualitas']]) ? trim((string) $r[$peta['kualitas']]) : '',
                 'ini'      => isset($r[$peta['ini']]) ? (float) $r[$peta['ini']] : 0.0,
                 'lalu'     => isset($r[$peta['lalu']]) ? (float) $r[$peta['lalu']] : 0.0,
+                'satuan'   => (isset($peta['satuan']) && isset($r[$peta['satuan']])) ? trim((string) $r[$peta['satuan']]) : '',
             );
         }
         return $baris;
@@ -157,6 +158,7 @@ class Cermat_harga
             'kualitas' => array('nama kualitas'),
             'ini'      => array('harga bulan ini'),
             'lalu'     => array('harga bulan sebelumnya'),
+            'satuan'   => array('satuan'),      // opsional
         );
         $peta = array();
         foreach ($r as $i => $judul)
@@ -170,7 +172,7 @@ class Cermat_harga
         $nama = array('kab' => 'Kabupaten', 'kec' => 'Nama Kecamatan', 'kode' => 'Kode Komoditas', 'nama' => 'Nama Komoditas',
                       'kualitas' => 'Nama Kualitas', 'ini' => 'Harga Bulan Ini', 'lalu' => 'Harga Bulan Sebelumnya');
         $hilang = array();
-        foreach (array_keys($kunci) as $k) if ( ! isset($peta[$k])) $hilang[] = $nama[$k];
+        foreach (array_keys($nama) as $k) if ( ! isset($peta[$k])) $hilang[] = $nama[$k];
         if ($hilang)
         {
             throw new RuntimeException('Kolom yang diperlukan tidak ditemukan di sheet Data: ' . implode(', ', $hilang) . '.');
@@ -217,8 +219,9 @@ class Cermat_harga
             $k = $r['kode'];
             if ( ! isset($kom[$k]))
             {
-                $kom[$k] = array('nama' => $r['nama'], 'sum' => 0.0, 'si' => 0.0, 'sl' => 0.0, 'n' => 0, 'kec' => array());
+                $kom[$k] = array('nama' => $r['nama'], 'sum' => 0.0, 'si' => 0.0, 'sl' => 0.0, 'n' => 0, 'kec' => array(), 'sat' => array());
             }
+            if ( ! empty($r['satuan'])) $kom[$k]['sat'][$r['satuan']] = 1;
             $kom[$k]['sum'] += $ln;
             $kom[$k]['si']  += log($r['ini']);
             $kom[$k]['sl']  += log($r['lalu']);
@@ -292,6 +295,7 @@ class Cermat_harga
                 'kode'      => $kode,
                 'nama'      => $a['nama'],
                 'label'     => $a['nama'] . ' (' . $kode . ')',
+                'satuan'    => implode(' / ', array_keys($a['sat'])),
                 'prov_pct'  => $prov,       // RHt
                 'g_ini'     => $g_ini,      // rata-rata geometrik bulan ini
                 'g_lalu'    => $g_lalu,     // rata-rata geometrik bulan sebelumnya
