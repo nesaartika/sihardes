@@ -33,7 +33,7 @@ $menu_item = array(
 );
 $role = $this->session->userdata('role');
 $akun_kab = ($role === 'kabupaten');
-if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rekap')));   // akun kabupaten: Data Asli dan Rekap saja
+if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rh', 'rekap')));   // akun kabupaten: Data, RH, dan Rekap
 $nm_user = (string) $this->session->userdata('nama');
 $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
 $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data', 'rh' => 'RH',
