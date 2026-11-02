@@ -17,24 +17,26 @@ $ikon = array(
  'unggah'    => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>',
  'aktivitas' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>',
  'pengguna'  => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>',
+ 'rh'        => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
  'riwayat'   => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
 );
 $menu_item = array(
  'dashboard' => array('Dashboard', ''),
+ 'unggah'    => array('Unggah Data', 'cermat/unggah'),
+ 'data'      => array('Data Asli', 'cermat/data_asli'),
+ 'rh'        => array('Hasil RH', 'cermat/hasil_rh'),
  'rekap'     => array('Rekap Konfirmasi', 'cermat/rekap'),
  'komoditas' => array('Semua Komoditas', 'cermat/komoditas'),
- 'data'      => array('Data Asli', 'cermat/data_asli'),
- 'unggah'    => array('Unggah Data', 'cermat/unggah'),
  'riwayat'   => array('Riwayat Periode', 'cermat/riwayat'),
  'aktivitas' => array('Log Aktivitas', 'cermat/aktivitas'),
  'pengguna'  => array('Kelola Pengguna', 'cermat/pengguna'),
 );
 $role = $this->session->userdata('role');
 $akun_kab = ($role === 'kabupaten');
-if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('rekap', 'data')));   // akun kabupaten: Rekap dan Data Asli saja
+if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rekap')));   // akun kabupaten: Data Asli dan Rekap saja
 $nm_user = (string) $this->session->userdata('nama');
 $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
-$judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data Asli',
+$judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data Asli', 'rh' => 'Hasil RH',
                'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
 <aside class="side">

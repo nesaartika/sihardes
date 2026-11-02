@@ -118,7 +118,7 @@ class Cermat extends MY_Controller
         $this->render('cermat/aktivitas', 'aktivitas', array('log' => $this->catatan->terbaru(500)));
     }
 
-    /** Data asli: isi semua sheet di file Excel apa adanya (satu tab per sheet), ditambah tab Hasil RH hitungan aplikasi */
+    /** Data asli: isi semua sheet di file Excel apa adanya (satu tab per sheet) */
     public function data_asli()
     {
         if ( ! $this->buka_periode())
@@ -132,7 +132,7 @@ class Cermat extends MY_Controller
         $hal = max(1, (int) $this->input->get('hal'));
         $q   = trim((string) $this->input->get('q'));
 
-        // daftar tab: Data, Hasil RH (aplikasi), lalu sheet lain sesuai urutan di file
+        // daftar tab: Data, lalu sheet lain sesuai urutan di file
         $meta = $this->periode->daftar_sheet($this->aktif);
         $ada_data = false; foreach ($meta as $m) if ($m['nama'] === 'Data') $ada_data = true;
         if ( ! $meta)   // periode lama: hanya sheet Data yang tersimpan
@@ -140,7 +140,7 @@ class Cermat extends MY_Controller
             $ada_data = true; $meta = array(array('nama' => 'Data', 'baris' => 0, 'kolom' => 0));
         }
         $tabs = array();
-        if ($ada_data) { $tabs[] = 'Data'; if ( ! $ku && ! empty($this->data['hasil']['komoditas'])) $tabs[] = 'Hasil RH'; }
+        if ($ada_data) $tabs[] = 'Data';
         if ( ! $ku) foreach ($meta as $m) if ($m['nama'] !== 'Data') $tabs[] = $m['nama'];
         $sheet = (string) $this->input->get('sheet');
         if ( ! in_array($sheet, $tabs, true)) $sheet = $tabs ? $tabs[0] : 'Data';
@@ -148,17 +148,7 @@ class Cermat extends MY_Controller
         $data = array('tabs' => $tabs, 'sheet' => $sheet, 'q' => $q, 'per' => $per, 'hal' => $hal, 'kunci_kab' => $ku,
                       'mode' => 'data', 'f' => array('q' => $q, 'kab' => $ku ? (string) $ku : trim((string) $this->input->get('kab'))));
 
-        if ($sheet === 'Hasil RH')
-        {
-            $rh = $this->periode->hasil_rh($this->aktif);
-            $banding = $this->periode->banding_rh_file($this->aktif, $rh);
-            if ($q !== '') $rh = array_values(array_filter($rh, function ($r) use ($q) {
-                return stripos($r['kode'], $q) !== false || stripos($r['nama'], $q) !== false;
-            }));
-            $total = count($rh); $halaman = max(1, (int) ceil($total / $per)); if ($hal > $halaman) $hal = $halaman;
-            $data = array_merge($data, array('mode' => 'rh', 'banding' => $banding, 'rh' => array_slice($rh, ($hal - 1) * $per, $per), 'total' => $total, 'hal' => $hal, 'halaman' => $halaman));
-        }
-        elseif ($sheet !== 'Data' && $tabs)
+        if ($sheet !== 'Data' && $tabs)
         {
             $d = $this->periode->data_sheet($this->aktif, $sheet, $q, $per, ($hal - 1) * $per);
             $halaman = max(1, (int) ceil($d['total'] / $per));
@@ -175,6 +165,27 @@ class Cermat extends MY_Controller
                                              'kab_nilai' => $d['kab_nilai'], 'hal' => $hal, 'halaman' => $halaman));
         }
         $this->render('cermat/data_asli', 'data', $data);
+    }
+
+    /** Hasil RH: dihitung aplikasi dari data mentah (sheet Data); menjadi dasar arah naik/turun/stabil di Rekap */
+    public function hasil_rh()
+    {
+        if ( ! $this->buka_periode()) redirect('cermat/unggah');
+        $per = (int) $this->input->get('per');
+        if ( ! in_array($per, array(25, 50, 100), true)) $per = 50;
+        $hal = max(1, (int) $this->input->get('hal'));
+        $q   = trim((string) $this->input->get('q'));
+
+        $rh = $this->periode->hasil_rh($this->aktif);
+        $banding = $this->periode->banding_rh_file($this->aktif, $rh);
+        if ($q !== '') $rh = array_values(array_filter($rh, function ($r) use ($q) {
+            return stripos($r['kode'], $q) !== false || stripos($r['nama'], $q) !== false;
+        }));
+        $total = count($rh); $halaman = max(1, (int) ceil($total / $per)); if ($hal > $halaman) $hal = $halaman;
+        $this->render('cermat/hasil_rh', 'rh', array(
+            'rh' => array_slice($rh, ($hal - 1) * $per, $per), 'banding' => $banding, 'q' => $q, 'per' => $per,
+            'hal' => $hal, 'halaman' => $halaman, 'total' => $total,
+        ));
     }
 
     /** Unduh hasil RH (hitungan aplikasi dari sheet Data) sebagai Excel dengan susunan kolom seperti sheet RH */
