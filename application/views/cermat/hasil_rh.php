@@ -31,21 +31,24 @@ $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
 <p class="hint"><?= $total ? 'Menampilkan ' . number_format($awal, 0, ',', '.') . '-' . number_format($akhir, 0, ',', '.') . ' dari ' . number_format($total, 0, ',', '.') . ' komoditas' : 'Tidak ada komoditas yang cocok.' ?></p>
 
 <?php
-$angka = function ($x) { return $x === null ? '' : number_format($x, 6, '.', ''); };
+$angka = function ($x, $d = 2) { return $x === null ? '' : number_format($x, $d, '.', ','); };
+// warna judul kolom mengikuti sheet RH di Excel: oranye (kode lama), hijau (kode baru), magenta (hasil)
+$warna = array('#f4b183', '#92d050', '#ca0e63', '#f4b183', '#f4b183', '#92d050', '#92d050', '#ca0e63', '#ca0e63', '#ca0e63');
 $kepala = array('Kode Komoditas', 'Kode Baru', 'Nama Komoditas', 'Rata-Rata Geometrik Kode Lama', 'Rata-Rata Geometrik Bulan Sebelumnya',
                 'Rata-Rata Geometrik Kode Baru', 'Rata-Rata Geometrik Bulan Sebelumnya', 'Rata-Rata Geometrik', 'Rata-Rata Geometrik Bulan Sebelumnya', 'RHt');
 ?>
 <div class="tw"><table>
   <thead><tr>
-    <?php foreach ($kepala as $i => $h): ?><th <?= $th ?><?= $i >= 3 ? ';text-align:right' : '' ?>"><?= $h ?></th><?php endforeach; ?>
+    <?php foreach ($kepala as $i => $h): ?><th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:center;vertical-align:middle;color:#fff;background:<?= $warna[$i] ?>"><?= $h ?></th><?php endforeach; ?>
   </tr></thead>
   <tbody>
   <?php foreach ($rh as $r): ?>
     <tr>
       <td><?= html_escape($r['lama']) ?></td>
-      <td><?= html_escape($r['baru']) ?></td>
+      <td style="background:#f8cbad"><?= html_escape($r['baru']) ?></td>
       <td><?= html_escape($r['nama']) ?></td>
-      <?php foreach (array('d', 'e', 'f', 'g', 'h', 'i', 'rht') as $c): ?><td style="text-align:right"><?= $angka($r[$c]) ?></td><?php endforeach; ?>
+      <?php foreach (array('d', 'e', 'f', 'g', 'h', 'i') as $c): ?><td style="text-align:right"><?= $angka($r[$c]) ?></td><?php endforeach; ?>
+      <td style="text-align:right"><?= $angka($r['rht']) ?></td>
     </tr>
   <?php endforeach; ?>
   </tbody>

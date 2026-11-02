@@ -263,7 +263,7 @@ class Xlsx_io
             $ct  .= '<Override PartName="/xl/worksheets/sheet' . $n . '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
             $wbx .= '<sheet name="' . self::x(mb_substr($sh['nama'], 0, 31)) . '" sheetId="' . $n . '" r:id="rId' . $n . '"/>';
             $rl  .= '<Relationship Id="rId' . $n . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' . $n . '.xml"/>';
-            $zip->addFromString('xl/worksheets/sheet' . $n . '.xml', self::xml_sheet($sh));
+            $zip->addFromString('xl/worksheets/sheet' . $n . '.xml', ! empty($sh['gaya_rh']) ? self::xml_sheet_rh($sh) : self::xml_sheet($sh));
         }
         $jml = count($sheets);
         $rl .= '<Relationship Id="rId' . ($jml + 1) . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
@@ -282,19 +282,31 @@ class Xlsx_io
     {
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
           . '<numFmts count="1"><numFmt numFmtId="164" formatCode="0.00"/></numFmts>'
-          . '<fonts count="3"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="11"/><name val="Arial"/></font><font><b/><sz val="11"/><name val="Arial"/></font></fonts>'
-          . '<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+          . '<fonts count="5"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="11"/><name val="Arial"/></font><font><b/><sz val="11"/><name val="Arial"/></font>'
+          . '<font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'
+          . '<fills count="8"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
           . '<fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/><bgColor indexed="64"/></patternFill></fill>'
-          . '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF9E5"/><bgColor indexed="64"/></patternFill></fill></fills>'
+          . '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF9E5"/><bgColor indexed="64"/></patternFill></fill>'
+          . '<fill><patternFill patternType="solid"><fgColor rgb="FFF4B183"/><bgColor indexed="64"/></patternFill></fill>'
+          . '<fill><patternFill patternType="solid"><fgColor rgb="FF92D050"/><bgColor indexed="64"/></patternFill></fill>'
+          . '<fill><patternFill patternType="solid"><fgColor rgb="FFCA0E63"/><bgColor indexed="64"/></patternFill></fill>'
+          . '<fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/><bgColor indexed="64"/></patternFill></fill></fills>'
           . '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'
           . '<border><left style="thin"><color rgb="FFBFC7D5"/></left><right style="thin"><color rgb="FFBFC7D5"/></right><top style="thin"><color rgb="FFBFC7D5"/></top><bottom style="thin"><color rgb="FFBFC7D5"/></bottom><diagonal/></border></borders>'
           . '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-          . '<cellXfs count="5">'
+          . '<cellXfs count="12">'
           . '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'                       // 0 biasa
           . '<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>' // 1 header
           . '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'  // 2 kuning
           . '<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>'  // 3 angka
           . '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'         // 4 bergaris
+          . '<xf numFmtId="0" fontId="4" fillId="4" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'   // 5 header oranye (RH)
+          . '<xf numFmtId="0" fontId="4" fillId="5" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'   // 6 header hijau
+          . '<xf numFmtId="0" fontId="4" fillId="6" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'   // 7 header magenta
+          . '<xf numFmtId="0" fontId="3" fillId="7" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="left"/></xf>'   // 8 Kode Baru
+          . '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left"/></xf>'   // 9 teks
+          . '<xf numFmtId="4" fontId="3" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'   // 10 #,##0.00
+          . '<xf numFmtId="2" fontId="3" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'   // 11 0.00
           . '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
     }
 
@@ -343,6 +355,39 @@ class Xlsx_io
         $x .= '</sheetData>';
         if ( ! empty($sh['filter']) && $maxk > 0) $x .= '<autoFilter ref="A1:' . self::indeks_ke_kolom($maxk - 1) . count($sh['baris']) . '"/>';
         $x .= '</worksheet>';
+        return $x;
+    }
+
+    /** Sheet RH: tata letak dan warna mengikuti sheet RH di Excel BPS (baris 1 kosong, judul baris 2, data mulai baris 3, beku di A3) */
+    private static function xml_sheet_rh($sh)
+    {
+        $kepala = array(5, 6, 7, 5, 5, 6, 6, 7, 7, 7);    // oranye, hijau, magenta sesuai urutan kolom A-J
+        $x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+        $x .= '<sheetViews><sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>';
+        $x .= '<cols>';
+        foreach ($sh['lebar'] as $i => $w) $x .= '<col min="' . ($i + 1) . '" max="' . ($i + 1) . '" width="' . $w . '" customWidth="1"/>';
+        $x .= '</cols><sheetData><row r="1"/>';
+        $x .= '<row r="2" ht="78" customHeight="1">';
+        foreach ($sh['baris'][0] as $ci => $v)
+            $x .= '<c r="' . self::indeks_ke_kolom($ci) . '2" s="' . $kepala[$ci] . '" t="inlineStr"><is><t xml:space="preserve">' . self::x($v) . '</t></is></c>';
+        $x .= '</row>';
+        $r = 2;
+        foreach (array_slice($sh['baris'], 1) as $baris)
+        {
+            $r++;
+            $x .= '<row r="' . $r . '">';
+            foreach ($baris as $ci => $v)
+            {
+                $ref = self::indeks_ke_kolom($ci) . $r;
+                $gaya = $ci === 1 ? 8 : ($ci <= 2 ? 9 : ($ci === 9 ? 11 : 10));
+                if ($v === null || $v === '') { if ($ci === 1) $x .= '<c r="' . $ref . '" s="8"/>'; continue; }
+                if (is_int($v) || is_float($v)) $x .= '<c r="' . $ref . '" s="' . $gaya . '"><v>' . $v . '</v></c>';
+                elseif ($ci <= 1 && ctype_digit((string) $v) && strlen($v) <= 15 && $v[0] !== '0') $x .= '<c r="' . $ref . '" s="' . $gaya . '"><v>' . $v . '</v></c>';
+                else $x .= '<c r="' . $ref . '" s="' . $gaya . '" t="inlineStr"><is><t xml:space="preserve">' . self::x($v) . '</t></is></c>';
+            }
+            $x .= '</row>';
+        }
+        $x .= '</sheetData><autoFilter ref="A2:J' . max(2, $r) . '"/></worksheet>';
         return $x;
     }
 

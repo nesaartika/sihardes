@@ -201,8 +201,8 @@ class Cermat extends MY_Controller
             $baris[] = array($r['lama'] !== '' ? $r['lama'] : null, $r['baru'] !== '' ? $r['baru'] : null, $r['nama'],
                              $n($r['d']), $n($r['e']), $n($r['f']), $n($r['g']), $n($r['h']), $n($r['i']), $n($r['rht']));
         $tmp = tempnam(sys_get_temp_dir(), 'rh');
-        Xlsx_io::tulis($tmp, array(array('nama' => 'RH', 'baris' => $baris, 'header' => true, 'beku' => true, 'filter' => true,
-                                         'garis' => true, 'lebar' => array(16, 16, 38, 22, 22, 22, 22, 22, 22, 12))));
+        Xlsx_io::tulis($tmp, array(array('nama' => 'RH', 'baris' => $baris, 'gaya_rh' => true,
+                                         'lebar' => array(17.6, 12, 38, 16, 16, 16, 16, 16, 16, 11))));
         $nama = 'RH_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . '.xlsx';
         $isi = file_get_contents($tmp); @unlink($tmp);
         $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);
