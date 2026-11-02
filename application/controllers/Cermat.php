@@ -58,7 +58,11 @@ class Cermat extends MY_Controller
 
     public function rekap()
     {
-        if ( ! $this->buka_periode()) { redirect($this->kab_user() ? 'auth/logout' : 'cermat/unggah'); }
+        if ( ! $this->buka_periode())
+        {
+            if ($this->kab_user()) return $this->render('cermat/kosong', 'rekap', array());
+            redirect('cermat/unggah');
+        }
         $ku = $this->kab_user();
         $komoditas = $this->data['hasil']['komoditas'];
         if ($ku)   // akun kabupaten: hanya baris kabupatennya sendiri
@@ -117,7 +121,11 @@ class Cermat extends MY_Controller
     /** Data asli: isi semua sheet di file Excel apa adanya (satu tab per sheet), ditambah tab Hasil RH hitungan aplikasi */
     public function data_asli()
     {
-        if ( ! $this->buka_periode()) { redirect($this->kab_user() ? 'auth/logout' : 'cermat/unggah'); }
+        if ( ! $this->buka_periode())
+        {
+            if ($this->kab_user()) return $this->render('cermat/kosong', 'data', array());
+            redirect('cermat/unggah');
+        }
         $ku  = $this->kab_user();
         $per = (int) $this->input->get('per');
         if ( ! in_array($per, array(25, 50, 100), true)) $per = 50;
