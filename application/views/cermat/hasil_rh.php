@@ -5,7 +5,6 @@ $url = function ($ubah = array()) use ($p, $q, $per) {
     $a = array_merge(array('p' => $p, 'q' => $q, 'per' => $per), $ubah);
     return '?' . http_build_query(array_filter($a, function ($v) { return $v !== '' && $v !== null; }));
 };
-$ada_satuan = false; foreach ($rh as $r) if ($r['satuan'] !== '') { $ada_satuan = true; break; }
 $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
 ?>
 <form method="get" action="<?= site_url('cermat/hasil_rh') ?>" class="bar">
@@ -31,36 +30,22 @@ $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
 
 <p class="hint"><?= $total ? 'Menampilkan ' . number_format($awal, 0, ',', '.') . '-' . number_format($akhir, 0, ',', '.') . ' dari ' . number_format($total, 0, ',', '.') . ' komoditas' : 'Tidak ada komoditas yang cocok.' ?></p>
 
+<?php
+$angka = function ($x) { return $x === null ? '' : number_format($x, 6, '.', ''); };
+$kepala = array('Kode Komoditas', 'Kode Baru', 'Nama Komoditas', 'Rata-Rata Geometrik Kode Lama', 'Rata-Rata Geometrik Bulan Sebelumnya',
+                'Rata-Rata Geometrik Kode Baru', 'Rata-Rata Geometrik Bulan Sebelumnya', 'Rata-Rata Geometrik', 'Rata-Rata Geometrik Bulan Sebelumnya', 'RHt');
+?>
 <div class="tw"><table>
   <thead><tr>
-    <th <?= $th ?>">Kode Baru</th>
-    <th <?= $th ?>">Nama Komoditas</th>
-    <?php if ($ada_satuan): ?><th <?= $th ?>">Satuan</th><?php endif; ?>
-    <th <?= $th ?>;text-align:right">Rata-Rata Geometrik</th>
-    <th <?= $th ?>;text-align:right">Rata-Rata Geometrik Bulan Sebelumnya</th>
-    <th <?= $th ?>;text-align:right">RHt</th>
-    <th <?= $th ?>">Arah</th>
-    <?php if ( ! empty($banding)): ?>
-    <th <?= $th ?>;text-align:right">RHt di sheet RH (file)</th>
-    <th <?= $th ?>;text-align:right">Selisih</th>
-    <?php endif; ?>
+    <?php foreach ($kepala as $i => $h): ?><th <?= $th ?><?= $i >= 3 ? ';text-align:right' : '' ?>"><?= $h ?></th><?php endforeach; ?>
   </tr></thead>
   <tbody>
-  <?php foreach ($rh as $r):
-      $stb = Cermat_harga::$opsi_default['ambang_stabil'];
-      $arah = abs($r['rht']) < $stb ? 'stabil' : ($r['rht'] > 0 ? 'naik' : 'turun'); ?>
+  <?php foreach ($rh as $r): ?>
     <tr>
-      <td><?= html_escape($r['kode']) ?></td>
-      <td><?php if ($this->session->userdata('role') !== 'kabupaten'): ?><a href="<?= site_url('cermat/detail/' . $r['kode'] . '?p=' . $p) ?>"><?= html_escape($r['nama']) ?></a><?php else: echo html_escape($r['nama']); endif; ?></td>
-      <?php if ($ada_satuan): ?><td><?= html_escape($r['satuan']) ?></td><?php endif; ?>
-      <td style="text-align:right"><?= number_format($r['g_ini'], 2, '.', ',') ?></td>
-      <td style="text-align:right"><?= number_format($r['g_lalu'], 2, '.', ',') ?></td>
-      <td style="text-align:right"><?= number_format($r['rht'], 2, '.', ',') ?></td>
-      <td><span class="badge <?= $arah ?>"><?= $arah ?></span></td>
-      <?php if ( ! empty($banding)): $ada = isset($banding['peta'][$r['kode']]); ?>
-      <td style="text-align:right"><?= $ada ? number_format($banding['peta'][$r['kode']], 2, '.', ',') : '<span class="hint">-</span>' ?></td>
-      <td style="text-align:right"><?= $ada ? ($banding['selisih'][$r['kode']] < 0.005 ? '<span class="turun">sama</span>' : '<span class="naik">' . number_format($banding['selisih'][$r['kode']], 4, '.', ',') . '</span>') : '<span class="hint">-</span>' ?></td>
-      <?php endif; ?>
+      <td><?= html_escape($r['lama']) ?></td>
+      <td><?= html_escape($r['baru']) ?></td>
+      <td><?= html_escape($r['nama']) ?></td>
+      <?php foreach (array('d', 'e', 'f', 'g', 'h', 'i', 'rht') as $c): ?><td style="text-align:right"><?= $angka($r[$c]) ?></td><?php endforeach; ?>
     </tr>
   <?php endforeach; ?>
   </tbody>

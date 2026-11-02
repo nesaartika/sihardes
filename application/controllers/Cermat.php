@@ -18,10 +18,10 @@ class Cermat extends MY_Controller
         if ( ! is_dir($this->dir_upload)) @mkdir($this->dir_upload, 0775, true);
         $this->config->load('cermat', FALSE, TRUE);
 
-        // Akun kabupaten hanya boleh membuka Rekap, Data Asli (kabupatennya sendiri), dan menyimpan alasan
+        // Akun kabupaten hanya boleh membuka Rekap, Data, RH (kabupatennya sendiri untuk Data), dan menyimpan alasan
         if ( ! is_cli() && $this->kab_user() > 0)
         {
-            if ( ! in_array($this->router->fetch_method(), array('rekap', 'data_asli', 'simpan_alasan'), true)) redirect('cermat/rekap');
+            if ( ! in_array($this->router->fetch_method(), array('rekap', 'data_asli', 'hasil_rh', 'simpan_alasan'), true)) redirect('cermat/rekap');
         }
     }
 
@@ -141,7 +141,7 @@ class Cermat extends MY_Controller
         }
         $tabs = array();
         if ($ada_data) $tabs[] = 'Data';
-        if ( ! $ku) foreach ($meta as $m) if ($m['nama'] !== 'Data') $tabs[] = $m['nama'];
+        if ( ! $ku) foreach ($meta as $m) if ($m['nama'] !== 'Data' && strcasecmp($m['nama'], 'RH') !== 0) $tabs[] = $m['nama'];   // sheet RH sudah ada di menu RH
         $sheet = (string) $this->input->get('sheet');
         if ( ! in_array($sheet, $tabs, true)) $sheet = $tabs ? $tabs[0] : 'Data';
 
@@ -176,10 +176,10 @@ class Cermat extends MY_Controller
         $hal = max(1, (int) $this->input->get('hal'));
         $q   = trim((string) $this->input->get('q'));
 
-        $rh = $this->periode->hasil_rh($this->aktif);
-        $banding = $this->periode->banding_rh_file($this->aktif, $rh);
+        $rh = $this->periode->tabel_rh($this->aktif);
+        $banding = $this->periode->banding_rh_file($this->aktif, $this->periode->hasil_rh($this->aktif));
         if ($q !== '') $rh = array_values(array_filter($rh, function ($r) use ($q) {
-            return stripos($r['kode'], $q) !== false || stripos($r['nama'], $q) !== false;
+            return stripos($r['lama'], $q) !== false || stripos($r['baru'], $q) !== false || stripos($r['nama'], $q) !== false;
         }));
         $total = count($rh); $halaman = max(1, (int) ceil($total / $per)); if ($hal > $halaman) $hal = $halaman;
         $this->render('cermat/hasil_rh', 'rh', array(
@@ -194,11 +194,15 @@ class Cermat extends MY_Controller
         $d = $this->periode->muat($id);
         if ( ! $d) show_404();
         require_once APPPATH . 'libraries/Xlsx_io.php';
-        $baris = array(array('Kode Baru', 'Nama Komoditas', 'Rata-Rata Geometrik', 'Rata-Rata Geometrik Bulan Sebelumnya', 'RHt'));
-        foreach ($this->periode->hasil_rh($id) as $r) $baris[] = array((string) $r['kode'], $r['nama'], (float) $r['g_ini'], (float) $r['g_lalu'], (float) $r['rht']);
+        $baris = array(array('Kode Komoditas', 'Kode Baru', 'Nama Komoditas', 'Rata-Rata Geometrik Kode Lama', 'Rata-Rata Geometrik Bulan Sebelumnya',
+                             'Rata-Rata Geometrik Kode Baru', 'Rata-Rata Geometrik Bulan Sebelumnya', 'Rata-Rata Geometrik', 'Rata-Rata Geometrik Bulan Sebelumnya', 'RHt'));
+        $n = function ($x) { return $x === null ? null : (float) $x; };
+        foreach ($this->periode->tabel_rh($id) as $r)
+            $baris[] = array($r['lama'] !== '' ? $r['lama'] : null, $r['baru'] !== '' ? $r['baru'] : null, $r['nama'],
+                             $n($r['d']), $n($r['e']), $n($r['f']), $n($r['g']), $n($r['h']), $n($r['i']), $n($r['rht']));
         $tmp = tempnam(sys_get_temp_dir(), 'rh');
         Xlsx_io::tulis($tmp, array(array('nama' => 'RH', 'baris' => $baris, 'header' => true, 'beku' => true, 'filter' => true,
-                                         'garis' => true, 'lebar' => array(16, 38, 22, 34, 12))));
+                                         'garis' => true, 'lebar' => array(16, 16, 38, 22, 22, 22, 22, 22, 22, 12))));
         $nama = 'RH_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . '.xlsx';
         $isi = file_get_contents($tmp); @unlink($tmp);
         $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);
