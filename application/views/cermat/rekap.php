@@ -11,7 +11,6 @@
   <span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span>
   <?php endif; ?>
   <label><input type="checkbox" id="fkosong"> Alasan belum diisi</label>
-  <span class="chip" title="Kecamatan masuk daftar bila searah provinsi dan berubah sebesar ini atau lebih">Batas kecamatan &ge; <?= rtrim(rtrim(number_format($ambang, 2, ',', ''), '0'), ',') ?>%</span>
   <button class="btn" type="submit">Terapkan</button>
   <button class="btn alt" type="button" id="breset">Reset</button>
   <?php if (empty($kunci_kab)): ?><a class="btn alt" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Pilih komoditas yang dikonfirmasi</a><?php endif; ?>
