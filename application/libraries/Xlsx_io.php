@@ -16,7 +16,7 @@ class Xlsx_io
      * $mentah = true: angka dikembalikan persis seperti tertulis di file (teks), dan tiap baris berbentuk
      *               array('r' => nomorBarisExcel, 'v' => [indeksKolom => nilai]).
      */
-    public static function baca($path, $nama_sheet, $mentah = false)
+    public static function baca($path, $nama_sheet, $mentah = false, $maks_baris = 0)
     {
         if ( ! class_exists('ZipArchive')) throw new RuntimeException('Ekstensi PHP zip belum aktif (php.ini: extension=zip).');
         $zip = new ZipArchive();
@@ -74,6 +74,7 @@ class Xlsx_io
                 $ada = true;
             }
             if ($ada) $rows[] = $mentah ? array('r' => (int) $node->getAttribute('r'), 'v' => $baris) : $baris;
+            if ($maks_baris > 0 && count($rows) >= $maks_baris) break;
         }
         $xr->close();
         return $rows;

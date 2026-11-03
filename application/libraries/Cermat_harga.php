@@ -82,6 +82,29 @@ class Cermat_harga
     }
 
     /**
+     * Mencari sheet yang berisi tabel harga (judul kolom Kabupaten, Nama Kecamatan, Kode Komoditas, Nama Komoditas,
+     * Nama Kualitas, Harga Bulan Ini, Harga Bulan Sebelumnya), apa pun nama sheet-nya. Sheet "Data" dicek lebih dulu.
+     * @return string|null nama sheet, atau null bila file tidak berisi tabel harga
+     */
+    public function cari_sheet_harga($path)
+    {
+        @ini_set('memory_limit', '1024M');
+        require_once APPPATH . 'libraries/Xlsx_io.php';
+        $nama = Xlsx_io::daftar_sheet($path);
+        usort($nama, function ($a, $b) { return (strcasecmp($b, 'Data') === 0) <=> (strcasecmp($a, 'Data') === 0); });
+        foreach ($nama as $n)
+        {
+            try
+            {
+                $r = Xlsx_io::baca($path, $n, false, 1);
+                if ($r) { $this->petakan_header($r[0]); return $n; }
+            }
+            catch (Throwable $e) { /* bukan tabel harga: coba sheet berikutnya */ }
+        }
+        return null;
+    }
+
+    /**
      * Membaca isi sheet apa adanya (semua kolom, urutan baris asli, nilai tanpa diubah).
      * @return array ['kolom' => [judul, ...], 'baris' => [ ['r' => nomorBarisExcel, 'v' => [nilai, ...]], ... ]]
      */

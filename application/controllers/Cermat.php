@@ -40,6 +40,7 @@ class Cermat extends MY_Controller
     {
         if (is_cli()) { echo "Untuk terminal gunakan: php cermat.php \"<file.xlsx>\" [\"Bulan Tahun\"]\n"; return; }
         if ( ! $this->buka_periode()) { redirect('cermat/unggah'); }
+        $this->butuh_hasil();
         $d = $this->data;
         $this->render('cermat/dashboard', 'dashboard', array(
             'ringkas' => $d['hasil']['ringkas'],
@@ -63,6 +64,7 @@ class Cermat extends MY_Controller
             if ($this->kab_user()) return $this->render('cermat/kosong', 'rekap', array());
             redirect('cermat/unggah');
         }
+        if ( ! $this->kab_user()) $this->butuh_hasil();
         $ku = $this->kab_user();
         $komoditas = $this->data['hasil']['komoditas'];
         if ($ku)   // akun kabupaten: hanya baris kabupatennya sendiri
@@ -90,6 +92,7 @@ class Cermat extends MY_Controller
     public function komoditas()
     {
         if ( ! $this->buka_periode()) redirect('cermat/unggah');
+        $this->butuh_hasil();
         $this->render('cermat/komoditas', 'komoditas', array('komoditas' => $this->data['hasil']['komoditas']));
     }
 
@@ -171,6 +174,7 @@ class Cermat extends MY_Controller
     public function hasil_rh()
     {
         if ( ! $this->buka_periode()) redirect('cermat/unggah');
+        $this->butuh_hasil();
         $per = (int) $this->input->get('per');
         if ( ! in_array($per, array(25, 50, 100), true)) $per = 50;
         $hal = max(1, (int) $this->input->get('hal'));
@@ -340,11 +344,11 @@ class Cermat extends MY_Controller
         }
         if ($this->catatan_unggah)
         {
-            $this->session->set_flashdata('pesan', 'Perhatian: file tersimpan dan semua sheet bisa dilihat di menu Data, tetapi Rekap Konfirmasi tidak dibuat. ' . $this->catatan_unggah);
+            $this->session->set_flashdata('pesan', 'File tersimpan dan semua sheet bisa dilihat di menu Data. ' . $this->catatan_unggah);
         }
         $r = $this->periode->muat($id);
         $this->catatan->catat('unggah', $nama . ' - ' . $_FILES['berkas']['name'] . ' (' . $r['hasil']['ringkas']['jml_komoditas'] . ' komoditas)');
-        redirect('cermat?p=' . $id);
+        redirect($r['hasil']['ringkas']['jml_komoditas'] > 0 ? 'cermat?p=' . $id : 'cermat/data_asli?p=' . $id);
     }
 
     /** Memilih / membatalkan komoditas yang akan dikonfirmasi (AJAX). Parameter: kode[] dan dipilih = 1|0 */
@@ -461,14 +465,13 @@ class Cermat extends MY_Controller
     {
         $opsi = array_filter($opsi, function ($v) { return $v !== 0.0; });
         require_once APPPATH . 'libraries/Xlsx_io.php';
-        $semua = Xlsx_io::daftar_sheet($path);
-        $ada_data = false; foreach ($semua as $n) if (strcasecmp($n, 'Data') === 0) $ada_data = true;
+        $sheet_data = $this->cermat_harga->cari_sheet_harga($path);   // sheet berisi tabel harga (nama bebas), atau null
 
-        if ($ada_data)
+        if ($sheet_data !== null)
         {
             try
             {
-                $baris = $this->cermat_harga->baca_xlsx($path);
+                $baris = $this->cermat_harga->baca_xlsx($path, $sheet_data);
                 $hasil = $this->cermat_harga->hitung($baris, $opsi);
                 unset($baris);
             }
@@ -477,14 +480,15 @@ class Cermat extends MY_Controller
                 $hasil = $this->cermat_harga->hitung(array(), $opsi);
                 $this->catatan_unggah = $e->getMessage();
             }
-            $mentah = $this->cermat_harga->baca_mentah($path);
+            $mentah = $this->cermat_harga->baca_mentah($path, $sheet_data);
         }
-        else    // file tanpa sheet Data (mis. file lain): semua sheet disimpan dan tampil sebagai tab, rekap kosong
+        else    // file lain (bukan tabel harga): semua sheet disimpan dan tampil sebagai tab di menu Data; RH dan rekap tidak dibuat
         {
             $hasil = $this->cermat_harga->hitung(array(), $opsi);
             $mentah = null;
+            $this->catatan_unggah = 'File ini tidak berisi tabel harga (kolom Kabupaten, Nama Kecamatan, Kode Komoditas, Nama Komoditas, Nama Kualitas, Harga Bulan Ini, Harga Bulan Sebelumnya), jadi RH dan Rekap Konfirmasi tidak dibuat.';
         }
-        $lain = $this->cermat_harga->baca_sheet_lain($path, 'Data');
+        $lain = $this->cermat_harga->baca_sheet_lain($path, $sheet_data !== null ? $sheet_data : '');
 
         if ($nama === '') $nama = $this->tebak_periode($file_asal);
         $id = date('Ymd_His');
@@ -508,6 +512,12 @@ class Cermat extends MY_Controller
         if (preg_match('/(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)[ _\-]*(\d{4})/i', $file, $m))
             return ucfirst(strtolower($m[1])) . ' ' . $m[2];
         return pathinfo($file, PATHINFO_FILENAME);
+    }
+
+    /** Halaman yang bergantung pada RH/rekap: bila file periode ini bukan tabel harga, arahkan ke menu Data. */
+    private function butuh_hasil()
+    {
+        if (empty($this->data['hasil']['komoditas'])) redirect('cermat/data_asli?p=' . $this->aktif);
     }
 
     /** Muat periode aktif dari ?p= atau yang terbaru. */

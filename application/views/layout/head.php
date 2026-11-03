@@ -34,6 +34,8 @@ $menu_item = array(
 $role = $this->session->userdata('role');
 $akun_kab = ($role === 'kabupaten');
 if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rh', 'rekap')));   // akun kabupaten: Data, RH, dan Rekap
+// file periode ini bukan tabel harga (tidak ada RH/rekap): menu hanya yang relevan
+if ( ! empty($periode) && empty($periode['hasil']['komoditas'])) $menu_item = array_diff_key($menu_item, array_flip(array('dashboard', 'rh', 'rekap', 'komoditas')));
 $nm_user = (string) $this->session->userdata('nama');
 $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
 $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data', 'rh' => 'RH',
