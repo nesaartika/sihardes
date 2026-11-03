@@ -144,7 +144,7 @@ class Cermat extends MY_Controller
         }
         $tabs = array();
         if ($ada_data) $tabs[] = 'Data';
-        if ( ! $ku) foreach ($meta as $m) if ($m['nama'] !== 'Data' && strcasecmp($m['nama'], 'RH') !== 0) $tabs[] = $m['nama'];   // sheet RH sudah ada di menu RH
+        if ( ! $ada_data && ! $ku) foreach ($meta as $m) $tabs[] = $m['nama'];   // file bukan tabel harga: semua sheet tampil sebagai tab; selain itu menu Data hanya berisi Data
         $sheet = (string) $this->input->get('sheet');
         if ( ! in_array($sheet, $tabs, true)) $sheet = $tabs ? $tabs[0] : 'Data';
 

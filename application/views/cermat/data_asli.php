@@ -11,11 +11,13 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
     Unggah ulang file Excel-nya lewat <a href="<?= site_url('cermat/unggah') ?>">Unggah Data</a>.</div>
 <?php else: ?>
 
+<?php if (count($tabs) > 1): ?>
 <div class="tabs">
   <?php foreach ($tabs as $t): ?>
     <a class="<?= $t === $sheet ? 'on' : '' ?>" href="<?= site_url('cermat/data_asli?p=' . $p . '&sheet=' . rawurlencode($t)) ?>"><?= html_escape($t) ?></a>
   <?php endforeach; ?>
 </div>
+<?php endif; ?>
 
 <form method="get" action="<?= site_url('cermat/data_asli') ?>" class="bar">
   <input type="hidden" name="p" value="<?= html_escape($p) ?>">
@@ -41,11 +43,11 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
 <?php elseif ($mode === 'data'): ?>
 <div class="tw"><table>
   <thead><tr>
-    <?php foreach ($kolom as $nm): ?><th style="text-transform:none;letter-spacing:0;font-size:13px"><?= html_escape($nm) ?></th><?php endforeach; ?>
+    <?php foreach ($kolom as $i => $nm): if (strcasecmp(trim($nm), 'Column1') === 0) continue; ?><th style="text-transform:none;letter-spacing:0;font-size:13px"><?= html_escape($nm) ?></th><?php endforeach; ?>
   </tr></thead>
   <tbody>
   <?php foreach ($baris as $r): ?>
-    <tr><?php foreach ($r as $v): ?><td<?= ($v !== null && is_numeric($v)) ? ' style="text-align:right"' : '' ?>><?= html_escape((string) $v) ?></td><?php endforeach; ?></tr>
+    <tr><?php foreach ($r as $i => $v): if (strcasecmp(trim((string) $kolom[$i]), 'Column1') === 0) continue; ?><td<?= ($v !== null && is_numeric($v)) ? ' style="text-align:right"' : '' ?>><?= html_escape((string) $v) ?></td><?php endforeach; ?></tr>
   <?php endforeach; ?>
   </tbody>
 </table></div>
