@@ -9,18 +9,18 @@ $angka = function ($x) { return $x === null ? '' : number_format($x, 2, '.', ','
 $kab = $this->session->userdata('role') === 'kabupaten';
 $kanan = ! empty($bulan);
 
-// judul dan warna kolom mengikuti sheet RH di Excel: oranye (kode lama), hijau (kode baru), magenta (hasil), tosca (tabel bulanan)
+// judul kolom mengikuti sheet RH di Excel; warna tabel mengikuti tampilan aplikasi
 $kepala = array(
-    array('Kode Komoditas', '#f4b183'), array('Kode Baru', '#92d050'), array('Nama Komoditas', '#ca0e63'),
-    array('Rata-Rata Geometrik Kode Lama', '#f4b183'), array('Rata-Rata Geometrik Bulan Sebelumnya', '#f4b183'),
-    array('Rata-Rata Geometrik Kode Baru', '#92d050'), array('Rata-Rata Geometrik Bulan Sebelumnya', '#92d050'),
-    array('Rata-Rata Geometrik', '#ca0e63'), array('Rata-Rata Geometrik Bulan Sebelumnya', '#ca0e63'), array('RHt', '#ca0e63'),
+    array('Kode Komoditas', ''), array('Kode Baru', ''), array('Nama Komoditas', ''),
+    array('Rata-Rata Geometrik Kode Lama', ''), array('Rata-Rata Geometrik Bulan Sebelumnya', ''),
+    array('Rata-Rata Geometrik Kode Baru', ''), array('Rata-Rata Geometrik Bulan Sebelumnya', ''),
+    array('Rata-Rata Geometrik', ''), array('Rata-Rata Geometrik Bulan Sebelumnya', ''), array('RHt', ''),
 );
 if ($kanan)
 {
     $kepala[] = array('Column1', '');
-    foreach (array('Kode Komoditas', 'Kode Baru', 'Kode Gabung', 'Nama Komoditas') as $h) $kepala[] = array($h, '#1bbc9b');
-    foreach ($bulan as $b) $kepala[] = array($b, '#1bbc9b');
+    foreach (array('Kode Komoditas', 'Kode Baru', 'Kode Gabung', 'Nama Komoditas') as $h) $kepala[] = array($h, '');
+    foreach ($bulan as $b) $kepala[] = array($b, '');
 }
 ?>
 <form method="get" action="<?= site_url('cermat/hasil_rh') ?>" class="bar">
@@ -37,22 +37,21 @@ if ($kanan)
 
 <div class="tw"><table>
   <thead><tr>
-    <?php foreach ($kepala as $h): ?><th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:center;vertical-align:middle;<?= $h[1] !== '' ? 'color:#fff;background:' . $h[1] : '' ?>"><?= html_escape($h[0]) ?></th><?php endforeach; ?>
+    <?php foreach ($kepala as $i => $h): ?><th style="text-transform:none;letter-spacing:0;font-size:13px;vertical-align:bottom<?= ($i >= 3 && $i <= 10) || $i >= 15 ? ';text-align:right' : '' ?>"><?= html_escape($h[0]) ?></th><?php endforeach; ?>
   </tr></thead>
   <tbody>
-  <?php foreach ($rh as $r):
-      $st = $r['rht'] === null ? '' : ($r['rht'] >= 3 ? 'background:#00b0f0' : ($r['rht'] <= -3 ? 'background:#ffc000' : '')); ?>
+  <?php foreach ($rh as $r): ?>
     <tr>
       <td><?= html_escape($r['lama']) ?></td>
-      <td style="background:#f8cbad"><?= html_escape($r['baru']) ?></td>
+      <td><?= html_escape($r['baru']) ?></td>
       <td><?= html_escape($r['nama']) ?></td>
       <?php foreach (array('d', 'e', 'f', 'g', 'h', 'i') as $c): ?><td style="text-align:right"><?= $angka($r[$c]) ?></td><?php endforeach; ?>
-      <td style="text-align:right;<?= $st ?>"><?= $angka($r['rht']) ?></td>
+      <td style="text-align:right"><?= $angka($r['rht']) ?></td>
       <?php if ($kanan): ?>
       <td style="text-align:right"><?= (int) $r['k'] ?></td>
       <td><?= html_escape($r['l']) ?></td>
-      <td style="background:#f8cbad"><?= html_escape($r['m']) ?></td>
-      <td style="background:#f8cbad"><?= html_escape($r['n']) ?></td>
+      <td><?= html_escape($r['m']) ?></td>
+      <td><?= html_escape($r['n']) ?></td>
       <td><?= html_escape($r['o']) ?></td>
       <?php foreach ($r['bln'] as $v): ?><td style="text-align:right"><?= $angka($v) ?></td><?php endforeach; ?>
       <?php endif; ?>
