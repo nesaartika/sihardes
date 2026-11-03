@@ -69,5 +69,5 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
   </header>
   <main>
   <?php if ($pesan = $this->session->flashdata('pesan')): ?>
-    <div class="card" style="border-left:4px solid var(--turun);padding:10px 14px;margin-bottom:14px"><?= html_escape($pesan) ?></div>
+    <div class="card" style="border-left:4px solid var(--ok);padding:10px 14px;margin-bottom:14px"><?= html_escape($pesan) ?></div>
   <?php endif; ?>

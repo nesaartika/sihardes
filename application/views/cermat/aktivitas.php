@@ -18,7 +18,7 @@ $label = array('login' => 'Masuk', 'login_gagal' => 'Gagal masuk', 'logout' => '
   <?php if (empty($log)): ?>
     <tr><td colspan="5" class="empty">Belum ada aktivitas tercatat.</td></tr>
   <?php endif; ?>
-  <?php foreach ($log as $l): $b = in_array($l['aksi'], array('hapus_periode', 'login_gagal'), true) ? 'naik' : ($l['aksi'] === 'unggah' ? 'hd' : 'stabil'); ?>
+  <?php foreach ($log as $l): $b = in_array($l['aksi'], array('hapus_periode', 'login_gagal'), true) ? 'bahaya' : ($l['aksi'] === 'unggah' ? 'hd' : 'stabil'); ?>
     <tr data-aksi="<?= html_escape($l['aksi']) ?>" data-q="<?= html_escape(strtolower($l['username'] . ' ' . $l['keterangan'])) ?>">
       <td><?= date('d-m-Y H:i:s', strtotime($l['waktu'])) ?></td>
       <td><?= html_escape($l['username']) ?></td>

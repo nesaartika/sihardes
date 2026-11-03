@@ -1,6 +1,6 @@
 <?php $peran = array('admin' => 'Admin', 'kabupaten' => 'Kabupaten'); ?>
 <?php if ( ! empty($sandi_baru)): ?>
-  <div class="card" style="border-left:4px solid var(--turun);margin-bottom:14px">
+  <div class="card" style="border-left:4px solid var(--ok);margin-bottom:14px">
     <b>Kata sandi sementara untuk <?= html_escape($sandi_baru['email']) ?></b><br>
     <span style="font-size:20px;font-family:monospace;letter-spacing:1px"><?= html_escape($sandi_baru['sandi']) ?></span>
     <div class="hint">Catat dan berikan kepada yang bersangkutan sekarang. Kata sandi ini tidak akan ditampilkan lagi, dan wajib diganti saat masuk pertama kali.</div>
@@ -32,7 +32,7 @@
       <td><?= html_escape($a['nama']) ?></td>
       <td><span class="badge <?= $a['role'] === 'admin' ? 'hd' : 'hkd' ?>"><?= html_escape(isset($peran[$a['role']]) ? $peran[$a['role']] : $a['role']) ?></span></td>
       <td><?= $a['kab'] ? html_escape(Cermat_harga::nama_kab((int) $a['kab'])) : '-' ?></td>
-      <td><?= $a['aktif'] ? '<span class="badge sudah">Aktif</span>' : '<span class="badge naik">Nonaktif</span>' ?>
+      <td><?= $a['aktif'] ? '<span class="badge sudah">Aktif</span>' : '<span class="badge bahaya">Nonaktif</span>' ?>
           <?= $a['wajib_ganti'] ? '<div class="hint">belum ganti sandi</div>' : '' ?></td>
       <td class="hint"><?= $a['terakhir_login'] ? date('d-m-Y H:i', strtotime($a['terakhir_login'])) : 'belum pernah' ?></td>
       <td style="white-space:nowrap">
