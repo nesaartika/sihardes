@@ -427,24 +427,30 @@ class Periode_model extends CI_Model
     }
 
     /**
-     * Tabel RH berbentuk seperti sheet RH di Excel (kolom A-J), semua angkanya dihitung aplikasi dari sheet Data.
-     * Daftar komoditas dan pasangan Kode Komoditas (lama) -> Kode Baru mengikuti sheet RH di file bila ada.
-     * @return array [ ['lama','baru','nama','d','e','f','g','h','i','rht'], ... ]  (nilai null bila kosong)
+     * Tabel RH berbentuk seperti sheet RH di Excel (kolom A-AA), semua angka RH dihitung aplikasi dari sheet Data.
+     * Daftar komoditas, pasangan Kode Komoditas (lama) -> Kode Baru, dan tabel RHt bulanan di sisi kanan mengikuti sheet RH di file.
+     * @return array ['bulan' => [judul kolom bulan, ...], 'baris' => [ ['lama','baru','nama','d','e','f','g','h','i','rht','k','l','m','n','o','bln'], ... ]]
      */
     public function tabel_rh($periode_id)
     {
-        $baris = array();
+        $baris = array(); $bulan = array();
         $ada = false;
         foreach ($this->daftar_sheet($periode_id) as $m) if ($m['nama'] === 'RH') $ada = true;
         if ($ada)
         {
-            $rows = $this->db->query("SELECT baris, isi FROM sheet_excel WHERE periode_id = ? AND sheet = 'RH' AND baris >= 3 ORDER BY baris", array($periode_id))->result_array();
-            foreach ($rows as $r) { $v = json_decode($r['isi'], true); if (is_array($v)) $baris[] = $v; }
+            $rows = $this->db->query("SELECT baris, isi FROM sheet_excel WHERE periode_id = ? AND sheet = 'RH' AND baris >= 2 ORDER BY baris", array($periode_id))->result_array();
+            foreach ($rows as $r)
+            {
+                $v = json_decode($r['isi'], true);
+                if ( ! is_array($v)) continue;
+                if ((int) $r['baris'] === 2) { for ($i = 15; $i <= 26; $i++) $bulan[] = isset($v[$i]) && $v[$i] !== null ? (string) $v[$i] : ''; continue; }
+                $baris[] = $v;
+            }
         }
-        return self::susun_rh($this->hasil_rh($periode_id), $baris);
+        return array('bulan' => $bulan, 'baris' => self::susun_rh($this->hasil_rh($periode_id), $baris));
     }
 
-    /** Menyusun tabel RH dari hasil hitung per kode dan daftar kode di sheet RH (kolom A, B, C). */
+    /** Menyusun tabel RH dari hasil hitung per kode dan baris sheet RH di file (kolom A, B, C dan blok kanan L-AA). */
     public static function susun_rh(array $hasil_rh, array $baris_sheet)
     {
         $kode = function ($x) {
@@ -455,21 +461,29 @@ class Periode_model extends CI_Model
         $g = array();
         foreach ($hasil_rh as $r) $g[$r['kode']] = $r;
         $pakai = array(); $out = array();
-        $buat = function ($lama, $baru, $nama) use ($g) {
+        $buat = function ($lama, $baru, $nama, $v) use ($g, $kode) {
             $fl = ($lama !== '' && isset($g[$lama])) ? $g[$lama] : null;
             $fb = ($baru !== '' && isset($g[$baru])) ? $g[$baru] : null;
             if ( ! $fl && ! $fb) return null;
             $f = $fb ? $fb['g_ini'] : null; $gg = $fb ? $fb['g_lalu'] : null;
+            $rht = ($f !== null && $gg > 0) ? $f / $gg * 100 - 100 : null;
+            $m = $v !== null ? $kode(isset($v[12]) ? $v[12] : null) : $baru;
+            $l = $v !== null ? $kode(isset($v[11]) ? $v[11] : null) : '';
+            $bln = array();
+            for ($i = 15; $i <= 26; $i++) $bln[] = ($v !== null && isset($v[$i]) && is_numeric($v[$i])) ? (float) $v[$i] : null;
             return array('lama' => $lama, 'baru' => $baru, 'nama' => $nama !== '' ? $nama : ($fb ? $fb['nama'] : $fl['nama']),
                 'd' => $fl ? $fl['g_ini'] : null, 'e' => $fl ? $fl['g_lalu'] : null, 'f' => $f, 'g' => $gg, 'h' => $f, 'i' => $gg,
-                'rht' => ($f !== null && $gg > 0) ? $f / $gg * 100 - 100 : null);
+                'rht' => $rht, 'k' => $rht === null ? 0 : 1,
+                'l' => $l, 'm' => $m, 'n' => $m !== '' ? $m : $l,
+                'o' => ($v !== null && isset($v[14]) && trim((string) $v[14]) !== '') ? trim((string) $v[14]) : ($fb ? $fb['nama'] : $fl['nama']),
+                'bln' => $bln);
         };
         foreach ($baris_sheet as $v)
         {
             $lama = $kode(isset($v[0]) ? $v[0] : null); $baru = $kode(isset($v[1]) ? $v[1] : null);
             $nama = isset($v[2]) ? trim((string) $v[2]) : '';
             if ($lama === '' && $baru === '') continue;
-            $row = $buat($lama, $baru, $nama);
+            $row = $buat($lama, $baru, $nama, $v);
             if ( ! $row) continue;
             if ($lama !== '') $pakai[$lama] = 1;
             if ($baru !== '') $pakai[$baru] = 1;
@@ -478,7 +492,7 @@ class Periode_model extends CI_Model
         foreach ($hasil_rh as $r)   // komoditas di Data yang belum ada di daftar sheet RH
         {
             if (isset($pakai[$r['kode']])) continue;
-            $out[] = $buat('', $r['kode'], $r['nama']);
+            $out[] = $buat('', $r['kode'], $r['nama'], null);
         }
         return $out;
     }

@@ -284,17 +284,18 @@ class Xlsx_io
           . '<numFmts count="1"><numFmt numFmtId="164" formatCode="0.00"/></numFmts>'
           . '<fonts count="5"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="11"/><name val="Arial"/></font><font><b/><sz val="11"/><name val="Arial"/></font>'
           . '<font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'
-          . '<fills count="8"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+          . '<fills count="9"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
           . '<fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/><bgColor indexed="64"/></patternFill></fill>'
           . '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF9E5"/><bgColor indexed="64"/></patternFill></fill>'
           . '<fill><patternFill patternType="solid"><fgColor rgb="FFF4B183"/><bgColor indexed="64"/></patternFill></fill>'
           . '<fill><patternFill patternType="solid"><fgColor rgb="FF92D050"/><bgColor indexed="64"/></patternFill></fill>'
           . '<fill><patternFill patternType="solid"><fgColor rgb="FFCA0E63"/><bgColor indexed="64"/></patternFill></fill>'
-          . '<fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/><bgColor indexed="64"/></patternFill></fill></fills>'
+          . '<fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/><bgColor indexed="64"/></patternFill></fill>'
+          . '<fill><patternFill patternType="solid"><fgColor rgb="FF1BBC9B"/><bgColor indexed="64"/></patternFill></fill></fills>'
           . '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'
           . '<border><left style="thin"><color rgb="FFBFC7D5"/></left><right style="thin"><color rgb="FFBFC7D5"/></right><top style="thin"><color rgb="FFBFC7D5"/></top><bottom style="thin"><color rgb="FFBFC7D5"/></bottom><diagonal/></border></borders>'
           . '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-          . '<cellXfs count="12">'
+          . '<cellXfs count="13">'
           . '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'                       // 0 biasa
           . '<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>' // 1 header
           . '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'  // 2 kuning
@@ -307,7 +308,9 @@ class Xlsx_io
           . '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left"/></xf>'   // 9 teks
           . '<xf numFmtId="4" fontId="3" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'   // 10 #,##0.00
           . '<xf numFmtId="2" fontId="3" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'   // 11 0.00
-          . '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+          . '<xf numFmtId="0" fontId="4" fillId="8" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'   // 12 header hijau tosca (tabel bulanan)
+          . '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+          . '<dxfs count="2"><dxf><fill><patternFill><bgColor rgb="FFFFC000"/></patternFill></fill></dxf><dxf><fill><patternFill><bgColor rgb="FF00B0F0"/></patternFill></fill></dxf></dxfs></styleSheet>';
     }
 
     private static function xml_sheet($sh)
@@ -361,7 +364,7 @@ class Xlsx_io
     /** Sheet RH: tata letak dan warna mengikuti sheet RH di Excel BPS (baris 1 kosong, judul baris 2, data mulai baris 3, beku di A3) */
     private static function xml_sheet_rh($sh)
     {
-        $kepala = array(5, 6, 7, 5, 5, 6, 6, 7, 7, 7);    // oranye, hijau, magenta sesuai urutan kolom A-J
+        $kepala = array(5, 6, 7, 5, 5, 6, 6, 7, 7, 7, 9, 12, 12, 12, 12);    // oranye, hijau, magenta (A-J), Column1, lalu hijau tosca (L-O dan bulan)
         $x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
         $x .= '<sheetViews><sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>';
         $x .= '<cols>';
@@ -369,7 +372,7 @@ class Xlsx_io
         $x .= '</cols><sheetData><row r="1"/>';
         $x .= '<row r="2" ht="78" customHeight="1">';
         foreach ($sh['baris'][0] as $ci => $v)
-            $x .= '<c r="' . self::indeks_ke_kolom($ci) . '2" s="' . $kepala[$ci] . '" t="inlineStr"><is><t xml:space="preserve">' . self::x($v) . '</t></is></c>';
+            $x .= '<c r="' . self::indeks_ke_kolom($ci) . '2" s="' . (isset($kepala[$ci]) ? $kepala[$ci] : 12) . '" t="inlineStr"><is><t xml:space="preserve">' . self::x($v) . '</t></is></c>';
         $x .= '</row>';
         $r = 2;
         foreach (array_slice($sh['baris'], 1) as $baris)
@@ -379,15 +382,21 @@ class Xlsx_io
             foreach ($baris as $ci => $v)
             {
                 $ref = self::indeks_ke_kolom($ci) . $r;
-                $gaya = $ci === 1 ? 8 : ($ci <= 2 ? 9 : ($ci === 9 ? 11 : 10));
-                if ($v === null || $v === '') { if ($ci === 1) $x .= '<c r="' . $ref . '" s="8"/>'; continue; }
+                if ($ci === 1 || $ci === 12 || $ci === 13) $gaya = 8;
+                elseif ($ci <= 2 || ($ci >= 10 && $ci <= 14)) $gaya = 9;
+                elseif ($ci === 9 || $ci >= 15) $gaya = 11;
+                else $gaya = 10;
+                if ($v === null || $v === '') { if ($gaya === 8) $x .= '<c r="' . $ref . '" s="8"/>'; continue; }
                 if (is_int($v) || is_float($v)) $x .= '<c r="' . $ref . '" s="' . $gaya . '"><v>' . $v . '</v></c>';
-                elseif ($ci <= 1 && ctype_digit((string) $v) && strlen($v) <= 15 && $v[0] !== '0') $x .= '<c r="' . $ref . '" s="' . $gaya . '"><v>' . $v . '</v></c>';
+                elseif (($ci <= 1 || ($ci >= 11 && $ci <= 13)) && ctype_digit((string) $v) && strlen($v) <= 15 && $v[0] !== '0') $x .= '<c r="' . $ref . '" s="' . $gaya . '"><v>' . $v . '</v></c>';
                 else $x .= '<c r="' . $ref . '" s="' . $gaya . '" t="inlineStr"><is><t xml:space="preserve">' . self::x($v) . '</t></is></c>';
             }
             $x .= '</row>';
         }
-        $x .= '</sheetData><autoFilter ref="A2:J' . max(2, $r) . '"/></worksheet>';
+        $kol_akhir = self::indeks_ke_kolom(max(9, count($sh['baris'][0]) - 1));
+        $x .= '</sheetData><autoFilter ref="A2:' . $kol_akhir . max(2, $r) . '"/>';
+        if ($r >= 3) $x .= '<conditionalFormatting sqref="J3:J' . $r . '"><cfRule type="cellIs" dxfId="0" priority="2" operator="lessThanOrEqual"><formula>-3</formula></cfRule><cfRule type="cellIs" dxfId="1" priority="1" operator="greaterThanOrEqual"><formula>3</formula></cfRule></conditionalFormatting>';
+        $x .= '</worksheet>';
         return $x;
     }
 

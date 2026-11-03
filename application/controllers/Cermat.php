@@ -176,14 +176,14 @@ class Cermat extends MY_Controller
         $hal = max(1, (int) $this->input->get('hal'));
         $q   = trim((string) $this->input->get('q'));
 
-        $rh = $this->periode->tabel_rh($this->aktif);
-        $banding = $this->periode->banding_rh_file($this->aktif, $this->periode->hasil_rh($this->aktif));
+        $tabel = $this->periode->tabel_rh($this->aktif);
+        $rh = $tabel['baris'];
         if ($q !== '') $rh = array_values(array_filter($rh, function ($r) use ($q) {
             return stripos($r['lama'], $q) !== false || stripos($r['baru'], $q) !== false || stripos($r['nama'], $q) !== false;
         }));
         $total = count($rh); $halaman = max(1, (int) ceil($total / $per)); if ($hal > $halaman) $hal = $halaman;
         $this->render('cermat/hasil_rh', 'rh', array(
-            'rh' => array_slice($rh, ($hal - 1) * $per, $per), 'banding' => $banding, 'q' => $q, 'per' => $per,
+            'rh' => array_slice($rh, ($hal - 1) * $per, $per), 'bulan' => $tabel['bulan'], 'q' => $q, 'per' => $per,
             'hal' => $hal, 'halaman' => $halaman, 'total' => $total,
         ));
     }
@@ -194,15 +194,23 @@ class Cermat extends MY_Controller
         $d = $this->periode->muat($id);
         if ( ! $d) show_404();
         require_once APPPATH . 'libraries/Xlsx_io.php';
-        $baris = array(array('Kode Komoditas', 'Kode Baru', 'Nama Komoditas', 'Rata-Rata Geometrik Kode Lama', 'Rata-Rata Geometrik Bulan Sebelumnya',
-                             'Rata-Rata Geometrik Kode Baru', 'Rata-Rata Geometrik Bulan Sebelumnya', 'Rata-Rata Geometrik', 'Rata-Rata Geometrik Bulan Sebelumnya', 'RHt'));
+        $tabel = $this->periode->tabel_rh($id);
+        $kanan = ! empty($tabel['bulan']);
+        $kepala = array('Kode Komoditas', 'Kode Baru', 'Nama Komoditas', 'Rata-Rata Geometrik Kode Lama', 'Rata-Rata Geometrik Bulan Sebelumnya',
+                        'Rata-Rata Geometrik Kode Baru', 'Rata-Rata Geometrik Bulan Sebelumnya', 'Rata-Rata Geometrik', 'Rata-Rata Geometrik Bulan Sebelumnya', 'RHt');
+        if ($kanan) $kepala = array_merge($kepala, array('Column1', 'Kode Komoditas', 'Kode Baru', 'Kode Gabung', 'Nama Komoditas'), $tabel['bulan']);
+        $baris = array($kepala);
         $n = function ($x) { return $x === null ? null : (float) $x; };
-        foreach ($this->periode->tabel_rh($id) as $r)
-            $baris[] = array($r['lama'] !== '' ? $r['lama'] : null, $r['baru'] !== '' ? $r['baru'] : null, $r['nama'],
-                             $n($r['d']), $n($r['e']), $n($r['f']), $n($r['g']), $n($r['h']), $n($r['i']), $n($r['rht']));
+        $t = function ($x) { return $x !== '' ? $x : null; };
+        foreach ($tabel['baris'] as $r)
+        {
+            $b = array($t($r['lama']), $t($r['baru']), $r['nama'], $n($r['d']), $n($r['e']), $n($r['f']), $n($r['g']), $n($r['h']), $n($r['i']), $n($r['rht']));
+            if ($kanan) $b = array_merge($b, array((int) $r['k'], $t($r['l']), $t($r['m']), $t($r['n']), $t($r['o'])), $r['bln']);
+            $baris[] = $b;
+        }
         $tmp = tempnam(sys_get_temp_dir(), 'rh');
         Xlsx_io::tulis($tmp, array(array('nama' => 'RH', 'baris' => $baris, 'gaya_rh' => true,
-                                         'lebar' => array(17.6, 12, 38, 16, 16, 16, 16, 16, 16, 11))));
+                                         'lebar' => array(17.6, 12, 38, 16, 16, 16, 16, 16, 16, 11, 9, 17.6, 12, 12, 38, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9))));
         $nama = 'RH_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . '.xlsx';
         $isi = file_get_contents($tmp); @unlink($tmp);
         $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);

@@ -5,7 +5,23 @@ $url = function ($ubah = array()) use ($p, $q, $per) {
     $a = array_merge(array('p' => $p, 'q' => $q, 'per' => $per), $ubah);
     return '?' . http_build_query(array_filter($a, function ($v) { return $v !== '' && $v !== null; }));
 };
-$th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
+$angka = function ($x) { return $x === null ? '' : number_format($x, 2, '.', ','); };
+$kab = $this->session->userdata('role') === 'kabupaten';
+$kanan = ! empty($bulan);
+
+// judul dan warna kolom mengikuti sheet RH di Excel: oranye (kode lama), hijau (kode baru), magenta (hasil), tosca (tabel bulanan)
+$kepala = array(
+    array('Kode Komoditas', '#f4b183'), array('Kode Baru', '#92d050'), array('Nama Komoditas', '#ca0e63'),
+    array('Rata-Rata Geometrik Kode Lama', '#f4b183'), array('Rata-Rata Geometrik Bulan Sebelumnya', '#f4b183'),
+    array('Rata-Rata Geometrik Kode Baru', '#92d050'), array('Rata-Rata Geometrik Bulan Sebelumnya', '#92d050'),
+    array('Rata-Rata Geometrik', '#ca0e63'), array('Rata-Rata Geometrik Bulan Sebelumnya', '#ca0e63'), array('RHt', '#ca0e63'),
+);
+if ($kanan)
+{
+    $kepala[] = array('Column1', '');
+    foreach (array('Kode Komoditas', 'Kode Baru', 'Kode Gabung', 'Nama Komoditas') as $h) $kepala[] = array($h, '#1bbc9b');
+    foreach ($bulan as $b) $kepala[] = array($b, '#1bbc9b');
+}
 ?>
 <form method="get" action="<?= site_url('cermat/hasil_rh') ?>" class="bar">
   <input type="hidden" name="p" value="<?= html_escape($p) ?>">
@@ -14,41 +30,32 @@ $th = 'style="text-transform:none;letter-spacing:0;font-size:13px';
     <?php foreach (array(25, 50, 100) as $n): ?><option value="<?= $n ?>" <?= $per === $n ? 'selected' : '' ?>><?= $n ?> baris</option><?php endforeach; ?></select>
   <button class="btn" type="submit">Terapkan</button>
   <a class="btn alt" href="<?= site_url('cermat/hasil_rh?p=' . $p) ?>">Reset</a>
-  <?php if ($this->session->userdata('role') !== 'kabupaten'): ?><a class="btn alt" href="<?= site_url('cermat/unduh_rh/' . $p) ?>">Unduh RH (Excel)</a><?php endif; ?>
+  <?php if ( ! $kab): ?><a class="btn alt" href="<?= site_url('cermat/unduh_rh/' . $p) ?>">Unduh RH (Excel)</a><?php endif; ?>
 </form>
-
-<p class="hint">RH dihitung aplikasi dari data mentah (sheet Data di menu <a href="<?= site_url('cermat/data_asli?p=' . $p) ?>">Data</a>): rata-rata geometrik harga seluruh kecamatan dan kualitas untuk tiap komoditas, lalu RHt = (bulan ini / bulan sebelumnya - 1) x 100. Arah naik / turun / stabil dari RHt inilah yang dipakai untuk mencari kabupaten dan kecamatan di <a href="<?= site_url('cermat/rekap?p=' . $p) ?>">Rekap Konfirmasi</a>.</p>
-
-<?php if ( ! empty($banding)): ?>
-<div class="card" style="margin-bottom:12px;padding:10px 14px;border-left:4px solid <?= $banding['cocok'] === $banding['ditemukan'] ? 'var(--turun)' : 'var(--warn)' ?>">
-  <b>Dicocokkan dengan sheet RH di file:</b>
-  <?= number_format($banding['cocok'], 0, ',', '.') ?> dari <?= number_format($banding['ditemukan'], 0, ',', '.') ?> komoditas yang ada di sheet RH sama persis
-  (selisih RHt terbesar <?= $banding['selisih_maks'] < 1e-9 ? 'praktis nol' : number_format($banding['selisih_maks'], 6, ',', '.') ?>).
-  <span class="hint">Sheet RH hanya memuat sebagian komoditas, sisanya hanya ada di hasil aplikasi.</span>
-</div>
-<?php endif; ?>
 
 <p class="hint"><?= $total ? 'Menampilkan ' . number_format($awal, 0, ',', '.') . '-' . number_format($akhir, 0, ',', '.') . ' dari ' . number_format($total, 0, ',', '.') . ' komoditas' : 'Tidak ada komoditas yang cocok.' ?></p>
 
-<?php
-$angka = function ($x, $d = 2) { return $x === null ? '' : number_format($x, $d, '.', ','); };
-// warna judul kolom mengikuti sheet RH di Excel: oranye (kode lama), hijau (kode baru), magenta (hasil)
-$warna = array('#f4b183', '#92d050', '#ca0e63', '#f4b183', '#f4b183', '#92d050', '#92d050', '#ca0e63', '#ca0e63', '#ca0e63');
-$kepala = array('Kode Komoditas', 'Kode Baru', 'Nama Komoditas', 'Rata-Rata Geometrik Kode Lama', 'Rata-Rata Geometrik Bulan Sebelumnya',
-                'Rata-Rata Geometrik Kode Baru', 'Rata-Rata Geometrik Bulan Sebelumnya', 'Rata-Rata Geometrik', 'Rata-Rata Geometrik Bulan Sebelumnya', 'RHt');
-?>
 <div class="tw"><table>
   <thead><tr>
-    <?php foreach ($kepala as $i => $h): ?><th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:center;vertical-align:middle;color:#fff;background:<?= $warna[$i] ?>"><?= $h ?></th><?php endforeach; ?>
+    <?php foreach ($kepala as $h): ?><th style="text-transform:none;letter-spacing:0;font-size:13px;text-align:center;vertical-align:middle;<?= $h[1] !== '' ? 'color:#fff;background:' . $h[1] : '' ?>"><?= html_escape($h[0]) ?></th><?php endforeach; ?>
   </tr></thead>
   <tbody>
-  <?php foreach ($rh as $r): ?>
+  <?php foreach ($rh as $r):
+      $st = $r['rht'] === null ? '' : ($r['rht'] >= 3 ? 'background:#00b0f0' : ($r['rht'] <= -3 ? 'background:#ffc000' : '')); ?>
     <tr>
       <td><?= html_escape($r['lama']) ?></td>
       <td style="background:#f8cbad"><?= html_escape($r['baru']) ?></td>
       <td><?= html_escape($r['nama']) ?></td>
       <?php foreach (array('d', 'e', 'f', 'g', 'h', 'i') as $c): ?><td style="text-align:right"><?= $angka($r[$c]) ?></td><?php endforeach; ?>
-      <td style="text-align:right"><?= $angka($r['rht']) ?></td>
+      <td style="text-align:right;<?= $st ?>"><?= $angka($r['rht']) ?></td>
+      <?php if ($kanan): ?>
+      <td style="text-align:right"><?= (int) $r['k'] ?></td>
+      <td><?= html_escape($r['l']) ?></td>
+      <td style="background:#f8cbad"><?= html_escape($r['m']) ?></td>
+      <td style="background:#f8cbad"><?= html_escape($r['n']) ?></td>
+      <td><?= html_escape($r['o']) ?></td>
+      <?php foreach ($r['bln'] as $v): ?><td style="text-align:right"><?= $angka($v) ?></td><?php endforeach; ?>
+      <?php endif; ?>
     </tr>
   <?php endforeach; ?>
   </tbody>
