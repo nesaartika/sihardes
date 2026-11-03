@@ -11,7 +11,7 @@ class Periode_model extends CI_Model
                                  'September', 'Oktober', 'November', 'Desember');
 
     /** Jenis data yang dapat dipilih saat unggah (yang pertama = bawaan) */
-    public static $jenis_data = array('Harga Perdesaan', 'Harga Konsumen', 'Harga Perkotaan');
+    public static $jenis_data = array('Harga Perdesaan', 'Harga Konsumen', 'Harga Perkotaan', 'Lainnya');
 
     public function __construct()
     {

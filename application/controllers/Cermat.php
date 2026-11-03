@@ -393,26 +393,33 @@ class Cermat extends MY_Controller
         if (strtolower(pathinfo($_FILES['berkas']['name'], PATHINFO_EXTENSION)) !== 'xlsx')
             return $this->galat('Format file harus .xlsx');
 
+        // periode: dari isian lanjutan bila diisi, kalau kosong dibaca otomatis dari nama file
+        $bulan = (string) $this->input->post('bulan');
+        $tahun = (int) $this->input->post('tahun');
+        if ($bulan === '' || $tahun === 0)
+        {
+            $p = $this->baca_periode($_FILES['berkas']['name']);
+            if ($p === null)
+                return $this->galat('Bulan dan tahun tidak terbaca dari nama file. Buka "Pengaturan lanjutan" lalu pilih bulan dan tahun, atau ubah nama file, misalnya Harmonisasi_Kalbar_September_2026.xlsx');
+            if ($bulan === '')  $bulan = $p[0];
+            if ($tahun === 0)   $tahun = $p[1];
+        }
+        $daftar_bulan = array('Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember');
+        if ( ! in_array($bulan, $daftar_bulan, true) || $tahun < 2000 || $tahun > 2100)
+            return $this->galat('Bulan dan tahun periode tidak valid.');
+        $opsi = array();
+        $ambang = (float) str_replace(',', '.', (string) $this->input->post('ambang'));
+        if ($ambang > 0 && $ambang <= 100) $opsi['ambang_kec'] = $ambang;    // batas perubahan kecamatan (%), bawaan 5
+        $nama = $bulan . ' ' . $tahun;
+
         $aman   = preg_replace('/[^A-Za-z0-9_\-]/', '_', pathinfo($_FILES['berkas']['name'], PATHINFO_FILENAME));
         $simpan = $this->dir_upload . date('Ymd_His') . '_' . $aman . '.xlsx';
         if ( ! move_uploaded_file($_FILES['berkas']['tmp_name'], $simpan))
             return $this->galat('Tidak dapat menyimpan file ke folder writable/upload.');
 
-        $daftar_bulan = array('Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember');
-        $bulan = (string) $this->input->post('bulan');
-        $tahun = (int) $this->input->post('tahun');
-        if ( ! in_array($bulan, $daftar_bulan, true) || $tahun < 2000 || $tahun > 2100)
-            return $this->galat('Pilih bulan dan tahun periode.');
-        $opsi = array();
-        $ambang = (float) str_replace(',', '.', (string) $this->input->post('ambang'));
-        if ($ambang > 0 && $ambang <= 100) $opsi['ambang_kec'] = $ambang;    // batas perubahan kecamatan (%), bawaan 5
-        $jenis = (string) $this->input->post('jenis');
-        if ( ! in_array($jenis, Periode_model::$jenis_data, true)) $jenis = Periode_model::$jenis_data[0];
-        $nama = $bulan . ' ' . $tahun;
-
         try
         {
-            $id = $this->olah($simpan, $_FILES['berkas']['name'], $opsi, $nama, $jenis);
+            $id = $this->olah($simpan, $_FILES['berkas']['name'], $opsi, $nama);
         }
         catch (Exception $e)
         {
@@ -537,7 +544,7 @@ class Cermat extends MY_Controller
     // Internal
     // ---------------------------------------------------------------
 
-    private function olah($path, $file_asal, array $opsi, $nama, $jenis = 'Harga Perdesaan')
+    private function olah($path, $file_asal, array $opsi, $nama)
     {
         $opsi = array_filter($opsi, function ($v) { return $v !== 0.0; });
         require_once APPPATH . 'libraries/Xlsx_io.php';
@@ -564,6 +571,7 @@ class Cermat extends MY_Controller
             $mentah = null;
             $this->catatan_unggah = 'File ini tidak berisi tabel harga (kolom Kabupaten, Nama Kecamatan, Kode Komoditas, Nama Komoditas, Nama Kualitas, Harga Bulan Ini, Harga Bulan Sebelumnya), jadi RH dan Rekap Konfirmasi tidak dibuat.';
         }
+        $jenis = $this->deteksi_jenis($file_asal, $sheet_data !== null);
         // file tabel harga: yang disimpan hanya Data (data awal) dan sheet RH (daftar kode & tabel bulanan untuk menu RH); file lain: semua sheet
         $lain = $this->cermat_harga->baca_sheet_lain($path, $sheet_data !== null ? $sheet_data : '', 120, $sheet_data !== null ? array('RH') : null);
 
@@ -586,9 +594,33 @@ class Cermat extends MY_Controller
 
     private function tebak_periode($file)
     {
-        if (preg_match('/(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)[ _\-]*(\d{4})/i', $file, $m))
-            return ucfirst(strtolower($m[1])) . ' ' . $m[2];
-        return pathinfo($file, PATHINFO_FILENAME);
+        $p = $this->baca_periode($file);
+        return $p ? $p[0] . ' ' . $p[1] : pathinfo($file, PATHINFO_FILENAME);
+    }
+
+    /** Membaca bulan dan tahun dari nama file: "September 2026", "September_26", atau awalan "2609" (YYMM). Null bila tidak terbaca. */
+    private function baca_periode($file)
+    {
+        $daftar = array('Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember');
+        $nm = pathinfo($file, PATHINFO_FILENAME);
+        if (preg_match('/(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)[ _\-]*(\d{4}|\d{2})(?!\d)/i', $nm, $m))
+        {
+            $th = (int) $m[2];
+            if ($th < 100) $th += 2000;
+            return array(ucfirst(strtolower($m[1])), $th);
+        }
+        if (preg_match('/^(\d{2})(0[1-9]|1[0-2])(?!\d)/', $nm, $m))
+            return array($daftar[(int) $m[2] - 1], 2000 + (int) $m[1]);
+        return null;
+    }
+
+    /** Jenis data ditebak dari isi file: tabel harga = Harga Perdesaan; kata kunci pada nama file untuk jenis lain; selain itu Lainnya. */
+    private function deteksi_jenis($file, $tabel_harga)
+    {
+        $n = strtolower($file);
+        if (strpos($n, 'konsumen') !== false) return 'Harga Konsumen';
+        if (strpos($n, 'perkotaan') !== false) return 'Harga Perkotaan';
+        return $tabel_harga ? 'Harga Perdesaan' : 'Lainnya';
     }
 
     /** Halaman yang bergantung pada RH/rekap: bila file periode ini bukan tabel harga, arahkan ke menu Data. */
