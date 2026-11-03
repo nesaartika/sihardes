@@ -400,7 +400,7 @@ class Cermat extends MY_Controller
         {
             $p = $this->baca_periode($_FILES['berkas']['name']);
             if ($p === null)
-                return $this->galat('Bulan dan tahun tidak terbaca dari nama file. Buka "Pengaturan lanjutan" lalu pilih bulan dan tahun, atau ubah nama file, misalnya Harmonisasi_Kalbar_September_2026.xlsx');
+                return $this->galat('Bulan dan tahun tidak terbaca dari nama file. Buka "Atur periode secara manual" lalu pilih bulan dan tahun, atau ubah nama file, misalnya Harmonisasi_Kalbar_September_2026.xlsx');
             if ($bulan === '')  $bulan = $p[0];
             if ($tahun === 0)   $tahun = $p[1];
         }

@@ -11,7 +11,7 @@ $tahun_ini = (int) date('Y');
     <p class="hint" id="info">Jenis data dan periode (bulan &amp; tahun) dikenali otomatis dari file. Periode yang sama boleh diunggah lebih dari sekali; data lama tidak dihapus (lihat Riwayat Periode).</p>
 
     <details id="lanjutan" style="margin:14px 0">
-      <summary style="cursor:pointer;font-weight:700;color:var(--pri)">Pengaturan lanjutan</summary>
+      <summary style="cursor:pointer;font-weight:700;color:var(--pri)">Atur periode secara manual (opsional)</summary>
       <div style="display:flex;gap:14px;flex-wrap:wrap">
         <div style="flex:1;min-width:180px"><label for="bulan">Bulan</label>
           <select name="bulan" id="bulan" style="width:100%">
@@ -24,9 +24,6 @@ $tahun_ini = (int) date('Y');
             <?php for ($t = $tahun_ini + 1; $t >= $tahun_ini - 4; $t--): ?><option value="<?= $t ?>"><?= $t ?></option><?php endfor; ?>
           </select></div>
       </div>
-      <label for="ambang">Batas perubahan kecamatan (%)</label>
-      <input type="number" name="ambang" id="ambang" value="<?= Cermat_harga::$opsi_default['ambang_kec'] ?>" min="0.1" max="100" step="0.1" style="width:100%">
-      <p class="hint">Kecamatan masuk daftar konfirmasi bila harganya berubah searah dengan provinsi dan sebesar batas ini atau lebih.</p>
     </details>
     <p><button class="btn" type="submit" onclick="if(document.getElementById('berkas').value)this.textContent='Memproses...'">Proses Data</button></p>
   <?= form_close() ?>
@@ -42,6 +39,6 @@ document.getElementById('berkas').addEventListener('change', function(){
     bln = d[+m[2] - 1]; thn = 2000 + (+m[1]);
   }
   if (bln) { info.textContent = 'Periode terdeteksi: ' + bln + ' ' + thn + '. Jenis data dikenali otomatis dari isi file.'; info.style.color = ''; }
-  else if (n) { info.textContent = 'Bulan dan tahun tidak terbaca dari nama file. Buka "Pengaturan lanjutan" lalu pilih bulan dan tahun.'; info.style.color = 'var(--warn)'; document.getElementById('lanjutan').open = true; }
+  else if (n) { info.textContent = 'Bulan dan tahun tidak terbaca dari nama file. Buka "Atur periode secara manual" lalu pilih bulan dan tahun.'; info.style.color = 'var(--warn)'; document.getElementById('lanjutan').open = true; }
 });
 </script>
