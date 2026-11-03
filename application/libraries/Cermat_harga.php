@@ -62,17 +62,21 @@ class Cermat_harga
         $rows = Xlsx_io::baca($path, $sheet);
         if (empty($rows)) throw new RuntimeException('Sheet "' . $sheet . '" kosong.');
 
-        $peta = $this->petakan_header(array_shift($rows));
+        $h = $this->cari_header($rows);
+        if ($h === null) $this->petakan_header($rows[0]);       // melempar pesan kolom yang tidak ditemukan
+        list($idx, $peta) = $h;
+        $rows = array_slice($rows, $idx + 1);
         $baris = array();
         foreach ($rows as $r)
         {
             if ( ! isset($r[$peta['kode']]) || $r[$peta['kode']] === '') continue;
+            $kec = isset($peta['kec'], $r[$peta['kec']]) ? trim((string) $r[$peta['kec']]) : '';
             $baris[] = array(
-                'kab'      => isset($r[$peta['kab']]) ? (int) $r[$peta['kab']] : 0,
-                'kec'      => isset($r[$peta['kec']]) ? trim((string) $r[$peta['kec']]) : '',
+                'kab'      => isset($r[$peta['kab']]) ? $this->norm_kab($r[$peta['kab']]) : 0,
+                'kec'      => $kec !== '' ? $kec : '-',      // tanpa kolom kecamatan: dihitung per kabupaten
                 'kode'     => $this->norm_kode($r[$peta['kode']]),
                 'nama'     => isset($r[$peta['nama']]) ? trim((string) $r[$peta['nama']]) : '',
-                'kualitas' => isset($r[$peta['kualitas']]) ? trim((string) $r[$peta['kualitas']]) : '',
+                'kualitas' => (isset($peta['kualitas']) && isset($r[$peta['kualitas']])) ? trim((string) $r[$peta['kualitas']]) : '',
                 'ini'      => isset($r[$peta['ini']]) ? (float) $r[$peta['ini']] : 0.0,
                 'lalu'     => isset($r[$peta['lalu']]) ? (float) $r[$peta['lalu']] : 0.0,
                 'satuan'   => (isset($peta['satuan']) && isset($r[$peta['satuan']])) ? trim((string) $r[$peta['satuan']]) : '',
@@ -96,8 +100,8 @@ class Cermat_harga
         {
             try
             {
-                $r = Xlsx_io::baca($path, $n, false, 1);
-                if ($r) { $this->petakan_header($r[0]); return $n; }
+                $r = Xlsx_io::baca($path, $n, false, 10);
+                if ($r && $this->cari_header($r) !== null) return $n;
             }
             catch (Throwable $e) { /* bukan tabel harga: coba sheet berikutnya */ }
         }
@@ -117,6 +121,10 @@ class Cermat_harga
         $rows = Xlsx_io::baca($path, $sheet, true);
         if (empty($rows)) throw new RuntimeException('Sheet "' . $sheet . '" kosong.');
 
+        $awal = array();
+        foreach (array_slice($rows, 0, 10) as $x) $awal[] = $x['v'];
+        $h = $this->cari_header($awal);
+        if ($h !== null && $h[0] > 0) $rows = array_slice($rows, $h[0]);     // buang baris judul di atas tabel
         $head = array_shift($rows);
         $n = min($maks_kolom, max(array_keys($head['v'])) + 1);
         $kolom = array();
@@ -172,36 +180,56 @@ class Cermat_harga
         return $s;
     }
 
+    /** Nama kolom yang dikenali untuk tiap isian (urutan = prioritas). Kolom kec, kualitas, dan satuan bersifat opsional. */
+    private static $alias = array(
+        'kab'      => array('kabupaten', 'kab/kota', 'kabupaten/kota', 'nama kabupaten', 'kab', 'kota'),
+        'kec'      => array('nama kecamatan', 'kecamatan'),
+        'kode'     => array('kode komoditas', 'kode komoditi', 'kode barang', 'kode'),
+        'nama'     => array('nama komoditas', 'nama komoditi', 'nama barang', 'komoditas', 'komoditi'),
+        'kualitas' => array('nama kualitas', 'kualitas', 'nama spesifikasi', 'spesifikasi'),
+        'ini'      => array('harga bulan ini', 'harga saat ini', 'harga sekarang', 'harga ini', 'harga'),
+        'lalu'     => array('harga bulan sebelumnya', 'harga bulan lalu', 'harga sebelumnya', 'harga lalu'),
+        'satuan'   => array('satuan'),
+    );
+
     private function petakan_header($r)
     {
-        $kunci = array(
-            'kab'      => array('kabupaten'),
-            'kec'      => array('nama kecamatan'),
-            'kode'     => array('kode komoditas'),
-            'nama'     => array('nama komoditas'),
-            'kualitas' => array('nama kualitas'),
-            'ini'      => array('harga bulan ini'),
-            'lalu'     => array('harga bulan sebelumnya'),
-            'satuan'   => array('satuan'),      // opsional
-        );
+        $judul = array();
+        foreach ($r as $i => $v) $judul[strtolower(trim((string) $v))][] = $i;
         $peta = array();
-        foreach ($r as $i => $judul)
+        foreach (self::$alias as $k => $cocok)
         {
-            $j = strtolower(trim((string) $judul));
-            foreach ($kunci as $k => $cocok)
-            {
-                if (in_array($j, $cocok, true) && ! isset($peta[$k])) $peta[$k] = $i;
-            }
+            foreach ($cocok as $c) if (isset($judul[$c])) { $peta[$k] = $judul[$c][0]; break; }
         }
-        $nama = array('kab' => 'Kabupaten', 'kec' => 'Nama Kecamatan', 'kode' => 'Kode Komoditas', 'nama' => 'Nama Komoditas',
-                      'kualitas' => 'Nama Kualitas', 'ini' => 'Harga Bulan Ini', 'lalu' => 'Harga Bulan Sebelumnya');
+        $nama = array('kab' => 'Kabupaten', 'kode' => 'Kode Komoditas', 'nama' => 'Nama Komoditas', 'ini' => 'Harga Bulan Ini', 'lalu' => 'Harga Bulan Sebelumnya');
         $hilang = array();
-        foreach (array_keys($nama) as $k) if ( ! isset($peta[$k])) $hilang[] = $nama[$k];
+        foreach ($nama as $k => $n) if ( ! isset($peta[$k])) $hilang[] = $n;
         if ($hilang)
         {
-            throw new RuntimeException('Kolom yang diperlukan tidak ditemukan di sheet Data: ' . implode(', ', $hilang) . '.');
+            throw new RuntimeException('Kolom yang diperlukan tidak ditemukan: ' . implode(', ', $hilang) . '.');
         }
         return $peta;
+    }
+
+    /** Mencari baris judul tabel harga di 10 baris pertama. @return array|null [indeks baris, peta kolom] */
+    private function cari_header(array $rows)
+    {
+        foreach (array_slice($rows, 0, 10, true) as $i => $r)
+        {
+            try { return array($i, $this->petakan_header($r)); }
+            catch (RuntimeException $e) { /* bukan baris judul */ }
+        }
+        return null;
+    }
+
+    /** Kode kabupaten dari angka (61xx -> xx tetap angka) atau dari nama ("Kab. Sambas", "Kota Pontianak"). */
+    private function norm_kab($v)
+    {
+        if (is_numeric($v)) return (int) $v;
+        $t = strtolower(trim((string) $v));
+        $t = trim(preg_replace('/^(kabupaten|kab\.?)\s+/', '', $t));
+        foreach (self::$kabupaten as $kode => $nm) if (strtolower($nm) === $t) return $kode;
+        return 0;
     }
 
     private function norm_kode($v)
@@ -443,7 +471,10 @@ class Cermat_harga
     {
         require_once APPPATH . 'libraries/Xlsx_io.php';
 
-        $baris = array(array('Dokumen', 'Komoditas', 'Perubahan Harga Perdesaan Provinsi', 'Kabupaten', 'Alasan'));
+        $ada_sat = false;
+        foreach ($hasil['komoditas'] as $k) if ( ! empty($k['tampil']) && ! empty($k['satuan'])) { $ada_sat = true; break; }
+        $baris = array($ada_sat ? array('Dokumen', 'Komoditas', 'Satuan', 'Perubahan Harga Perdesaan Provinsi', 'Kabupaten', 'Alasan')
+                                : array('Dokumen', 'Komoditas', 'Perubahan Harga Perdesaan Provinsi', 'Kabupaten', 'Alasan'));
         foreach ($hasil['komoditas'] as $k)
         {
             if (empty($k['tampil'])) continue;
@@ -451,13 +482,15 @@ class Cermat_harga
             $rows = empty($k['kab']) ? array(0 => array()) : $k['kab'];
             foreach ($rows as $kab => $daftar)
             {
-                $baris[] = array(
+                $sel = array(
                     $pertama ? $k['dokumen'] : null,
                     $pertama ? $k['label'] : null,
                     $pertama ? $k['arah'] : null,
                     $daftar ? self::teks_kabupaten($kab, $daftar) : null,
                     isset($alasan[$k['kode'] . '|' . $kab]) ? $alasan[$k['kode'] . '|' . $kab] : null,
                 );
+                if ($ada_sat) array_splice($sel, 2, 0, array($pertama && ! empty($k['satuan']) ? $k['satuan'] : null));
+                $baris[] = $sel;
                 $pertama = false;
             }
             $baris[] = array(); // baris kosong pemisah antarkomoditas
@@ -465,7 +498,7 @@ class Cermat_harga
 
         Xlsx_io::tulis($path_keluar, array(
             array('nama' => 'Perubahan Harga', 'baris' => $baris, 'header' => true, 'beku' => true, 'filter' => true, 'filter' => true,
-                  'garis' => true, 'lebar' => array(11, 34, 21, 44, 80)),
+                  'garis' => true, 'lebar' => $ada_sat ? array(11, 34, 12, 21, 44, 80) : array(11, 34, 21, 44, 80)),
         ));
     }
 }

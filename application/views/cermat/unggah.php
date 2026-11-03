@@ -10,6 +10,11 @@ $bln_default = (int) date('n') - 1;
     <label for="berkas">File Excel Data (.xlsx)</label>
     <input type="file" name="berkas" id="berkas" accept=".xlsx" required>
 
+    <label for="jenis">Jenis data</label>
+    <select name="jenis" id="jenis" style="width:100%">
+      <?php foreach (Periode_model::$jenis_data as $j): ?><option value="<?= html_escape($j) ?>"><?= html_escape($j) ?></option><?php endforeach; ?>
+    </select>
+
     <div style="display:flex;gap:14px;flex-wrap:wrap">
       <div style="flex:1;min-width:180px"><label for="bulan">Bulan</label>
         <select name="bulan" id="bulan" style="width:100%">
@@ -20,6 +25,9 @@ $bln_default = (int) date('n') - 1;
           <?php for ($t = $tahun_ini + 1; $t >= $tahun_ini - 4; $t--): ?><option value="<?= $t ?>" <?= $t === $tahun_ini ? 'selected' : '' ?>><?= $t ?></option><?php endfor; ?>
         </select></div>
     </div>
+    <label for="ambang">Batas perubahan kecamatan (%)</label>
+    <input type="number" name="ambang" id="ambang" value="<?= Cermat_harga::$opsi_default['ambang_kec'] ?>" min="0.1" max="100" step="0.1" style="width:100%">
+    <p class="hint">Kecamatan masuk daftar konfirmasi bila harganya berubah searah dengan provinsi dan sebesar batas ini atau lebih.</p>
     <p class="hint">Bulan dan tahun terisi otomatis dari nama file bila terbaca. Periode yang sama boleh diunggah lebih dari sekali; setiap file tersimpan sendiri dan data lama tidak dihapus (lihat Riwayat Periode).</p>
     <p><button class="btn" type="submit" onclick="if(document.getElementById('berkas').value)this.textContent='Memproses...'">Proses Data</button></p>
   <?= form_close() ?>

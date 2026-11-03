@@ -86,6 +86,7 @@ class Cermat extends MY_Controller
             'alasan'     => $this->data['alasan'],
             'daftar_kab' => $kab,
             'kunci_kab'  => $ku,
+            'ambang'     => $this->data['hasil']['ringkas']['opsi']['ambang_kec'],
         ));
     }
 
@@ -403,11 +404,15 @@ class Cermat extends MY_Controller
         if ( ! in_array($bulan, $daftar_bulan, true) || $tahun < 2000 || $tahun > 2100)
             return $this->galat('Pilih bulan dan tahun periode.');
         $opsi = array();
+        $ambang = (float) str_replace(',', '.', (string) $this->input->post('ambang'));
+        if ($ambang > 0 && $ambang <= 100) $opsi['ambang_kec'] = $ambang;    // batas perubahan kecamatan (%), bawaan 5
+        $jenis = (string) $this->input->post('jenis');
+        if ( ! in_array($jenis, Periode_model::$jenis_data, true)) $jenis = Periode_model::$jenis_data[0];
         $nama = $bulan . ' ' . $tahun;
 
         try
         {
-            $id = $this->olah($simpan, $_FILES['berkas']['name'], $opsi, $nama);
+            $id = $this->olah($simpan, $_FILES['berkas']['name'], $opsi, $nama, $jenis);
         }
         catch (Exception $e)
         {
@@ -532,7 +537,7 @@ class Cermat extends MY_Controller
     // Internal
     // ---------------------------------------------------------------
 
-    private function olah($path, $file_asal, array $opsi, $nama)
+    private function olah($path, $file_asal, array $opsi, $nama, $jenis = 'Harga Perdesaan')
     {
         $opsi = array_filter($opsi, function ($v) { return $v !== 0.0; });
         require_once APPPATH . 'libraries/Xlsx_io.php';
@@ -566,7 +571,7 @@ class Cermat extends MY_Controller
         $id = date('Ymd_His');
         $this->periode->simpan($id, array(
             'id' => $id, 'nama' => $nama, 'file_asal' => $file_asal, 'dibuat' => date('d-m-Y H:i'),
-            'hasil' => $hasil, 'alasan' => array(),
+            'hasil' => $hasil, 'alasan' => array(), 'jenis' => $jenis,
         ));
         $meta = array();
         if ($mentah)

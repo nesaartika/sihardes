@@ -6,7 +6,7 @@
   <tbody>
   <?php foreach ($daftar as $d): $r = $d['ringkas']; ?>
     <tr>
-      <td><b><?= html_escape($d['nama']) ?></b> <?= $d['id'] === $p ? '<span class="pill">aktif</span>' : '' ?></td>
+      <td><b><?= html_escape($d['nama']) ?></b> <span class="hint"><?= html_escape($d['jenis']) ?></span> <?= $d['id'] === $p ? '<span class="pill">aktif</span>' : '' ?></td>
       <td><?= html_escape($d['file_asal']) ?></td>
       <td><?= $d['dibuat'] ?></td>
       <td><?= $r['jml_komoditas'] ?> <span class="hint">(<?= $r['naik'] ?>&uarr; <?= $r['turun'] ?>&darr; <?= $r['stabil'] ?>=)</span></td>

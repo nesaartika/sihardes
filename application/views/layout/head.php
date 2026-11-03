@@ -61,7 +61,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
     <?php if ( ! empty($daftar_periode)): ?>
       <select onchange="location.href=location.pathname+'?p='+this.value" title="Periode">
         <?php foreach ($daftar_periode as $pd): ?>
-          <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 38, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
+          <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 38, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
         <?php endforeach; ?>
       </select>
       <?php if ($p && ! $akun_kab): ?><a class="btn alt" href="<?= site_url('cermat/unduh/' . $p) ?>">Unduh Excel</a><?php endif; ?>

@@ -10,6 +10,9 @@ class Periode_model extends CI_Model
     public static $bulan = array('Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus',
                                  'September', 'Oktober', 'November', 'Desember');
 
+    /** Jenis data yang dapat dipilih saat unggah (yang pertama = bawaan) */
+    public static $jenis_data = array('Harga Perdesaan', 'Harga Konsumen', 'Harga Perkotaan');
+
     public function __construct()
     {
         parent::__construct();
@@ -95,6 +98,11 @@ class Periode_model extends CI_Model
                 CONSTRAINT `fk_sheet_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
+        // Jenis data periode (harga perdesaan, konsumen, perkotaan)
+        if ( ! $this->db->field_exists('jenis', 'periode'))
+        {
+            $this->db->query("ALTER TABLE periode ADD COLUMN jenis VARCHAR(40) NOT NULL DEFAULT 'Harga Perdesaan'");
+        }
         // Satuan komoditas (kolom Satuan di sheet Data, bila ada)
         if ( ! $this->db->table_exists('satuan_komoditas'))
         {
@@ -157,6 +165,7 @@ class Periode_model extends CI_Model
             'ambang_kec' => $r['opsi']['ambang_kec'], 'jml_baris' => $r['jml_baris'], 'jml_komoditas' => $r['jml_komoditas'],
             'naik' => $r['naik'], 'turun' => $r['turun'], 'stabil' => $r['stabil'],
             'perlu_konfirmasi' => $r['perlu_konfirmasi'], 'tidak_valid' => $r['tidak_valid'],
+            'jenis' => isset($data['jenis']) ? $data['jenis'] : self::$jenis_data[0],
         ));
 
         $id_kom = (int) $this->db->query('SELECT COALESCE(MAX(id),0) m FROM komoditas')->row()->m;
@@ -267,7 +276,7 @@ class Periode_model extends CI_Model
         }
 
         return array(
-            'id' => $p['id'], 'nama' => $p['nama'], 'file_asal' => $p['file_asal'],
+            'id' => $p['id'], 'nama' => $p['nama'], 'file_asal' => $p['file_asal'], 'jenis' => isset($p['jenis']) ? $p['jenis'] : self::$jenis_data[0],
             'dibuat' => date('d-m-Y H:i', strtotime($p['dibuat'])),
             'hasil' => array('ringkas' => $ringkas, 'komoditas' => $hasil),
             'alasan' => $this->alasan($id),
@@ -568,7 +577,7 @@ class Periode_model extends CI_Model
         foreach ($rows as $p)
         {
             $out[] = array(
-                'id' => $p['id'], 'nama' => $p['nama'], 'file_asal' => $p['file_asal'],
+                'id' => $p['id'], 'nama' => $p['nama'], 'file_asal' => $p['file_asal'], 'jenis' => isset($p['jenis']) ? $p['jenis'] : self::$jenis_data[0],
                 'dibuat' => date('d-m-Y H:i', strtotime($p['dibuat'])),
                 'terisi' => (int) $p['terisi'],
                 'ringkas' => array(
