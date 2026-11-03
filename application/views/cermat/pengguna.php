@@ -39,9 +39,13 @@
         <?= form_open('cermat/pengguna_reset/' . $a['id'], array('style' => 'display:inline')) ?>
           <button class="btn alt" type="submit" title="Buat kata sandi sementara baru">Reset sandi</button>
         <?= form_close() ?>
+        <a class="btn alt" href="<?= site_url('cermat/pengguna_edit/' . $a['id']) ?>">Edit</a>
         <?php if ( ! $saya): ?>
         <?= form_open('cermat/pengguna_aktif/' . $a['id'], array('style' => 'display:inline')) ?>
           <button class="btn <?= $a['aktif'] ? 'red' : 'alt' ?>" type="submit"><?= $a['aktif'] ? 'Nonaktifkan' : 'Aktifkan' ?></button>
+        <?= form_close() ?>
+        <?= form_open('cermat/pengguna_hapus/' . $a['id'], array('style' => 'display:inline', 'onsubmit' => "return confirm('Hapus akun " . html_escape($a['username']) . "? Tindakan ini tidak bisa dibatalkan.')")) ?>
+          <button class="btn red" type="submit">Hapus</button>
         <?= form_close() ?>
         <?php endif; ?>
       </td>

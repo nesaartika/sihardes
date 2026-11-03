@@ -45,6 +45,12 @@ class Catatan_model extends CI_Model
         ));
     }
 
+    /** Mengosongkan seluruh log aktivitas. */
+    public function kosongkan()
+    {
+        $this->db->truncate('log_aktivitas');
+    }
+
     public function terbaru($batas = 500)
     {
         return $this->db->order_by('id', 'DESC')->limit((int) $batas)->get('log_aktivitas')->result_array();

@@ -281,6 +281,77 @@ class Cermat extends MY_Controller
         redirect('cermat/pengguna');
     }
 
+    /** Edit akun: GET menampilkan form, POST menyimpan perubahan. */
+    public function pengguna_edit($id = 0)
+    {
+        $this->load->model('pengguna_model', 'pengguna');
+        $u = $this->pengguna->ambil($id);
+        if ( ! $u) show_404();
+        $saya = (int) $u['id'] === (int) $this->session->userdata('user_id');
+        $galat = null;
+        $f = array('email' => $u['username'], 'nama' => $u['nama'], 'role' => $u['role'], 'kab' => (int) $u['kab']);
+
+        if ($this->input->method() === 'post')
+        {
+            $f = array('email' => strtolower(trim((string) $this->input->post('email'))), 'nama' => trim((string) $this->input->post('nama')),
+                       'role' => (string) $this->input->post('role'), 'kab' => (int) $this->input->post('kab'));
+            $domain = strtolower((string) $this->config->item('domain_email'));
+            if ( ! filter_var($f['email'], FILTER_VALIDATE_EMAIL)) $galat = 'Format email tidak valid.';
+            elseif ($domain !== '' && substr($f['email'], -strlen('@' . $domain)) !== '@' . $domain) $galat = 'Email harus memakai domain @' . $domain . '.';
+            elseif ($f['nama'] === '') $galat = 'Nama harus diisi.';
+            elseif ( ! in_array($f['role'], array('admin', 'kabupaten'), true)) $galat = 'Role tidak valid.';
+            elseif ($f['role'] === 'kabupaten' && ! isset(Cermat_harga::$kabupaten[$f['kab']])) $galat = 'Pilih kabupaten untuk akun kabupaten.';
+            elseif ($this->pengguna->email_ada_selain($f['email'], $u['id'])) $galat = 'Email itu sudah dipakai akun lain.';
+            elseif ($u['role'] === 'admin' && $f['role'] !== 'admin' && ($saya || $this->pengguna->jml_admin_aktif($u['id']) < 1))
+                $galat = $saya ? 'Role akun Anda sendiri tidak bisa diubah.' : 'Harus ada minimal satu admin aktif.';
+
+            if ( ! $galat)
+            {
+                $this->pengguna->ubah($u['id'], $f['email'], $f['nama'], $f['role'], $f['kab']);
+                $this->catatan->catat('edit_akun', $u['username'] . ($f['email'] !== $u['username'] ? ' -> ' . $f['email'] : '') . ' (' . ($f['role'] === 'kabupaten' ? Cermat_harga::nama_kab($f['kab']) : 'admin') . ')');
+                if ($saya) $this->session->set_userdata(array('username' => $f['email'], 'nama' => $f['nama']));
+                redirect('cermat/pengguna');
+            }
+        }
+        $this->buka_periode();
+        $this->render('cermat/pengguna_edit', 'pengguna', array(
+            'u' => $u, 'f' => $f, 'saya' => $saya, 'galat' => $galat, 'kab_daftar' => Cermat_harga::$kabupaten,
+            'domain' => (string) $this->config->item('domain_email'),
+        ));
+    }
+
+    public function pengguna_hapus($id = 0)
+    {
+        if ($this->input->method() === 'post')
+        {
+            $this->load->model('pengguna_model', 'pengguna');
+            $u = $this->pengguna->ambil($id);
+            if ($u && (int) $u['id'] !== (int) $this->session->userdata('user_id'))
+            {
+                if ($u['role'] === 'admin' && $u['aktif'] && $this->pengguna->jml_admin_aktif($u['id']) < 1)
+                {
+                    $this->session->set_flashdata('galat_akun', 'Harus ada minimal satu admin aktif.');
+                }
+                else
+                {
+                    $this->pengguna->hapus($u['id']);
+                    $this->catatan->catat('hapus_akun', $u['username']);
+                }
+            }
+        }
+        redirect('cermat/pengguna');
+    }
+
+    public function aktivitas_reset()
+    {
+        if ($this->input->method() === 'post')
+        {
+            $this->catatan->kosongkan();
+            $this->catatan->catat('reset_log', 'Log aktivitas dikosongkan');
+        }
+        redirect('cermat/aktivitas');
+    }
+
     public function pengguna_reset($id = 0)
     {
         if ($this->input->method() === 'post')
@@ -488,7 +559,8 @@ class Cermat extends MY_Controller
             $mentah = null;
             $this->catatan_unggah = 'File ini tidak berisi tabel harga (kolom Kabupaten, Nama Kecamatan, Kode Komoditas, Nama Komoditas, Nama Kualitas, Harga Bulan Ini, Harga Bulan Sebelumnya), jadi RH dan Rekap Konfirmasi tidak dibuat.';
         }
-        $lain = $this->cermat_harga->baca_sheet_lain($path, $sheet_data !== null ? $sheet_data : '');
+        // file tabel harga: yang disimpan hanya Data (data awal) dan sheet RH (daftar kode & tabel bulanan untuk menu RH); file lain: semua sheet
+        $lain = $this->cermat_harga->baca_sheet_lain($path, $sheet_data !== null ? $sheet_data : '', 120, $sheet_data !== null ? array('RH') : null);
 
         if ($nama === '') $nama = $this->tebak_periode($file_asal);
         $id = date('Ymd_His');

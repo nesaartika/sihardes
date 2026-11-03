@@ -1,13 +1,16 @@
 <?php
 $label = array('login' => 'Masuk', 'login_gagal' => 'Gagal masuk', 'logout' => 'Keluar', 'ganti_sandi' => 'Ganti sandi',
                'unggah' => 'Unggah data', 'isi_alasan' => 'Isi alasan', 'unduh' => 'Unduh Excel', 'hapus_periode' => 'Hapus periode',
-               'buat_akun' => 'Buat akun', 'reset_sandi' => 'Reset sandi', 'ubah_akun' => 'Ubah akun', 'pilih_komoditas' => 'Pilih komoditas');
+               'buat_akun' => 'Buat akun', 'reset_sandi' => 'Reset sandi', 'ubah_akun' => 'Ubah akun', 'pilih_komoditas' => 'Pilih komoditas', 'reset_log' => 'Reset log', 'edit_akun' => 'Edit akun', 'hapus_akun' => 'Hapus akun');
 ?>
 <div class="bar">
   <input type="text" id="q" placeholder="Cari keterangan atau pengguna...">
   <select id="faksi"><option value="">Semua aktivitas</option>
     <?php foreach ($label as $k => $v): ?><option value="<?= $k ?>"><?= $v ?></option><?php endforeach; ?></select>
   <span class="hint" id="cnt"></span>
+  <?= form_open('cermat/aktivitas_reset', array('style' => 'display:inline;margin-left:auto', 'onsubmit' => "return confirm('Hapus semua log aktivitas? Tindakan ini tidak bisa dibatalkan.')")) ?>
+    <button class="btn red" type="submit">Reset log</button>
+  <?= form_close() ?>
 </div>
 <div class="tw"><table id="tbl">
   <thead><tr><th style="width:160px">Waktu</th><th style="width:120px">Pengguna</th><th style="width:150px">Aktivitas</th><th>Keterangan</th><th style="width:110px">IP</th></tr></thead>

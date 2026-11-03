@@ -136,7 +136,7 @@ class Cermat_harga
      * Membaca semua sheet selain $kecuali apa adanya (tanpa judul kolom; kolom diberi huruf seperti Excel).
      * @return array [ ['nama'=>, 'kolom'=>int, 'baris'=>[ ['r'=>no, 'v'=>[nilai|null,...]], ... ]], ... ]
      */
-    public function baca_sheet_lain($path, $kecuali = 'Data', $maks_kolom = 120)
+    public function baca_sheet_lain($path, $kecuali = 'Data', $maks_kolom = 120, $hanya = null)
     {
         @ini_set('memory_limit', '1024M');
         @set_time_limit(600);
@@ -146,6 +146,7 @@ class Cermat_harga
         foreach (Xlsx_io::daftar_sheet($path) as $nama)
         {
             if (strcasecmp($nama, $kecuali) === 0) continue;
+            if ($hanya !== null && ! in_array(strtolower($nama), array_map('strtolower', $hanya), true)) continue;
             $rows = Xlsx_io::baca($path, $nama, true);
             $n = 0;
             foreach ($rows as $r) $n = max($n, max(array_keys($r['v'])) + 1);

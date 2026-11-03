@@ -106,6 +106,27 @@ class Pengguna_model extends CI_Model
         $this->db->update('pengguna', array('password_hash' => password_hash($sandi, PASSWORD_DEFAULT), 'wajib_ganti' => 1), array('id' => (int) $id));
     }
 
+    public function email_ada_selain($username, $id)
+    {
+        return (bool) $this->db->get_where('pengguna', array('username' => $username, 'id !=' => (int) $id))->row_array();
+    }
+
+    public function ubah($id, $username, $nama, $role, $kab)
+    {
+        $this->db->update('pengguna', array('username' => $username, 'nama' => $nama, 'role' => $role, 'kab' => $role === 'kabupaten' ? ($kab ?: null) : null), array('id' => (int) $id));
+    }
+
+    public function hapus($id)
+    {
+        $this->db->delete('pengguna', array('id' => (int) $id));
+    }
+
+    /** Jumlah akun admin yang aktif, tidak termasuk akun $kecuali. */
+    public function jml_admin_aktif($kecuali = 0)
+    {
+        return (int) $this->db->where('role', 'admin')->where('aktif', 1)->where('id !=', (int) $kecuali)->count_all_results('pengguna');
+    }
+
     public function ambil($id)
     {
         return $this->db->get_where('pengguna', array('id' => (int) $id))->row_array();
