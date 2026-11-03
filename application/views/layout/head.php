@@ -64,7 +64,14 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
           <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 38, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
         <?php endforeach; ?>
       </select>
-      <?php if ($p && ! $akun_kab): ?><a class="btn alt" href="<?= site_url('cermat/unduh/' . $p) ?>">Unduh Excel</a><?php endif; ?>
+      <?php
+      // tombol unduh mengikuti halaman: RH -> format sheet RH; Data / file bukan tabel harga -> isi sheet apa adanya; selain itu -> Rekap Konfirmasi
+      $tanpa_hasil = empty($periode['hasil']['komoditas']);
+      if ($menu === 'rh')                      { $unduh = site_url('cermat/unduh_rh/' . $p);  $unduh_ket = 'Unduh RH (format sheet RH)'; }
+      elseif ($menu === 'data' || $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); $unduh = site_url('cermat/unduh_data/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh sheet ' . $sh . ' apa adanya' : 'Unduh isi file apa adanya'; }
+      else                                     { $unduh = site_url('cermat/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }
+      ?>
+      <?php if ($p && ! $akun_kab): ?><a class="btn alt" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>">Unduh Excel</a><?php endif; ?>
     <?php endif; ?>
   </header>
   <main>

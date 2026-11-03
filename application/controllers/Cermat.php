@@ -504,6 +504,62 @@ class Cermat extends MY_Controller
         force_download($nama, $isi);
     }
 
+    /**
+     * Unduh isi file apa adanya (menu Data): satu sheet bila ?sheet= diisi, selain itu semua sheet yang tersimpan.
+     * Dipakai untuk file yang bukan tabel harga, sehingga formatnya mengikuti file yang diunggah (bukan Rekap Konfirmasi).
+     */
+    public function unduh_data($id = '')
+    {
+        if ($this->kab_user()) show_404();
+        $d = $this->periode->muat($id);
+        if ( ! $d) show_404();
+        require_once APPPATH . 'libraries/Xlsx_io.php';
+
+        // sel tersimpan sebagai teks; angka murni dikembalikan menjadi angka (kode dengan awalan 0 atau lebih dari 15 digit tetap teks)
+        $sel = function ($v) {
+            if ($v === null || $v === '') return null;
+            if (is_string($v) && preg_match('/^-?(0|[1-9][0-9]{0,14})(\.[0-9]+)?$/', $v)) return strpos($v, '.') !== false ? (float) $v : (int) $v;
+            return $v;
+        };
+        $pilih = (string) $this->input->get('sheet');
+        $meta  = $this->periode->daftar_sheet($id);
+        if ( ! $meta) $meta = array(array('nama' => 'Data'));    // periode lama: hanya sheet Data yang tersimpan
+
+        $sheets = array();
+        foreach ($meta as $m)
+        {
+            if ($pilih !== '' && $m['nama'] !== $pilih) continue;
+            $baris = array();
+            if ($m['nama'] === 'Data')
+            {
+                $x = $this->periode->data_mentah($id, array('q' => '', 'kab' => ''), 1000000, 0);
+                if (empty($x['ada'])) continue;
+                $baris[] = $x['kolom'];
+                foreach ($x['baris'] as $r) $baris[] = array_map($sel, $r);
+            }
+            else
+            {
+                $x = $this->periode->data_sheet($id, $m['nama'], '', 1000000, 0);
+                foreach ($x['baris'] as $r)    // nomor baris asli dipertahankan; baris kosong diisi array kosong
+                {
+                    while (count($baris) < $r['r'] - 1) $baris[] = array();
+                    $baris[$r['r'] - 1] = array_map($sel, is_array($r['v']) ? $r['v'] : array());
+                }
+            }
+            $sheets[] = array('nama' => $m['nama'], 'baris' => $baris, 'beku' => $m['nama'] === 'Data');
+        }
+        if ( ! $sheets) show_404();
+
+        $tmp = tempnam(sys_get_temp_dir(), 'dta');
+        Xlsx_io::tulis($tmp, $sheets);
+        $this->load->helper('download');
+        $nama = 'Data_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . ($pilih !== '' ? '_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $pilih) : '') . '.xlsx';
+        $isi = file_get_contents($tmp);
+        @unlink($tmp);
+        $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);
+        force_download($nama, $isi);
+    }
+
     // ---------------------------------------------------------------
     // Terminal: dipanggil lewat  php cermat.php "file.xlsx" "Oktober 2026"
     // ---------------------------------------------------------------
