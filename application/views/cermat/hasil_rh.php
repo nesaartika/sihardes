@@ -12,7 +12,6 @@ $kanan = ! empty($bulan);
 // judul kolom mengikuti sheet RH di Excel; warna tabel mengikuti tampilan aplikasi
 $kepala = array(
     array('Kode Komoditas', ''), array('Kode Baru', ''), array('Nama Komoditas', ''),
-    array('Rata-Rata Geometrik Kode Lama', ''), array('Rata-Rata Geometrik Bulan Sebelumnya', ''),
     array('Rata-Rata Geometrik Kode Baru', ''), array('Rata-Rata Geometrik Bulan Sebelumnya', ''),
     array('Rata-Rata Geometrik', ''), array('Rata-Rata Geometrik Bulan Sebelumnya', ''), array('RHt', ''),
 );
@@ -37,7 +36,7 @@ if ($kanan)
 
 <div class="tw"><table>
   <thead><tr>
-    <?php foreach ($kepala as $i => $h): ?><th style="text-transform:none;letter-spacing:0;font-size:13px;vertical-align:bottom<?= ($i >= 3 && $i <= 10) || $i >= 15 ? ';text-align:right' : '' ?>"><?= html_escape($h[0]) ?></th><?php endforeach; ?>
+    <?php foreach ($kepala as $i => $h): ?><th style="text-transform:none;letter-spacing:0;font-size:13px;vertical-align:bottom<?= ($i >= 3 && $i <= 8) || $i >= 13 ? ';text-align:right' : '' ?>"><?= html_escape($h[0]) ?></th><?php endforeach; ?>
   </tr></thead>
   <tbody>
   <?php foreach ($rh as $r): ?>
@@ -45,7 +44,7 @@ if ($kanan)
       <td><?= html_escape($r['lama']) ?></td>
       <td><?= html_escape($r['baru']) ?></td>
       <td><?= html_escape($r['nama']) ?></td>
-      <?php foreach (array('d', 'e', 'f', 'g', 'h', 'i') as $c): ?><td style="text-align:right"><?= $angka($r[$c]) ?></td><?php endforeach; ?>
+      <?php foreach (array('f', 'g', 'h', 'i') as $c): ?><td style="text-align:right"><?= $angka($r[$c]) ?></td><?php endforeach; ?>
       <td style="text-align:right"><?= $angka($r['rht']) ?></td>
       <?php if ($kanan): ?>
       <td style="text-align:right"><?= (int) $r['k'] ?></td>

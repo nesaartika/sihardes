@@ -172,6 +172,42 @@ class Cermat_harga
         return $out;
     }
 
+    /** Nama bulan dan singkatannya (huruf kecil) yang dikenali pada nama file, per nomor bulan */
+    public static $alias_bulan = array(
+        1 => array('januari', 'january', 'jan'),            2 => array('februari', 'pebruari', 'february', 'feb'),
+        3 => array('maret', 'march', 'mar'),                4 => array('april', 'apr'),
+        5 => array('mei', 'may'),                           6 => array('juni', 'june', 'jun'),
+        7 => array('juli', 'july', 'jul'),                  8 => array('agustus', 'august', 'agu', 'agt', 'aug'),
+        9 => array('september', 'sept', 'sep'),             10 => array('oktober', 'october', 'okt', 'oct'),
+        11 => array('november', 'nopember', 'nov'),         12 => array('desember', 'december', 'des', 'dec'),
+    );
+
+    public static $nama_bulan = array(1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember');
+
+    /**
+     * Membaca bulan dan tahun dari nama file. Dikenali: "September 2026", "September_26", "Mar_2026_new", "Sep-2026",
+     * awalan "2609" (YYMM), "2026-09" dan "09_2026". Urutan pembacaan sama dengan skrip di halaman Unggah Data.
+     * @return array|null [nama bulan Indonesia, tahun] atau null bila tidak terbaca
+     */
+    public static function baca_periode($file)
+    {
+        $nm = pathinfo((string) $file, PATHINFO_FILENAME);
+        $peta = array();
+        foreach (self::$alias_bulan as $no => $daftar) foreach ($daftar as $a) $peta[$a] = $no;
+        $alt = array_keys($peta);
+        usort($alt, function ($x, $y) { return strlen($y) <=> strlen($x); });
+        if (preg_match('/(?:^|[^A-Za-z])(' . implode('|', $alt) . ')(?![A-Za-z])[ _\-.]*(\d{4}|\d{2})(?!\d)/i', $nm, $m))
+        {
+            $th = (int) $m[2];
+            if ($th < 100) $th += 2000;
+            return array(self::$nama_bulan[$peta[strtolower($m[1])]], $th);
+        }
+        if (preg_match('/^(\d{2})(0[1-9]|1[0-2])(?!\d)/', $nm, $m)) return array(self::$nama_bulan[(int) $m[2]], 2000 + (int) $m[1]);
+        if (preg_match('/(?<!\d)(20\d{2})[ _\-.](0[1-9]|1[0-2])(?!\d)/', $nm, $m)) return array(self::$nama_bulan[(int) $m[2]], (int) $m[1]);
+        if (preg_match('/(?<!\d)(0[1-9]|1[0-2])[ _\-.](20\d{2})(?!\d)/', $nm, $m)) return array(self::$nama_bulan[(int) $m[1]], (int) $m[2]);
+        return null;
+    }
+
     /** Huruf kolom Excel: 0 => A, 25 => Z, 26 => AA */
     public static function huruf_kolom($i)
     {

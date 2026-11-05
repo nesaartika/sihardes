@@ -40,7 +40,7 @@ class Cermat extends MY_Controller
     {
         if (is_cli()) { echo "Untuk terminal gunakan: php cermat.php \"<file.xlsx>\" [\"Bulan Tahun\"]\n"; return; }
         if ( ! $this->buka_periode()) { redirect('cermat/unggah'); }
-        $this->butuh_hasil();
+        if ( ! $this->punya_hasil()) return $this->kosong('dashboard');
         $d = $this->data;
         $this->render('cermat/dashboard', 'dashboard', array(
             'ringkas' => $d['hasil']['ringkas'],
@@ -64,7 +64,7 @@ class Cermat extends MY_Controller
             if ($this->kab_user()) return $this->render('cermat/kosong', 'rekap', array());
             redirect('cermat/unggah');
         }
-        if ( ! $this->kab_user()) $this->butuh_hasil();
+        if ( ! $this->punya_hasil()) return $this->kosong('rekap');
         $ku = $this->kab_user();
         $komoditas = $this->data['hasil']['komoditas'];
         if ($ku)   // akun kabupaten: hanya baris kabupatennya sendiri
@@ -84,6 +84,7 @@ class Cermat extends MY_Controller
         $this->render('cermat/rekap', 'rekap', array(
             'komoditas'  => $komoditas,
             'alasan'     => $this->data['alasan'],
+            'meta'       => $this->data['alasan_meta'],
             'daftar_kab' => $kab,
             'kunci_kab'  => $ku,
             'ambang'     => $this->data['hasil']['ringkas']['opsi']['ambang_kec'],
@@ -93,8 +94,23 @@ class Cermat extends MY_Controller
     public function komoditas()
     {
         if ( ! $this->buka_periode()) redirect('cermat/unggah');
-        $this->butuh_hasil();
-        $this->render('cermat/komoditas', 'komoditas', array('komoditas' => $this->data['hasil']['komoditas']));
+        if ( ! $this->punya_hasil()) return $this->kosong('komoditas');
+        $kom = $this->data['hasil']['komoditas'];
+        $kab_semua = array();
+        foreach ($kom as $i => $k)
+        {
+            $info = array();    // kabupaten yang punya data untuk komoditas ini: [kab => [jumlah kecamatan perlu konfirmasi, ditugaskan?]]
+            foreach ($k['kec_semua'] as $c)
+            {
+                if ( ! isset($info[$c['kab']])) $info[$c['kab']] = array(0, ! empty($this->data['penugasan'][$k['kode']][$c['kab']]));
+                if ($c['flag']) $info[$c['kab']][0]++;
+                $kab_semua[$c['kab']] = Cermat_harga::nama_kab($c['kab']);
+            }
+            ksort($info);
+            $kom[$i]['kab_info'] = $info;
+        }
+        ksort($kab_semua);
+        $this->render('cermat/komoditas', 'komoditas', array('komoditas' => $kom, 'daftar_kab' => $kab_semua));
     }
 
     public function detail($kode = '')
@@ -143,9 +159,10 @@ class Cermat extends MY_Controller
         {
             $ada_data = true; $meta = array(array('nama' => 'Data', 'baris' => 0, 'kolom' => 0));
         }
+        // tab sama dengan sheet pada file yang diunggah (urutan file asli). Akun kabupaten hanya melihat tab Data, dan hanya kabupatennya sendiri.
         $tabs = array();
-        if ($ada_data) $tabs[] = 'Data';
-        if ( ! $ada_data && ! $ku) foreach ($meta as $m) $tabs[] = $m['nama'];   // file bukan tabel harga: semua sheet tampil sebagai tab; selain itu menu Data hanya berisi Data
+        if ($ku) { if ($ada_data) $tabs[] = 'Data'; }
+        else foreach ($meta as $m) $tabs[] = $m['nama'];
         $sheet = (string) $this->input->get('sheet');
         if ( ! in_array($sheet, $tabs, true)) $sheet = $tabs ? $tabs[0] : 'Data';
 
@@ -174,8 +191,8 @@ class Cermat extends MY_Controller
     /** Hasil RH: dihitung aplikasi dari data mentah (sheet Data); menjadi dasar arah naik/turun/stabil di Rekap */
     public function hasil_rh()
     {
-        if ( ! $this->buka_periode()) redirect('cermat/unggah');
-        $this->butuh_hasil();
+        if ( ! $this->buka_periode()) { if ($this->kab_user()) return $this->render('cermat/kosong', 'rh', array()); redirect('cermat/unggah'); }
+        if ( ! $this->punya_hasil()) return $this->kosong('rh');
         $per = (int) $this->input->get('per');
         if ( ! in_array($per, array(25, 50, 100), true)) $per = 50;
         $hal = max(1, (int) $this->input->get('hal'));
@@ -201,7 +218,7 @@ class Cermat extends MY_Controller
         require_once APPPATH . 'libraries/Xlsx_io.php';
         $tabel = $this->periode->tabel_rh($id);
         $kanan = ! empty($tabel['bulan']);
-        $kepala = array('Kode Komoditas', 'Kode Baru', 'Nama Komoditas', 'Rata-Rata Geometrik Kode Lama', 'Rata-Rata Geometrik Bulan Sebelumnya',
+        $kepala = array('Kode Komoditas', 'Kode Baru', 'Nama Komoditas',
                         'Rata-Rata Geometrik Kode Baru', 'Rata-Rata Geometrik Bulan Sebelumnya', 'Rata-Rata Geometrik', 'Rata-Rata Geometrik Bulan Sebelumnya', 'RHt');
         if ($kanan) $kepala = array_merge($kepala, array('Column1', 'Kode Komoditas', 'Kode Baru', 'Kode Gabung', 'Nama Komoditas'), $tabel['bulan']);
         $baris = array($kepala);
@@ -209,13 +226,13 @@ class Cermat extends MY_Controller
         $t = function ($x) { return $x !== '' ? $x : null; };
         foreach ($tabel['baris'] as $r)
         {
-            $b = array($t($r['lama']), $t($r['baru']), $r['nama'], $n($r['d']), $n($r['e']), $n($r['f']), $n($r['g']), $n($r['h']), $n($r['i']), $n($r['rht']));
+            $b = array($t($r['lama']), $t($r['baru']), $r['nama'], $n($r['f']), $n($r['g']), $n($r['h']), $n($r['i']), $n($r['rht']));
             if ($kanan) $b = array_merge($b, array((int) $r['k'], $t($r['l']), $t($r['m']), $t($r['n']), $t($r['o'])), $r['bln']);
             $baris[] = $b;
         }
         $tmp = tempnam(sys_get_temp_dir(), 'rh');
-        Xlsx_io::tulis($tmp, array(array('nama' => 'RH', 'baris' => $baris, 'gaya_rh' => true,
-                                         'lebar' => array(17.6, 12, 38, 16, 16, 16, 16, 16, 16, 11, 9, 17.6, 12, 12, 38, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9))));
+        Xlsx_io::tulis($tmp, array(array('nama' => 'RH', 'baris' => $baris, 'gaya_rh' => true, 'geser' => 2,
+                                         'lebar' => array(17.6, 12, 38, 16, 16, 16, 16, 11, 9, 17.6, 12, 12, 38, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9))));
         $nama = 'RH_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . '.xlsx';
         $isi = file_get_contents($tmp); @unlink($tmp);
         $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);
@@ -259,7 +276,13 @@ class Cermat extends MY_Controller
 
         if ($galat) { $this->session->set_flashdata('galat_akun', $galat); redirect('cermat/pengguna'); }
 
-        $sandi = Pengguna_model::sandi_acak();
+        $sandi = (string) $this->input->post('sandi');    // diisi admin; bila kosong dibuat acak
+        if ($sandi === '') $sandi = Pengguna_model::sandi_acak();
+        elseif (strlen($sandi) < $this->sandi_minimal())
+        {
+            $this->session->set_flashdata('galat_akun', 'Kata sandi minimal ' . $this->sandi_minimal() . ' karakter.');
+            redirect('cermat/pengguna');
+        }
         $this->pengguna->tambah($email, $nama, $role, $role === 'kabupaten' ? $kab : null, $sandi);
         $this->catatan->catat('buat_akun', $email . ' (' . ($role === 'kabupaten' ? Cermat_harga::nama_kab($kab) : 'admin') . ')');
         $this->session->set_flashdata('sandi_baru', json_encode(array('email' => $email, 'sandi' => $sandi)));
@@ -353,6 +376,31 @@ class Cermat extends MY_Controller
         redirect('cermat/aktivitas');
     }
 
+    private function sandi_minimal()
+    {
+        return max(6, (int) ($this->config->item('sandi_minimal') ?: 8));
+    }
+
+    /** Admin menetapkan kata sandi akun (terutama akun kabupaten): POST sandi. */
+    public function pengguna_sandi($id = 0)
+    {
+        if ($this->input->method() === 'post')
+        {
+            $this->load->model('pengguna_model', 'pengguna');
+            $u = $this->pengguna->ambil($id);
+            $sandi = (string) $this->input->post('sandi');
+            if ( ! $u) { /* akun tidak ada */ }
+            elseif (strlen($sandi) < $this->sandi_minimal()) $this->session->set_flashdata('galat_akun', 'Kata sandi minimal ' . $this->sandi_minimal() . ' karakter.');
+            else
+            {
+                $this->pengguna->reset_sandi($id, $sandi);
+                $this->catatan->catat('reset_sandi', $u['username'] . ' (ditetapkan admin)');
+                $this->session->set_flashdata('sandi_baru', json_encode(array('email' => $u['username'], 'sandi' => $sandi)));
+            }
+        }
+        redirect('cermat/pengguna');
+    }
+
     public function pengguna_reset($id = 0)
     {
         if ($this->input->method() === 'post')
@@ -398,9 +446,9 @@ class Cermat extends MY_Controller
         $tahun = (int) $this->input->post('tahun');
         if ($bulan === '' || $tahun === 0)
         {
-            $p = $this->baca_periode($_FILES['berkas']['name']);
+            $p = Cermat_harga::baca_periode($_FILES['berkas']['name']);
             if ($p === null)
-                return $this->galat('Bulan dan tahun tidak terbaca dari nama file. Buka "Atur periode secara manual" lalu pilih bulan dan tahun, atau ubah nama file, misalnya Harmonisasi_Kalbar_September_2026.xlsx');
+                return $this->galat('Bulan dan tahun tidak terbaca dari nama file. Pilih bulan dan tahun secara manual di formulir, atau ubah nama file, misalnya Harmonisasi_Kalbar_September_2026.xlsx');
             if ($bulan === '')  $bulan = $p[0];
             if ($tahun === 0)   $tahun = $p[1];
         }
@@ -434,23 +482,65 @@ class Cermat extends MY_Controller
         redirect($r['hasil']['ringkas']['jml_komoditas'] > 0 ? 'cermat?p=' . $id : 'cermat/data_asli?p=' . $id);
     }
 
-    /** Memilih / membatalkan komoditas yang akan dikonfirmasi (AJAX). Parameter: kode[] dan dipilih = 1|0 */
+    /**
+     * Mengarahkan komoditas dan kabupaten yang harus mengisi alasan (AJAX).
+     * Parameter: kode[]; dipilih = 1|0; kab (opsional: hanya kabupaten itu); massal = 1 (tombol "pilih semua": komoditas tanpa kecamatan
+     * yang perlu dikonfirmasi dilewati).
+     * Tanpa kab: dipilih=1 menugaskan semua kabupaten yang kecamatannya perlu dikonfirmasi (bila tidak ada dan bukan massal: semua kabupaten
+     * yang punya data); dipilih=0 membatalkan semua penugasan komoditas itu.
+     */
     public function pilih_komoditas()
     {
         $this->output->set_content_type('application/json');
-        if ($this->input->method() !== 'post' || ! $this->buka_periode())
+        if ($this->input->method() !== 'post' || ! $this->buka_periode() || $this->kab_user())
         {
             return $this->output->set_status_header(400)->set_output(json_encode(array('ok' => false)));
         }
-        $kode = $this->input->post('kode');
+        $kode = $this->input->post('kodes');           // daftar dipisah koma (aman dari batas max_input_vars PHP)
+        $kode = ($kode !== null && $kode !== '') ? explode(',', (string) $kode) : $this->input->post('kode');
         if ( ! is_array($kode)) $kode = array($kode);
         $bersih = array();
         foreach ($kode as $c) { $c = preg_replace('/[^A-Za-z0-9]/', '', (string) $c); if ($c !== '') $bersih[] = $c; }
-        $nilai = $this->input->post('dipilih') ? 1 : 0;
-        $this->periode->set_dipilih($this->aktif, $bersih, $nilai);
-        $total = $this->periode->hitung_dipilih($this->aktif);
-        $this->catatan->catat('pilih_komoditas', $this->data['nama'] . ' - ' . count($bersih) . ' komoditas ' . ($nilai ? 'dipilih' : 'dikeluarkan') . ' (dipilih sekarang: ' . $total . ')');
-        $this->output->set_output(json_encode(array('ok' => true, 'dipilih' => $total)));
+        $bersih = array_values(array_unique($bersih));
+        $nilai  = $this->input->post('dipilih') ? true : false;
+        $massal = $this->input->post('massal') ? true : false;
+        $kab_p  = $this->input->post('kab');
+        $kab    = ($kab_p !== null && $kab_p !== '') ? (int) $kab_p : null;
+
+        // kabupaten yang punya data per komoditas: [kode => [kab => jumlah kecamatan perlu konfirmasi]]
+        $ada = array();
+        foreach ($this->data['hasil']['komoditas'] as $k)
+        {
+            foreach ($k['kec_semua'] as $c)
+            {
+                if ( ! isset($ada[$k['kode']][$c['kab']])) $ada[$k['kode']][$c['kab']] = 0;
+                if ($c['flag']) $ada[$k['kode']][$c['kab']]++;
+            }
+        }
+        $pasangan = array();
+        foreach ($bersih as $c)
+        {
+            if ( ! isset($ada[$c])) continue;
+            if ($kab !== null) { if (isset($ada[$c][$kab])) $pasangan[] = array($c, $kab); continue; }
+            if ($nilai)
+            {
+                $target = array_keys(array_filter($ada[$c]));
+                if ( ! $target && ! $massal) $target = array_keys($ada[$c]);
+                foreach ($target as $kb) $pasangan[] = array($c, (int) $kb);
+            }
+            elseif (isset($this->data['penugasan'][$c]))
+            {
+                foreach (array_keys($this->data['penugasan'][$c]) as $kb) $pasangan[] = array($c, (int) $kb);
+            }
+        }
+        $total = $pasangan ? $this->periode->set_penugasan($this->aktif, $pasangan, $nilai) : $this->periode->hitung_dipilih($this->aktif);
+
+        $peta = array();
+        $semua = $this->periode->penugasan($this->aktif);
+        foreach ($bersih as $c) $peta[$c] = isset($semua[$c]) ? array_map('intval', array_keys($semua[$c])) : array();
+        $ket = $kab !== null ? Cermat_harga::nama_kab($kab) : 'semua kabupaten terkait';
+        $this->catatan->catat('pilih_komoditas', $this->data['nama'] . ' - ' . count($bersih) . ' komoditas ' . ($nilai ? 'diarahkan ke ' : 'dibatalkan dari ') . $ket . ' (' . count($pasangan) . ' penugasan; komoditas dikonfirmasi sekarang: ' . $total . ')');
+        $this->output->set_output(json_encode(array('ok' => true, 'dipilih' => $total, 'peta' => $peta)));
     }
 
     /** Simpan alasan (AJAX) */
@@ -468,11 +558,18 @@ class Cermat extends MY_Controller
         {
             return $this->output->set_status_header(403)->set_output(json_encode(array('ok' => false, 'pesan' => 'Bukan kabupaten Anda.')));
         }
+        // hanya komoditas x kabupaten yang diarahkan admin provinsi yang boleh diisi
+        if (empty($this->data['penugasan'][$kode][$kab]))
+        {
+            return $this->output->set_status_header(403)->set_output(json_encode(array('ok' => false, 'pesan' => 'Komoditas ini tidak diminta untuk dikonfirmasi oleh kabupaten tersebut.')));
+        }
         $lama  = isset($this->data['alasan'][$kode . '|' . $kab]);
-        $terisi = $this->periode->set_alasan($this->aktif, $kode, $kab, $teks);
+        $oleh  = $this->label_pengguna();
+        $terisi = $this->periode->set_alasan($this->aktif, $kode, $kab, $teks, $oleh);
         $jenis = $teks === '' ? 'dikosongkan' : ($lama ? 'diubah' : 'diisi');
         $this->catatan->catat('isi_alasan', $this->data['nama'] . ' - ' . $kode . ' - ' . Cermat_harga::nama_kab($kab) . ' (' . $jenis . ')');
-        $this->output->set_output(json_encode(array('ok' => true, 'terisi' => $terisi)));
+        $this->output->set_output(json_encode(array('ok' => true, 'terisi' => $terisi,
+            'oleh' => $teks === '' ? '' : $oleh, 'waktu' => $teks === '' ? '' : date('d-m-Y H:i'))));
     }
 
     public function hapus($id = '')
@@ -482,6 +579,7 @@ class Cermat extends MY_Controller
             $d = $this->periode->muat($id);
             if ($d)
             {
+                if ( ! empty($d['berkas_asli']) && is_file($this->dir_upload . basename($d['berkas_asli']))) @unlink($this->dir_upload . basename($d['berkas_asli']));
                 $this->periode->hapus($id);
                 $this->catatan->catat('hapus_periode', $d['nama'] . ' - ' . $d['file_asal']);
             }
@@ -513,6 +611,18 @@ class Cermat extends MY_Controller
         if ($this->kab_user()) show_404();
         $d = $this->periode->muat($id);
         if ( ! $d) show_404();
+
+        // tanpa ?sheet=: kembalikan file Excel yang diunggah apa adanya (format sama persis dengan aslinya)
+        if ((string) $this->input->get('sheet') === '' && ! empty($d['berkas_asli']))
+        {
+            $f = $this->dir_upload . basename($d['berkas_asli']);
+            if (is_file($f))
+            {
+                $this->catatan->catat('unduh', $d['nama'] . ' - ' . $d['file_asal'] . ' (file asli)');
+                $this->load->helper('download');
+                force_download($d['file_asal'], file_get_contents($f));
+            }
+        }
         require_once APPPATH . 'libraries/Xlsx_io.php';
 
         // sel tersimpan sebagai teks; angka murni dikembalikan menjadi angka (kode dengan awalan 0 atau lebih dari 15 digit tetap teks)
@@ -629,45 +739,36 @@ class Cermat extends MY_Controller
         }
         $jenis = $this->deteksi_jenis($file_asal, $sheet_data !== null);
         // file tabel harga: yang disimpan hanya Data (data awal) dan sheet RH (daftar kode & tabel bulanan untuk menu RH); file lain: semua sheet
-        $lain = $this->cermat_harga->baca_sheet_lain($path, $sheet_data !== null ? $sheet_data : '', 120, $sheet_data !== null ? array('RH') : null);
+        // file tabel harga: bila simpan_semua_sheet = TRUE semua sheet disimpan (tab Data sama dengan file asli); bila FALSE hanya sheet RH
+        $semua_sheet = $this->config->item('simpan_semua_sheet') !== FALSE;
+        $lain = $this->cermat_harga->baca_sheet_lain($path, $sheet_data !== null ? $sheet_data : '', 120, ($sheet_data !== null && ! $semua_sheet) ? array('RH') : null);
 
         if ($nama === '') $nama = $this->tebak_periode($file_asal);
         $id = date('Ymd_His');
         $this->periode->simpan($id, array(
             'id' => $id, 'nama' => $nama, 'file_asal' => $file_asal, 'dibuat' => date('d-m-Y H:i'),
-            'hasil' => $hasil, 'alasan' => array(), 'jenis' => $jenis,
+            'hasil' => $hasil, 'alasan' => array(), 'jenis' => $jenis, 'berkas_asli' => $this->simpan_berkas_asli($path),
         ));
+        if ($mentah) $this->periode->simpan_mentah($id, $mentah);
+        // daftar tab mengikuti urutan sheet pada file yang diunggah
+        $per_nama = array();
+        foreach ($lain as $sh) $per_nama[strtolower($sh['nama'])] = $sh;
         $meta = array();
-        if ($mentah)
+        foreach (Xlsx_io::daftar_sheet($path) as $nm)
         {
-            $this->periode->simpan_mentah($id, $mentah);
-            $meta[] = array('nama' => 'Data', 'baris' => count($mentah['baris']), 'kolom' => count($mentah['kolom']));
+            if ($mentah && $sheet_data !== null && strcasecmp($nm, $sheet_data) === 0)
+                $meta[] = array('nama' => 'Data', 'baris' => count($mentah['baris']), 'kolom' => count($mentah['kolom']));
+            elseif (isset($per_nama[strtolower($nm)]))
+                $meta[] = array('nama' => $per_nama[strtolower($nm)]['nama'], 'baris' => count($per_nama[strtolower($nm)]['baris']), 'kolom' => $per_nama[strtolower($nm)]['kolom']);
         }
-        foreach ($lain as $sh) $meta[] = array('nama' => $sh['nama'], 'baris' => count($sh['baris']), 'kolom' => $sh['kolom']);
         $this->periode->simpan_sheets($id, $lain, $meta);
         return $id;
     }
 
     private function tebak_periode($file)
     {
-        $p = $this->baca_periode($file);
+        $p = Cermat_harga::baca_periode($file);
         return $p ? $p[0] . ' ' . $p[1] : pathinfo($file, PATHINFO_FILENAME);
-    }
-
-    /** Membaca bulan dan tahun dari nama file: "September 2026", "September_26", atau awalan "2609" (YYMM). Null bila tidak terbaca. */
-    private function baca_periode($file)
-    {
-        $daftar = array('Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember');
-        $nm = pathinfo($file, PATHINFO_FILENAME);
-        if (preg_match('/(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)[ _\-]*(\d{4}|\d{2})(?!\d)/i', $nm, $m))
-        {
-            $th = (int) $m[2];
-            if ($th < 100) $th += 2000;
-            return array(ucfirst(strtolower($m[1])), $th);
-        }
-        if (preg_match('/^(\d{2})(0[1-9]|1[0-2])(?!\d)/', $nm, $m))
-            return array($daftar[(int) $m[2] - 1], 2000 + (int) $m[1]);
-        return null;
     }
 
     /** Jenis data ditebak dari isi file: tabel harga = Harga Perdesaan; kata kunci pada nama file untuk jenis lain; selain itu Lainnya. */
@@ -679,18 +780,62 @@ class Cermat extends MY_Controller
         return $tabel_harga ? 'Harga Perdesaan' : 'Lainnya';
     }
 
-    /** Halaman yang bergantung pada RH/rekap: bila file periode ini bukan tabel harga, arahkan ke menu Data. */
-    private function butuh_hasil()
+    /** Nama file asli (di folder upload) yang disimpan bersama periode; file dari terminal disalin dulu ke folder upload. */
+    private function simpan_berkas_asli($path)
     {
-        if (empty($this->data['hasil']['komoditas'])) redirect('cermat/data_asli?p=' . $this->aktif);
+        $dir = realpath($this->dir_upload);
+        if ($dir !== false && dirname(realpath($path)) === $dir) return basename($path);
+        $nama = date('Ymd_His') . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', pathinfo($path, PATHINFO_FILENAME)) . '.xlsx';
+        return @copy($path, $this->dir_upload . $nama) ? $nama : null;
     }
 
-    /** Muat periode aktif dari ?p= atau yang terbaru. */
+    /** Teks siapa yang mengisi alasan, mis. "Budi (BPS Kab. Sambas)" atau "Admin (Admin Provinsi)". */
+    private function label_pengguna()
+    {
+        $nama = trim((string) $this->session->userdata('nama'));
+        $ku = $this->kab_user();
+        if ($ku)
+        {
+            $kn = Cermat_harga::nama_kab($ku);
+            return stripos($nama, $kn) !== false ? $nama : $nama . ' (BPS ' . ($ku < 70 ? 'Kab. ' : '') . $kn . ')';
+        }
+        return stripos($nama, 'admin') !== false ? $nama : $nama . ' (Admin Provinsi)';
+    }
+
+    /** Apakah periode aktif berisi tabel harga (ada komoditas)? File lain (bukan tabel harga) hanya punya menu Data. */
+    private function punya_hasil()
+    {
+        return ! empty($this->data['hasil']['komoditas']);
+    }
+
+    /** Menu samping tidak berubah-ubah: halaman yang belum bisa dibuka menampilkan keterangan, bukan pindah halaman. */
+    private function kosong($menu)
+    {
+        $this->render('cermat/kosong', $menu, array('tanpa_tabel_harga' => true));
+    }
+
+    /**
+     * Muat periode aktif. Urutan: ?p= (pilihan yang diklik pengguna, diingat di sesi), lalu pilihan terakhir di sesi, lalu yang terbaru.
+     * Jadi unggahan baru dari admin tidak menggeser periode yang sedang dibuka pengguna lain.
+     */
     private function buka_periode()
     {
-        $id = $this->input->get('p');
-        if ( ! $id) $id = $this->periode->terbaru();
-        $d = $id ? $this->periode->muat($id) : null;
+        $id = (string) $this->input->get('p');
+        $d = $id !== '' ? $this->periode->muat($id) : null;
+        if ($d)
+        {
+            if ( ! is_cli()) $this->session->set_userdata('periode_pilihan', $id);
+        }
+        else
+        {
+            $id = is_cli() ? '' : (string) $this->session->userdata('periode_pilihan');
+            $d = $id !== '' ? $this->periode->muat($id) : null;
+            if ( ! $d)
+            {
+                $id = $this->periode->terbaru();
+                $d = $id ? $this->periode->muat($id) : null;
+            }
+        }
         if ( ! $d) { $this->aktif = null; $this->data = null; return false; }
         $this->aktif = $id;
         $this->terapkan_pilihan($d);
@@ -699,17 +844,32 @@ class Cermat extends MY_Controller
     }
 
     /**
-     * Hanya komoditas yang dipilih admin yang dikonfirmasi: yang tidak dipilih tidak punya baris kabupaten
+     * Hanya komoditas x kabupaten yang diarahkan admin provinsi yang dikonfirmasi: yang tidak diarahkan tidak punya baris kabupaten
      * (tidak tampil di Rekap, akun kabupaten, dashboard, dan Excel). Data aslinya disimpan di 'kab_asli'.
+     * Bila admin mengarahkan kabupaten yang tidak punya kecamatan di atas ambang, semua kecamatan kabupaten itu ditampilkan.
      */
     private function terapkan_pilihan(array &$d)
     {
+        $pen = isset($d['penugasan']) ? $d['penugasan'] : array();
         $n = 0;
         foreach ($d['hasil']['komoditas'] as &$k)
         {
             $k['kab_asli'] = $k['kab'];
-            if (isset($k['dipilih']) && ! $k['dipilih']) { $k['kab'] = array(); $k['tampil'] = false; }
-            if ( ! empty($k['tampil'])) $n++;
+            $baru = array();
+            foreach ((isset($pen[$k['kode']]) ? $pen[$k['kode']] : array()) as $kb => $_)
+            {
+                if (isset($k['kab_asli'][$kb])) { $baru[$kb] = $k['kab_asli'][$kb]; continue; }
+                $lst = array();
+                foreach ($k['kec_semua'] as $c) if ((int) $c['kab'] === (int) $kb) $lst[] = $c;
+                if ( ! $lst) continue;
+                usort($lst, function ($x, $y) { return abs($y['persen']) <=> abs($x['persen']); });
+                $baru[$kb] = $lst;
+            }
+            ksort($baru);
+            $k['kab'] = $baru;
+            $k['dipilih'] = ! empty($baru);
+            $k['tampil'] = ! empty($baru);
+            if ($k['tampil']) $n++;
         }
         unset($k);
         $d['hasil']['ringkas']['perlu_konfirmasi'] = $n;
@@ -753,6 +913,7 @@ class Cermat extends MY_Controller
         $data['p']       = $this->aktif;
         $data['periode'] = $this->data;
         $data['daftar_periode'] = $this->periode->daftar();
+        $data['csrf'] = array($this->security->get_csrf_token_name(), $this->security->get_csrf_hash());
         $this->load->view('layout/head', $data);
         $this->load->view($view, $data);
         $this->load->view('layout/foot', $data);

@@ -53,7 +53,12 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	// Di komputer sendiri (localhost) = development; di server online = production (galat tidak ditampilkan ke pengunjung).
+	// Bisa dipaksa lewat variabel CI_ENV di server.
+	$__host = isset($_SERVER['HTTP_HOST']) ? strtolower(preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'])) : 'localhost';
+	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV']
+		: ((PHP_SAPI === 'cli' || in_array($__host, array('localhost', '127.0.0.1', '[::1]'), true)) ? 'development' : 'production'));
+	unset($__host);
 
 /*
  *---------------------------------------------------------------

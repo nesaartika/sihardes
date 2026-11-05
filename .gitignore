@@ -22,3 +22,6 @@
 .idea/
 Thumbs.db
 .DS_Store
+
+# Kredensial database server online
+/application/config/database.local.php

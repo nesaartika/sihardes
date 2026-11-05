@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fenomena Harga - BPS Provinsi Kalimantan Barat</title>
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/app.css') ?>">
+<script>window.CSRF = <?= json_encode(isset($csrf) ? array('n' => $csrf[0], 'v' => $csrf[1]) : null) ?>;</script>
 </head>
 <body>
 <?php
@@ -34,8 +35,7 @@ $menu_item = array(
 $role = $this->session->userdata('role');
 $akun_kab = ($role === 'kabupaten');
 if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rh', 'rekap')));   // akun kabupaten: Data, RH, dan Rekap
-// file periode ini bukan tabel harga (tidak ada RH/rekap): menu hanya yang relevan
-if ( ! empty($periode) && empty($periode['hasil']['komoditas'])) $menu_item = array_diff_key($menu_item, array_flip(array('dashboard', 'rh', 'rekap', 'komoditas')));
+// Menu samping SELALU sama untuk tiap peran (tidak berubah menurut periode/file yang dibuka atau diunggah).
 $nm_user = (string) $this->session->userdata('nama');
 $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
 $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data', 'rh' => 'RH',
@@ -55,20 +55,20 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
     <h1><?= $judul[$menu] ?></h1>
     <span class="hint" style="white-space:nowrap">
       <?= html_escape($nm_user) ?><?= ($akun_kab ? stripos($nm_user, Cermat_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? ' (' . html_escape($nama_peran) . ')' : '' ?> &middot;
-      <a href="<?= site_url('auth/ganti_sandi') ?>">Ganti sandi</a> &middot;
+      <?php if ( ! $akun_kab): ?><a href="<?= site_url('auth/ganti_sandi') ?>">Ganti sandi</a> &middot;<?php endif; ?>
       <a href="<?= site_url('auth/logout') ?>">Keluar</a>
     </span>
     <?php if ( ! empty($daftar_periode)): ?>
-      <select onchange="location.href=location.pathname+'?p='+this.value" title="Periode">
+      <select class="pilih-file" onchange="location.href=location.pathname+'?p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
         <?php foreach ($daftar_periode as $pd): ?>
           <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 38, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
         <?php endforeach; ?>
       </select>
       <?php
-      // tombol unduh mengikuti halaman: RH -> format sheet RH; Data / file bukan tabel harga -> isi sheet apa adanya; selain itu -> Rekap Konfirmasi
+      // tombol unduh mengikuti halaman: RH -> format sheet RH; Data / file bukan tabel harga -> file asli yang diunggah; selain itu -> Rekap Konfirmasi
       $tanpa_hasil = empty($periode['hasil']['komoditas']);
       if ($menu === 'rh')                      { $unduh = site_url('cermat/unduh_rh/' . $p);  $unduh_ket = 'Unduh RH (format sheet RH)'; }
-      elseif ($menu === 'data' || $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); $unduh = site_url('cermat/unduh_data/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh sheet ' . $sh . ' apa adanya' : 'Unduh isi file apa adanya'; }
+      elseif ($menu === 'data' || $tanpa_hasil) { $unduh = site_url('cermat/unduh_data/' . $p); $unduh_ket = 'Unduh file Excel asli (format sama dengan yang diunggah)'; }
       else                                     { $unduh = site_url('cermat/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }
       ?>
       <?php if ($p && ! $akun_kab): ?><a class="btn alt" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>">Unduh Excel</a><?php endif; ?>

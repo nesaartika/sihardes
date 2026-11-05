@@ -94,3 +94,11 @@ $db['default'] = array(
 	'failover' => array(),
 	'save_queries' => TRUE
 );
+
+// Di server online: salin database.local.php.contoh menjadi database.local.php lalu isi kredensial hosting.
+// File lokal itu tidak ikut ke GitHub (lihat .gitignore), jadi kata sandi database tidak bocor.
+if (is_file(__DIR__ . '/database.local.php'))
+{
+	$__lokal = include __DIR__ . '/database.local.php';
+	if (is_array($__lokal)) $db['default'] = array_merge($db['default'], $__lokal);
+}

@@ -3,7 +3,7 @@
   <div class="card" style="border-left:4px solid var(--ok);margin-bottom:14px">
     <b>Kata sandi sementara untuk <?= html_escape($sandi_baru['email']) ?></b><br>
     <span style="font-size:20px;font-family:monospace;letter-spacing:1px"><?= html_escape($sandi_baru['sandi']) ?></span>
-    <div class="hint">Catat dan berikan kepada yang bersangkutan sekarang. Kata sandi ini tidak akan ditampilkan lagi, dan wajib diganti saat masuk pertama kali.</div>
+    <div class="hint">Catat dan berikan kepada yang bersangkutan sekarang; kata sandi ini tidak akan ditampilkan lagi. Akun admin diminta menggantinya saat masuk pertama kali; akun kabupaten memakai sandi ini terus sampai admin provinsi menggantinya.</div>
   </div>
 <?php endif; ?>
 <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
@@ -18,9 +18,10 @@
     </select>
     <select name="kab" id="kab"><option value="">Pilih kabupaten</option>
       <?php foreach ($kab_daftar as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
+    <input type="text" name="sandi" placeholder="Kata sandi (kosongkan = acak)" autocomplete="off" style="min-width:210px">
     <button class="btn" type="submit">Buat akun</button>
   <?= form_close() ?>
-  <div class="hint">Kata sandi sementara dibuat otomatis dan ditampilkan satu kali setelah akun dibuat.<?= $domain !== '' ? ' Email harus berdomain @' . html_escape($domain) . '.' : '' ?></div>
+  <div class="hint">Kata sandi akun kabupaten ditentukan di sini oleh admin provinsi; akun kabupaten tidak bisa mengubahnya sendiri. Bila kolom sandi dikosongkan, sandi dibuat acak dan ditampilkan satu kali. Login boleh memakai email lengkap atau nama depannya saja.<?= $domain !== '' ? ' Email harus berdomain @' . html_escape($domain) . '.' : '' ?></div>
 </div>
 
 <div class="tw"><table>
@@ -33,11 +34,15 @@
       <td><span class="badge <?= $a['role'] === 'admin' ? 'hd' : 'hkd' ?>"><?= html_escape(isset($peran[$a['role']]) ? $peran[$a['role']] : $a['role']) ?></span></td>
       <td><?= $a['kab'] ? html_escape(Cermat_harga::nama_kab((int) $a['kab'])) : '-' ?></td>
       <td><?= $a['aktif'] ? '<span class="badge sudah">Aktif</span>' : '<span class="badge bahaya">Nonaktif</span>' ?>
-          <?= $a['wajib_ganti'] ? '<div class="hint">belum ganti sandi</div>' : '' ?></td>
+          <?= ($a['wajib_ganti'] && $a['role'] === 'admin') ? '<div class="hint">belum ganti sandi</div>' : '' ?></td>
       <td class="hint"><?= $a['terakhir_login'] ? date('d-m-Y H:i', strtotime($a['terakhir_login'])) : 'belum pernah' ?></td>
       <td style="white-space:nowrap">
+        <?= form_open('cermat/pengguna_sandi/' . $a['id'], array('style' => 'display:inline')) ?>
+          <input type="text" name="sandi" placeholder="Sandi baru" autocomplete="off" style="width:120px;padding:6px 8px;border:1px solid var(--br);border-radius:8px;background:var(--inp);color:var(--tx)">
+          <button class="btn alt" type="submit" title="Tetapkan kata sandi ini untuk akun">Atur sandi</button>
+        <?= form_close() ?>
         <?= form_open('cermat/pengguna_reset/' . $a['id'], array('style' => 'display:inline')) ?>
-          <button class="btn alt" type="submit" title="Buat kata sandi sementara baru">Reset sandi</button>
+          <button class="btn alt" type="submit" title="Buat kata sandi acak baru">Acak</button>
         <?= form_close() ?>
         <a class="btn alt" href="<?= site_url('cermat/pengguna_edit/' . $a['id']) ?>">Edit</a>
         <?php if ( ! $saya): ?>

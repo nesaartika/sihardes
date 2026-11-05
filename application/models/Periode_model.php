@@ -32,18 +32,24 @@ class Periode_model extends CI_Model
         try
         {
             mysqli_report(MYSQLI_REPORT_OFF);
-            $m = @new mysqli($c['hostname'], $c['username'], $c['password']);
+            // 1) Coba langsung ke database yang dituju (kasus hosting: database sudah dibuat lewat cPanel/phpMyAdmin).
+            $m = @new mysqli($c['hostname'], $c['username'], $c['password'], $c['database']);
             if ($m->connect_errno)
             {
-                throw new RuntimeException($m->connect_error);
+                // 2) Database belum ada: hubungkan tanpa nama database lalu buat (kasus XAMPP di komputer sendiri).
+                $m = @new mysqli($c['hostname'], $c['username'], $c['password']);
+                if ($m->connect_errno)
+                {
+                    throw new RuntimeException($m->connect_error);
+                }
+                $m->query('CREATE DATABASE IF NOT EXISTS `' . $m->real_escape_string($c['database']) . '` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci');
             }
-            $m->query('CREATE DATABASE IF NOT EXISTS `' . $m->real_escape_string($c['database']) . '` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci');
             $m->close();
         }
         catch (Throwable $e)
         {
-            show_error('MySQL tidak dapat dihubungi. Nyalakan <b>MySQL</b> di XAMPP Control Panel, lalu muat ulang halaman.<br>'
-                . 'Cek juga pengaturan di <code>application/config/database.php</code>.<br><small>' . html_escape($e->getMessage()) . '</small>',
+            show_error('Database tidak dapat dihubungi. Pastikan MySQL/MariaDB menyala, lalu cek nama database, pengguna, dan kata sandi di '
+                . '<code>application/config/database.php</code> (atau <code>database.local.php</code> di server online).<br><small>' . html_escape($e->getMessage()) . '</small>',
                 500, 'Database belum aktif');
         }
 
@@ -114,6 +120,32 @@ class Periode_model extends CI_Model
                 CONSTRAINT `fk_satuan_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
+        // Revisi: alasan mencatat siapa yang mengisi
+        if ( ! $this->db->field_exists('oleh', 'alasan'))
+        {
+            $this->db->query('ALTER TABLE alasan ADD COLUMN oleh VARCHAR(120) NULL AFTER teks');
+        }
+        // Revisi: file Excel asli disimpan agar unduhannya sama persis dengan yang diunggah
+        if ( ! $this->db->field_exists('berkas_asli', 'periode'))
+        {
+            $this->db->query('ALTER TABLE periode ADD COLUMN berkas_asli VARCHAR(255) NULL');
+        }
+        // Revisi: admin provinsi mengarahkan komoditas dan kabupaten mana yang mengisi alasan
+        if ( ! $this->db->field_exists('penugasan_siap', 'periode'))
+        {
+            $this->db->query('ALTER TABLE periode ADD COLUMN penugasan_siap TINYINT(1) NOT NULL DEFAULT 0');
+        }
+        if ( ! $this->db->table_exists('penugasan'))
+        {
+            $this->db->query('CREATE TABLE IF NOT EXISTS `penugasan` (
+                `periode_id` VARCHAR(15) NOT NULL,
+                `kode` VARCHAR(12) NOT NULL,
+                `kab` TINYINT UNSIGNED NOT NULL,
+                PRIMARY KEY (`periode_id`,`kode`,`kab`),
+                KEY `idx_kab` (`periode_id`,`kab`),
+                CONSTRAINT `fk_penugasan_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+        }
         // Database versi lama: periode yang sama sempat dibatasi unik -> longgarkan agar beberapa file per periode dapat disimpan
         if ($this->db->query("SHOW INDEX FROM periode WHERE Key_name = 'uq_bulan_tahun'")->num_rows() > 0)
         {
@@ -166,6 +198,7 @@ class Periode_model extends CI_Model
             'naik' => $r['naik'], 'turun' => $r['turun'], 'stabil' => $r['stabil'],
             'perlu_konfirmasi' => $r['perlu_konfirmasi'], 'tidak_valid' => $r['tidak_valid'],
             'jenis' => isset($data['jenis']) ? $data['jenis'] : self::$jenis_data[0],
+            'berkas_asli' => isset($data['berkas_asli']) ? $data['berkas_asli'] : null,
         ));
 
         $id_kom = (int) $this->db->query('SELECT COALESCE(MAX(id),0) m FROM komoditas')->row()->m;
@@ -280,6 +313,9 @@ class Periode_model extends CI_Model
             'dibuat' => date('d-m-Y H:i', strtotime($p['dibuat'])),
             'hasil' => array('ringkas' => $ringkas, 'komoditas' => $hasil),
             'alasan' => $this->alasan($id),
+            'alasan_meta' => $this->alasan_meta($id),
+            'penugasan' => $this->penugasan($id),
+            'berkas_asli' => isset($p['berkas_asli']) ? $p['berkas_asli'] : null,
         );
     }
 
@@ -345,6 +381,7 @@ class Periode_model extends CI_Model
 
         $dari = ' FROM data_excel WHERE periode_id = ?'; $par = array($periode_id);
         if ($f['kab'] !== '' && $idx_kab) { $dari .= ' AND `c' . $idx_kab . '` = ?'; $par[] = $f['kab']; }
+        elseif ($f['kab'] !== '') { $dari .= ' AND 1 = 0'; }     // tabel tanpa kolom Kabupaten: akun kabupaten tidak boleh melihat apa pun, bukan semuanya
         if ($f['q'] !== '')
         {
             $dari .= ' AND CONCAT_WS(\' \', ' . implode(', ', $cols) . ') LIKE ?';
@@ -539,19 +576,57 @@ class Periode_model extends CI_Model
         return array('peta' => $peta, 'selisih' => $selisih, 'ditemukan' => $ditemukan, 'cocok' => $cocok, 'selisih_maks' => $maks);
     }
 
-    /** Menandai komoditas (menurut kode) sebagai dipilih / tidak dipilih untuk dikonfirmasi. */
-    public function set_dipilih($periode_id, array $kode, $nilai)
+    // ------------------------------------------------------------------
+    // Penugasan: komoditas mana yang harus diisi alasannya oleh kabupaten mana
+    // ------------------------------------------------------------------
+
+    /**
+     * Penugasan periode: [kode => [kab => 1]]. Pertama kali dibuka, dibuat otomatis dari kecamatan yang perlu
+     * dikonfirmasi (perilaku lama: semua komoditas yang berubah ditanyakan ke kabupaten terkait); setelah itu admin yang mengatur.
+     */
+    public function penugasan($periode_id)
     {
-        foreach (array_chunk(array_values(array_unique($kode)), 500) as $potong)
+        $p = $this->db->select('penugasan_siap')->get_where('periode', array('id' => $periode_id))->row_array();
+        if ($p && ! (int) $p['penugasan_siap'])
         {
-            $this->db->where('periode_id', $periode_id)->where_in('kode', $potong)->update('komoditas', array('dipilih' => $nilai ? 1 : 0));
+            $this->db->query('INSERT IGNORE INTO penugasan (periode_id, kode, kab)
+                              SELECT DISTINCT c.periode_id, c.kode, k.kab FROM kecamatan k JOIN komoditas c ON c.id = k.komoditas_id
+                               WHERE c.periode_id = ? AND k.flag = 1 AND c.dipilih = 1', array($periode_id));
+            $this->db->update('periode', array('penugasan_siap' => 1), array('id' => $periode_id));
+            $this->hitung_dipilih($periode_id);
         }
+        $out = array();
+        foreach ($this->db->get_where('penugasan', array('periode_id' => $periode_id))->result_array() as $r) $out[$r['kode']][(int) $r['kab']] = 1;
+        return $out;
     }
 
-    /** Jumlah komoditas yang dipilih untuk dikonfirmasi; sekaligus memperbarui ringkasan periode. */
+    /**
+     * Atur penugasan.  $pasangan = [ [kode, kab], ... ]; $nilai true = tugaskan, false = batalkan.
+     */
+    public function set_penugasan($periode_id, array $pasangan, $nilai)
+    {
+        $this->db->trans_start();
+        foreach (array_chunk($pasangan, 500) as $potong)
+        {
+            if ($nilai)
+            {
+                $ph = array(); $par = array();
+                foreach ($potong as $x) { $ph[] = '(?, ?, ?)'; $par[] = $periode_id; $par[] = $x[0]; $par[] = (int) $x[1]; }
+                $this->db->query('INSERT IGNORE INTO penugasan (periode_id, kode, kab) VALUES ' . implode(',', $ph), $par);
+            }
+            else
+            {
+                foreach ($potong as $x) $this->db->delete('penugasan', array('periode_id' => $periode_id, 'kode' => $x[0], 'kab' => (int) $x[1]));
+            }
+        }
+        $this->db->trans_complete();
+        return $this->hitung_dipilih($periode_id);
+    }
+
+    /** Jumlah komoditas yang diminta dikonfirmasi; sekaligus memperbarui ringkasan periode. */
     public function hitung_dipilih($periode_id)
     {
-        $n = (int) $this->db->query('SELECT COUNT(*) AS n FROM komoditas WHERE periode_id = ? AND tampil = 1 AND dipilih = 1', array($periode_id))->row()->n;
+        $n = (int) $this->db->query('SELECT COUNT(DISTINCT kode) AS n FROM penugasan WHERE periode_id = ?', array($periode_id))->row()->n;
         $this->db->update('periode', array('perlu_konfirmasi' => $n), array('id' => $periode_id));
         return $n;
     }
@@ -562,6 +637,17 @@ class Periode_model extends CI_Model
         foreach ($this->db->get_where('alasan', array('periode_id' => $periode_id))->result_array() as $a)
         {
             $out[$a['kode'] . '|' . $a['kab']] = $a['teks'];
+        }
+        return $out;
+    }
+
+    /** Siapa dan kapan mengisi alasan: [kode|kab => ['oleh' => , 'waktu' => ]] */
+    public function alasan_meta($periode_id)
+    {
+        $out = array();
+        foreach ($this->db->select('kode, kab, oleh, diubah')->get_where('alasan', array('periode_id' => $periode_id))->result_array() as $a)
+        {
+            $out[$a['kode'] . '|' . $a['kab']] = array('oleh' => (string) $a['oleh'], 'waktu' => $a['diubah'] ? date('d-m-Y H:i', strtotime($a['diubah'])) : '');
         }
         return $out;
     }
@@ -606,7 +692,7 @@ class Periode_model extends CI_Model
     // Ubah
     // ------------------------------------------------------------------
 
-    public function set_alasan($periode_id, $kode, $kab, $teks)
+    public function set_alasan($periode_id, $kode, $kab, $teks, $oleh = '')
     {
         $w = array('periode_id' => $periode_id, 'kode' => $kode, 'kab' => (int) $kab);
         if ($teks === '')
@@ -615,8 +701,8 @@ class Periode_model extends CI_Model
         }
         else
         {
-            $this->db->query('INSERT INTO alasan (periode_id, kode, kab, teks) VALUES (?, ?, ?, ?)
-                              ON DUPLICATE KEY UPDATE teks = VALUES(teks)', array($periode_id, $kode, (int) $kab, $teks));
+            $this->db->query('INSERT INTO alasan (periode_id, kode, kab, teks, oleh) VALUES (?, ?, ?, ?, ?)
+                              ON DUPLICATE KEY UPDATE teks = VALUES(teks), oleh = VALUES(oleh), diubah = CURRENT_TIMESTAMP', array($periode_id, $kode, (int) $kab, $teks, mb_substr((string) $oleh, 0, 120)));
         }
         return (int) $this->db->where('periode_id', $periode_id)->count_all_results('alasan');
     }

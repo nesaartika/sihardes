@@ -2,8 +2,8 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Akun pengguna. Saat ini hanya satu akun (petugas provinsi); kolom `role` disiapkan
- * agar nanti dapat ditambah peran lain tanpa mengubah struktur tabel.
+ * Akun pengguna: admin (provinsi) dan kabupaten.
+ * Kata sandi akun kabupaten ditetapkan admin provinsi; akun kabupaten tidak dapat mengubahnya sendiri.
  */
 class Pengguna_model extends CI_Model
 {
@@ -39,6 +39,8 @@ class Pengguna_model extends CI_Model
             $this->db->query('ALTER TABLE pengguna ADD COLUMN kab TINYINT UNSIGNED NULL AFTER role');
         }
         $this->db->query("UPDATE pengguna SET role = 'admin' WHERE role = 'petugas_provinsi'");
+        // Akun kabupaten tidak diminta mengganti sandi: sandinya ditetapkan admin provinsi
+        $this->db->query("UPDATE pengguna SET wajib_ganti = 0 WHERE role = 'kabupaten' AND wajib_ganti = 1");
 
         if ($this->db->count_all('pengguna') === 0)
         {
@@ -50,9 +52,17 @@ class Pengguna_model extends CI_Model
         }
     }
 
+    /** Cari akun aktif. Bila hanya nama depan email yang diketik (tanpa @), domain BPS dilengkapi otomatis. */
     public function cari_username($username)
     {
-        return $this->db->get_where('pengguna', array('username' => $username, 'aktif' => 1))->row_array();
+        $u = $this->db->get_where('pengguna', array('username' => $username, 'aktif' => 1))->row_array();
+        if ( ! $u && $username !== '' && strpos($username, '@') === false)
+        {
+            $this->config->load('cermat', FALSE, TRUE);
+            $domain = strtolower(trim((string) $this->config->item('domain_email')));
+            if ($domain !== '') $u = $this->db->get_where('pengguna', array('username' => $username . '@' . $domain, 'aktif' => 1))->row_array();
+        }
+        return $u;
     }
 
     public function cari_id($id)
@@ -90,7 +100,7 @@ class Pengguna_model extends CI_Model
     {
         $this->db->insert('pengguna', array(
             'username' => $username, 'nama' => $nama, 'role' => $role, 'kab' => $kab ?: null,
-            'password_hash' => password_hash($sandi, PASSWORD_DEFAULT), 'wajib_ganti' => 1, 'aktif' => 1,
+            'password_hash' => password_hash($sandi, PASSWORD_DEFAULT), 'wajib_ganti' => $role === 'admin' ? 1 : 0, 'aktif' => 1,
         ));
         return (int) $this->db->insert_id();
     }
@@ -100,10 +110,15 @@ class Pengguna_model extends CI_Model
         $this->db->update('pengguna', array('aktif' => $aktif ? 1 : 0), array('id' => (int) $id));
     }
 
-    /** Mengatur kata sandi sementara: pemilik akun wajib menggantinya saat masuk berikutnya. */
+    /**
+     * Admin menetapkan kata sandi akun. Akun admin tetap diminta menggantinya saat masuk (sandi sementara);
+     * akun kabupaten memakai sandi yang ditetapkan admin provinsi dan tidak bisa mengubahnya sendiri.
+     */
     public function reset_sandi($id, $sandi)
     {
-        $this->db->update('pengguna', array('password_hash' => password_hash($sandi, PASSWORD_DEFAULT), 'wajib_ganti' => 1), array('id' => (int) $id));
+        $u = $this->ambil($id);
+        $this->db->update('pengguna', array('password_hash' => password_hash($sandi, PASSWORD_DEFAULT),
+            'wajib_ganti' => ($u && $u['role'] === 'admin') ? 1 : 0), array('id' => (int) $id));
     }
 
     public function email_ada_selain($username, $id)
@@ -114,6 +129,7 @@ class Pengguna_model extends CI_Model
     public function ubah($id, $username, $nama, $role, $kab)
     {
         $this->db->update('pengguna', array('username' => $username, 'nama' => $nama, 'role' => $role, 'kab' => $role === 'kabupaten' ? ($kab ?: null) : null), array('id' => (int) $id));
+        if ($role === 'kabupaten') $this->db->update('pengguna', array('wajib_ganti' => 0), array('id' => (int) $id));
     }
 
     public function hapus($id)

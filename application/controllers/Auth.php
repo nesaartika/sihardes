@@ -35,6 +35,7 @@ class Auth extends MY_Controller
                 if ($u && password_verify((string) $this->input->post('password'), $u['password_hash']))
                 {
                     $this->session->sess_regenerate(TRUE);
+                    if ($u['role'] === 'kabupaten') $u['wajib_ganti'] = 0;   // sandi kabupaten ditetapkan admin provinsi
                     $this->session->set_userdata(array(
                         'user_id' => (int) $u['id'], 'username' => $u['username'], 'nama' => $u['nama'],
                         'role' => $u['role'], 'kab' => (int) $u['kab'], 'wajib_ganti' => (int) $u['wajib_ganti'], 'gagal' => 0, 'blok_sampai' => 0,
@@ -72,6 +73,8 @@ class Auth extends MY_Controller
     public function ganti_sandi()
     {
         if ( ! $this->session->userdata('user_id')) redirect('auth/login');
+        // akun kabupaten tidak mengubah sandi sendiri: hubungi admin provinsi
+        if ($this->session->userdata('role') === 'kabupaten') redirect('cermat/rekap');
         $galat = null;
         $wajib = (bool) $this->session->userdata('wajib_ganti');
 

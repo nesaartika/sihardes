@@ -1,90 +1,175 @@
-<?php $tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); }); ?>
+<?php
+$tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); });
+$admin = empty($kunci_kab);
+// hitung total / belum diisi, juga per kabupaten (untuk ringkasan admin)
+$total = 0; $belum = 0; $per_kab = array();
+foreach ($tampil as $k)
+{
+    foreach ($k['kab'] as $kb => $_)
+    {
+        $total++;
+        $isi = isset($alasan[$k['kode'] . '|' . $kb]) && trim($alasan[$k['kode'] . '|' . $kb]) !== '';
+        if ( ! $isi) $belum++;
+        if ( ! isset($per_kab[$kb])) $per_kab[$kb] = array(0, 0);
+        $per_kab[$kb][0]++; if ($isi) $per_kab[$kb][1]++;
+    }
+}
+ksort($per_kab);
+?>
+<?php if ($total > 0): ?>
+<div class="peringatan <?= $belum === 0 ? 'selesai' : '' ?>" id="bnr" data-total="<?= $total ?>">
+  <span id="bnrTeks"><?= $belum === 0 ? 'Semua alasan sudah terisi (' . $total . ' dari ' . $total . ').' : 'Masih ada ' . $belum . ' alasan yang belum diisi dari ' . $total . ' yang diminta.' ?></span>
+  <button type="button" class="btn" id="bLompat" <?= $belum === 0 ? 'style="display:none"' : '' ?>>Ke alasan yang belum diisi</button>
+</div>
+<?php endif; ?>
+
+<?php if ($admin && $per_kab): ?>
+<div class="ringkas-kab" title="Progres pengisian alasan per kabupaten">
+  <?php foreach ($per_kab as $kb => $v): ?>
+    <span class="chip <?= $v[0] === $v[1] ? 'lengkap' : 'kurang' ?>"><?= html_escape(Cermat_harga::nama_kab($kb)) ?>: <?= $v[1] ?>/<?= $v[0] ?></span>
+  <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari komoditas / kode / kecamatan...">
   <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
   <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option></select>
-  <?php if (empty($kunci_kab)): ?>
+  <?php if ($admin): ?>
   <select id="fkab"><option value="">Semua kabupaten</option>
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
   <?php else: ?>
   <input type="hidden" id="fkab" value="">
   <span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span>
   <?php endif; ?>
-  <label><input type="checkbox" id="fkosong"> Alasan belum diisi</label>
+  <select id="fstatus"><option value="">Semua status alasan</option><option value="belum">Belum diisi</option><option value="sudah">Sudah diisi</option></select>
   <button class="btn" type="submit">Terapkan</button>
   <button class="btn alt" type="button" id="breset">Reset</button>
-  <?php if (empty($kunci_kab)): ?><a class="btn alt" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Pilih komoditas yang dikonfirmasi</a><?php endif; ?>
+  <?php if ($admin): ?><a class="btn alt" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Atur komoditas &amp; kabupaten yang mengisi</a><?php endif; ?>
 </form>
 <p class="hint" id="cnt"></p>
+
+<?php if ( ! $tampil): ?>
+<div class="card empty">
+  <?php if ($admin): ?>
+    <b>Belum ada komoditas yang diarahkan untuk dikonfirmasi.</b><br>
+    Pilih komoditas dan kabupaten yang harus mengisi alasan di <a href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Semua Komoditas</a>; hasilnya langsung muncul di akun kabupaten terkait.
+  <?php else: ?>
+    <b>Belum ada komoditas yang perlu Anda konfirmasi.</b><br>
+    Admin provinsi belum mengarahkan komoditas untuk kabupaten Anda pada periode ini.
+  <?php endif; ?>
+</div>
+<?php else: ?>
 <div class="tw">
 <table id="tbl">
-  <thead><tr><th style="width:70px">Dokumen</th><th style="width:230px">Komoditas</th><th style="width:140px">Perubahan Harga Perdesaan Provinsi</th><th>Kabupaten</th><th style="width:380px">Alasan</th></tr></thead>
+  <thead><tr><th style="width:70px">Dokumen</th><th style="width:210px">Komoditas</th><th style="width:130px">Perubahan Harga Perdesaan Provinsi</th><th>Kabupaten</th><th style="width:340px">Alasan</th><th style="width:170px">Diisi oleh</th></tr></thead>
   <?php foreach ($tampil as $k):
-      $rows = empty($k['kab']) ? array(0 => array()) : $k['kab'];
+      $rows = $k['kab'];
       $jml = count($rows); $pertama = true;
       $teks = strtolower($k['label']);
       foreach ($k['kec_semua'] as $c) if ($c['flag']) $teks .= ' ' . strtolower($c['kec']);
   ?>
   <tbody class="grp" data-dok="<?= $k['dokumen'] ?>" data-arah="<?= $k['arah'] ?>" data-kab=",<?= implode(',', array_keys($k['kab'])) ?>," data-q="<?= html_escape($teks) ?>">
     <?php foreach ($rows as $kab => $daftar):
-        $kunci = $k['kode'] . '|' . $kab; $isi = isset($alasan[$kunci]) ? $alasan[$kunci] : ''; ?>
-    <tr data-status="<?= $isi === '' ? 'belum' : 'sudah' ?>">
+        $kunci = $k['kode'] . '|' . $kab; $isi = isset($alasan[$kunci]) ? $alasan[$kunci] : '';
+        $m = isset($meta[$kunci]) ? $meta[$kunci] : null; ?>
+    <tr data-status="<?= trim($isi) === '' ? 'belum' : 'sudah' ?>">
       <?php if ($pertama): ?>
         <td rowspan="<?= $jml ?>"><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
         <td rowspan="<?= $jml ?>"><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
         <td rowspan="<?= $jml ?>"><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></div></td>
       <?php $pertama = false; endif; ?>
       <td>
-        <?php if ($daftar): ?>
-          <?= html_escape(Cermat_harga::teks_kabupaten($kab, $daftar)) ?>
-          <div class="hint"><?= html_escape(Cermat_harga::teks_rinci($daftar)) ?></div>
-        <?php endif; ?>
+        <?= html_escape(Cermat_harga::teks_kabupaten($kab, $daftar)) ?>
+        <div class="hint"><?= html_escape(Cermat_harga::teks_rinci($daftar)) ?></div>
       </td>
       <td><textarea class="alasan" rows="2" data-kode="<?= html_escape($k['kode']) ?>" data-kab="<?= (int) $kab ?>" placeholder="Tulis alasan..."><?= html_escape($isi) ?></textarea></td>
+      <td class="oleh"><?php if ($m && trim($isi) !== ''): ?><?= html_escape($m['oleh'] !== '' ? $m['oleh'] : '-') ?><?php if ($m['waktu'] !== ''): ?><span class="waktu"><?= html_escape($m['waktu']) ?></span><?php endif; ?><?php elseif (trim($isi) !== ''): ?><span class="hint">tidak tercatat</span><?php endif; ?></td>
     </tr>
     <?php endforeach; ?>
   </tbody>
   <?php endforeach; ?>
 </table>
 </div>
+<?php endif; ?>
 <script>
 (function(){
   var URL = <?= json_encode(site_url('cermat/simpan_alasan?p=' . $p)) ?>;
   var grp = [].slice.call(document.querySelectorAll('#tbl tbody.grp'));
   var q = document.getElementById('q'), fd = document.getElementById('fdok'), fa = document.getElementById('farah'),
-      fk = document.getElementById('fkab'), fo = document.getElementById('fkosong'), cnt = document.getElementById('cnt');
-  var f = {q:'', dok:'', arah:'', kab:'', kosong:false};   // filter yang sedang diterapkan
+      fk = document.getElementById('fkab'), fs = document.getElementById('fstatus'), cnt = document.getElementById('cnt'),
+      bnr = document.getElementById('bnr'), bnrTeks = document.getElementById('bnrTeks'), bLompat = document.getElementById('bLompat');
+  var f = {q:'', dok:'', arah:'', kab:'', status:''};   // filter yang sedang diterapkan
 
   function saring(){
     var n = 0;
     grp.forEach(function(g){
       var ok = (!f.q || g.dataset.q.indexOf(f.q) > -1) && (!f.dok || g.dataset.dok === f.dok) &&
                (!f.arah || g.dataset.arah === f.arah) && (!f.kab || g.dataset.kab.indexOf(',' + f.kab + ',') > -1);
-      if (ok && f.kosong) ok = !!g.querySelector('tr[data-status="belum"]');
+      // baris per kabupaten: saring menurut kabupaten dan status alasan
+      var terlihat = 0;
+      [].forEach.call(g.querySelectorAll('tr'), function(tr){
+        var kabTr = tr.querySelector('textarea.alasan').dataset.kab;
+        var tampil = (!f.kab || kabTr === f.kab) && (!f.status || tr.dataset.status === f.status);
+        tr.style.display = tampil ? '' : 'none'; if (tampil) terlihat++;
+      });
+      if (ok && !terlihat) ok = false;
       g.style.display = ok ? '' : 'none'; if (ok) n++;
     });
-    cnt.textContent = 'Menampilkan ' + n + ' dari ' + grp.length + ' komoditas';
+    cnt.textContent = grp.length ? 'Menampilkan ' + n + ' dari ' + grp.length + ' komoditas' : '';
   }
   document.getElementById('ffilter').addEventListener('submit', function(){
-    f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, kab: fk.value, kosong: fo.checked};
+    f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, kab: fk.value, status: fs.value};
     saring();
   });
   document.getElementById('breset').addEventListener('click', function(){
-    q.value = ''; fd.value = ''; fa.value = ''; fk.value = ''; fo.checked = false;
-    f = {q:'', dok:'', arah:'', kab:'', kosong:false}; saring();
+    q.value = ''; fd.value = ''; fa.value = ''; fk.value = ''; fs.value = '';
+    f = {q:'', dok:'', arah:'', kab:'', status:''}; saring();
   });
   saring();
 
-  document.getElementById('tbl').addEventListener('change', function(e){
+  // peringatan alasan yang belum diisi
+  function hitung(){
+    if (!bnr) return;
+    var total = +bnr.dataset.total, belum = document.querySelectorAll('#tbl tr[data-status="belum"]').length;
+    bnr.classList.toggle('selesai', belum === 0);
+    bnrTeks.textContent = belum === 0 ? 'Semua alasan sudah terisi (' + total + ' dari ' + total + ').'
+                                      : 'Masih ada ' + belum + ' alasan yang belum diisi dari ' + total + ' yang diminta.';
+    bLompat.style.display = belum === 0 ? 'none' : '';
+  }
+  if (bLompat) bLompat.addEventListener('click', function(){
+    // buka filter bila menyembunyikan baris yang belum diisi, lalu lompat ke yang pertama
+    var tr = document.querySelector('#tbl tr[data-status="belum"]');
+    if (!tr) return;
+    if (tr.style.display === 'none' || tr.closest('tbody').style.display === 'none') document.getElementById('breset').click();
+    tr.scrollIntoView({behavior:'smooth', block:'center'});
+    var ta = tr.querySelector('textarea'); if (ta) setTimeout(function(){ ta.focus(); }, 350);
+  });
+
+  var tbl = document.getElementById('tbl');
+  if (tbl) tbl.addEventListener('change', function(e){
     var el = e.target; if (!el.classList.contains('alasan')) return;
+    var tr = el.closest('tr'), sel = tr.querySelector('td.oleh');
     var fm = new FormData(); fm.append('kode', el.dataset.kode); fm.append('kab', el.dataset.kab); fm.append('teks', el.value);
+    if (window.CSRF) fm.append(window.CSRF.n, window.CSRF.v);
     fetch(URL, {method:'POST', body:fm}).then(function(r){
       if (r.status === 401) { alert('Sesi habis. Silakan login lagi.'); location.reload(); throw 0; }
-      return r.json();
-    }).then(function(j){
-      var tr = el.closest('tr'), isi = el.value.trim() !== '';
+      return r.json().then(function(j){ return {r:r, j:j}; });
+    }).then(function(x){
+      var j = x.j;
+      if (!j.ok) { el.classList.add('salah'); alert(j.pesan || 'Alasan gagal disimpan. Muat ulang halaman lalu coba lagi.'); return; }
+      el.classList.remove('salah');
+      var isi = el.value.trim() !== '';
       tr.dataset.status = isi ? 'sudah' : 'belum';
-      el.classList.toggle('ok', !!j.ok); setTimeout(function(){ el.classList.remove('ok') }, 1500);
+      // kolom "Diisi oleh" langsung diperbarui
+      sel.textContent = '';
+      if (isi) { sel.appendChild(document.createTextNode(j.oleh || '-')); if (j.waktu) { var w = document.createElement('span'); w.className = 'waktu'; w.textContent = j.waktu; sel.appendChild(w); } }
+      el.classList.add('ok'); setTimeout(function(){ el.classList.remove('ok'); }, 1500);
+      hitung();
+    }).catch(function(err){
+      if (err === 0) return;
+      el.classList.add('salah');
+      alert('Alasan belum tersimpan (koneksi terputus atau sesi berakhir). Muat ulang halaman lalu isi kembali.');
     });
   });
 })();

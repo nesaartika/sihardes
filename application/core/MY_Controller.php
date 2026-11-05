@@ -38,7 +38,7 @@ class MY_Controller extends CI_Controller
             }
             redirect('auth/login');
         }
-        // akun yang masih memakai kata sandi bawaan wajib menggantinya
-        if ($this->session->userdata('wajib_ganti')) redirect('auth/ganti_sandi');
+        // akun admin yang masih memakai kata sandi bawaan/sementara wajib menggantinya (akun kabupaten tidak: sandinya dari admin provinsi)
+        if ($this->session->userdata('wajib_ganti') && $this->session->userdata('role') !== 'kabupaten') redirect('auth/ganti_sandi');
     }
 }

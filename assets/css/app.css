@@ -71,3 +71,23 @@ details summary{cursor:pointer;color:var(--pri);font-size:12px}
 .tabs a{padding:8px 14px;border:1px solid var(--br);border-bottom:0;border-radius:8px 8px 0 0;background:var(--card);font-weight:700;font-size:13px;color:var(--mut);margin-bottom:-2px}
 .tabs a.on{background:var(--pri);border-color:var(--pri);color:#fff}
 .tabs a.rh{border-style:dashed}
+/* ---- Revisi: tampilan yang stabil + peringatan alasan ---- */
+.top select.pilih-file{width:320px;max-width:34vw;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;flex:none}
+.top .hint{flex:none}
+.nav a{min-height:42px}
+.peringatan{border-left:4px solid var(--warn);background:var(--warnbg);color:var(--warn);padding:10px 14px;border-radius:10px;margin-bottom:14px;font-weight:700;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.peringatan.selesai{border-left-color:var(--ok);background:rgba(20,128,60,.10);color:var(--ok)}
+.peringatan .btn{padding:6px 12px;font-size:13px}
+tr[data-status="belum"] .alasan{border:2px solid var(--warn);background:var(--warnbg)}
+tr[data-status="belum"] td.oleh::before{content:"Belum diisi";color:var(--warn);font-weight:700}
+.alasan.salah{border-color:var(--bahaya)}
+td.oleh{min-width:150px;font-size:13px}
+td.oleh .waktu{display:block;color:var(--mut);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips label{display:inline-flex;gap:5px;align-items:center;padding:3px 9px;border:1px solid var(--br);border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;background:var(--card);white-space:nowrap}
+.chips label.flag{border-color:var(--warn)}
+.chips label.on{background:var(--pri2);border-color:var(--pri);color:var(--pri)}
+.chips input{margin:0}
+.ringkas-kab{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.ringkas-kab .chip.lengkap{border-color:var(--ok);color:var(--ok)}
+.ringkas-kab .chip.kurang{border-color:var(--warn);color:var(--warn)}
