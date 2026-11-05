@@ -68,7 +68,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
       // tombol unduh mengikuti halaman: RH -> format sheet RH; Data / file bukan tabel harga -> file asli yang diunggah; selain itu -> Rekap Konfirmasi
       $tanpa_hasil = empty($periode['hasil']['komoditas']);
       if ($menu === 'rh')                      { $unduh = site_url('cermat/unduh_rh/' . $p);  $unduh_ket = 'Unduh RH (format sheet RH)'; }
-      elseif ($menu === 'data' || $tanpa_hasil) { $unduh = site_url('cermat/unduh_data/' . $p); $unduh_ket = 'Unduh file Excel asli (format sama dengan yang diunggah)'; }
+      elseif ($menu === 'data' || $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); if ($sh === '' && ! $tanpa_hasil) $sh = 'Data'; $unduh = site_url('cermat/unduh_data/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh sheet ' . $sh . ' apa adanya' : 'Unduh file Excel asli (format sama dengan yang diunggah)'; }
       else                                     { $unduh = site_url('cermat/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }
       ?>
       <?php if ($p && ! $akun_kab): ?><a class="btn alt" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>">Unduh Excel</a><?php endif; ?>

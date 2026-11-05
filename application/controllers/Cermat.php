@@ -159,10 +159,10 @@ class Cermat extends MY_Controller
         {
             $ada_data = true; $meta = array(array('nama' => 'Data', 'baris' => 0, 'kolom' => 0));
         }
-        // tab sama dengan sheet pada file yang diunggah (urutan file asli). Akun kabupaten hanya melihat tab Data, dan hanya kabupatennya sendiri.
+        // Menu Data hanya berisi sheet Data (khusus data). File yang bukan tabel harga: semua sheet tampil sebagai tab.
         $tabs = array();
-        if ($ku) { if ($ada_data) $tabs[] = 'Data'; }
-        else foreach ($meta as $m) $tabs[] = $m['nama'];
+        if ($ada_data) $tabs[] = 'Data';
+        elseif ( ! $ku) foreach ($meta as $m) $tabs[] = $m['nama'];
         $sheet = (string) $this->input->get('sheet');
         if ( ! in_array($sheet, $tabs, true)) $sheet = $tabs ? $tabs[0] : 'Data';
 
@@ -521,7 +521,12 @@ class Cermat extends MY_Controller
         foreach ($bersih as $c)
         {
             if ( ! isset($ada[$c])) continue;
-            if ($kab !== null) { if (isset($ada[$c][$kab])) $pasangan[] = array($c, $kab); continue; }
+            if ($kab !== null)
+            {
+                // tombol massal per kabupaten hanya menugaskan komoditas yang kecamatannya berubah (oranye); kotak satuan boleh yang mana saja
+                if (isset($ada[$c][$kab]) && ( ! $massal || ! $nilai || $ada[$c][$kab] > 0)) $pasangan[] = array($c, $kab);
+                continue;
+            }
             if ($nilai)
             {
                 $target = array_keys(array_filter($ada[$c]));
@@ -740,7 +745,7 @@ class Cermat extends MY_Controller
         $jenis = $this->deteksi_jenis($file_asal, $sheet_data !== null);
         // file tabel harga: yang disimpan hanya Data (data awal) dan sheet RH (daftar kode & tabel bulanan untuk menu RH); file lain: semua sheet
         // file tabel harga: bila simpan_semua_sheet = TRUE semua sheet disimpan (tab Data sama dengan file asli); bila FALSE hanya sheet RH
-        $semua_sheet = $this->config->item('simpan_semua_sheet') !== FALSE;
+        $semua_sheet = $this->config->item('simpan_semua_sheet') === TRUE;
         $lain = $this->cermat_harga->baca_sheet_lain($path, $sheet_data !== null ? $sheet_data : '', 120, ($sheet_data !== null && ! $semua_sheet) ? array('RH') : null);
 
         if ($nama === '') $nama = $this->tebak_periode($file_asal);
