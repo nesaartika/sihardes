@@ -4,6 +4,7 @@ foreach ($komoditas as $k) if ( ! empty($k['dipilih'])) $dipilih++;
 ?>
 <div class="card" style="margin-bottom:14px">
   <b>Arahkan komoditas dan kabupaten yang harus mengisi alasan.</b>
+  <div class="hint">Periode yang sedang diatur: <b><?= html_escape($periode['nama']) ?></b> (<?= html_escape($periode['file_asal']) ?>). Akun kabupaten melihat pengaturan ini bila membuka periode yang sama.</div>
   <div class="hint">Setiap kabupaten adalah satu kolom. Kotak <b>oranye</b> = kabupaten itu punya kecamatan yang berubah melewati ambang. Cara cepat:
     (1) saring komoditas (dokumen, arah, atau cari nama), (2) klik kotak di <b>judul kolom kabupaten</b> untuk menugaskan semua komoditas yang tampil ke kabupaten itu, atau
     klik kotak di <b>awal baris</b> untuk menugaskan satu komoditas ke semua kabupaten terkait. Perubahan langsung tersimpan dan muncul di akun kabupaten.</div>

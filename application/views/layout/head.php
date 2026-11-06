@@ -9,7 +9,7 @@
 </head>
 <body>
 <?php
-$q = $p ? '?p=' . $p : '';
+$q = '';   // tautan menu tidak membawa ?p= : periode mengikuti pilihan yang diklik di daftar atas (atau yang terbaru)
 $ikon = array(
  'dashboard' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
  'rekap'     => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>',
@@ -59,7 +59,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
       <a href="<?= site_url('auth/logout') ?>">Keluar</a>
     </span>
     <?php if ( ! empty($daftar_periode)): ?>
-      <select class="pilih-file" onchange="location.href=location.pathname+'?p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
+      <select class="pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
         <?php foreach ($daftar_periode as $pd): ?>
           <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 38, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
         <?php endforeach; ?>
@@ -77,4 +77,11 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
   <main>
   <?php if ($pesan = $this->session->flashdata('pesan')): ?>
     <div class="card" style="border-left:4px solid var(--ok);padding:10px 14px;margin-bottom:14px"><?= html_escape($pesan) ?></div>
+  <?php endif; ?>
+  <?php if ( ! empty($p) && ! empty($daftar_periode) && $daftar_periode[0]['id'] !== $p): ?>
+    <div class="card" style="border-left:4px solid var(--warn);padding:10px 14px;margin-bottom:14px">
+      Anda sedang membuka periode <b><?= html_escape($periode['nama']) ?></b> (<?= html_escape(mb_strimwidth($periode['file_asal'], 0, 40, '...')) ?>).
+      Ada periode yang lebih baru: <b><?= html_escape($daftar_periode[0]['nama']) ?></b>
+      <a class="btn alt" style="padding:3px 10px;margin-left:8px" href="<?= site_url('cermat/' . ($menu === 'dashboard' ? '' : ($menu === 'data' ? 'data_asli' : ($menu === 'rh' ? 'hasil_rh' : $menu)))) ?>?pilih=1&p=<?= $daftar_periode[0]['id'] ?>">Buka yang terbaru</a>
+    </div>
   <?php endif; ?>

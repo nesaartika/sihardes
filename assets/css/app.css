@@ -79,7 +79,8 @@ details summary{cursor:pointer;color:var(--pri);font-size:12px}
 .peringatan.selesai{border-left-color:var(--ok);background:rgba(20,128,60,.10);color:var(--ok)}
 .peringatan .btn{padding:6px 12px;font-size:13px}
 tr[data-status="belum"] .alasan{border:2px solid var(--warn);background:var(--warnbg)}
-tr[data-status="belum"] td.oleh::before{content:"Belum diisi";color:var(--warn);font-weight:700}
+td.oleh input.pengisi{width:100%;padding:6px 8px;border:1px solid var(--br);border-radius:8px;background:var(--inp);color:var(--tx);font:inherit;font-size:13px}
+td.oleh input.pengisi.ok{border-color:var(--ok)}
 .alasan.salah{border-color:var(--bahaya)}
 td.oleh{min-width:150px;font-size:13px}
 td.oleh .waktu{display:block;color:var(--mut);font-size:12px}

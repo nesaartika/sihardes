@@ -62,7 +62,7 @@ ksort($per_kab);
 <?php else: ?>
 <div class="tw">
 <table id="tbl">
-  <thead><tr><th style="width:70px">Dokumen</th><th style="width:210px">Komoditas</th><th style="width:130px">Perubahan Harga Perdesaan Provinsi</th><th>Kabupaten</th><th style="width:340px">Alasan</th><th style="width:170px">Diisi oleh</th></tr></thead>
+  <thead><tr><th style="width:70px">Dokumen</th><th style="width:210px">Komoditas</th><th style="width:130px">Perubahan Harga Perdesaan Provinsi</th><th>Kabupaten</th><th style="width:340px">Alasan</th><th style="width:190px">Diisi oleh (ketik nama)</th></tr></thead>
   <?php foreach ($tampil as $k):
       $rows = $k['kab'];
       $jml = count($rows); $pertama = true;
@@ -84,7 +84,7 @@ ksort($per_kab);
         <div class="hint"><?= html_escape(Cermat_harga::teks_rinci($daftar)) ?></div>
       </td>
       <td><textarea class="alasan" rows="2" data-kode="<?= html_escape($k['kode']) ?>" data-kab="<?= (int) $kab ?>" placeholder="Tulis alasan..."><?= html_escape($isi) ?></textarea></td>
-      <td class="oleh"><?php if ($m && trim($isi) !== ''): ?><?= html_escape($m['oleh'] !== '' ? $m['oleh'] : '-') ?><?php if ($m['waktu'] !== ''): ?><span class="waktu"><?= html_escape($m['waktu']) ?></span><?php endif; ?><?php elseif (trim($isi) !== ''): ?><span class="hint">tidak tercatat</span><?php endif; ?></td>
+      <td class="oleh"><input type="text" class="pengisi" maxlength="120" placeholder="Ketik nama pengisi" value="<?= html_escape($m ? $m['oleh'] : '') ?>"><span class="waktu"><?= $m && $m['waktu'] !== '' ? html_escape($m['waktu']) : '' ?></span></td>
     </tr>
     <?php endforeach; ?>
   </tbody>
@@ -148,28 +148,24 @@ ksort($per_kab);
 
   var tbl = document.getElementById('tbl');
   if (tbl) tbl.addEventListener('change', function(e){
-    var el = e.target; if (!el.classList.contains('alasan')) return;
-    var tr = el.closest('tr'), sel = tr.querySelector('td.oleh');
-    var fm = new FormData(); fm.append('kode', el.dataset.kode); fm.append('kab', el.dataset.kab); fm.append('teks', el.value);
+    var el = e.target; if (!el.classList.contains('alasan') && !el.classList.contains('pengisi')) return;
+    var tr = el.closest('tr'), ta = tr.querySelector('textarea.alasan'), pg = tr.querySelector('input.pengisi'), w = tr.querySelector('.waktu');
+    var fm = new FormData(); fm.append('kode', ta.dataset.kode); fm.append('kab', ta.dataset.kab); fm.append('teks', ta.value); fm.append('oleh', pg.value);
     if (window.CSRF) fm.append(window.CSRF.n, window.CSRF.v);
     fetch(URL, {method:'POST', body:fm}).then(function(r){
       if (r.status === 401) { alert('Sesi habis. Silakan login lagi.'); location.reload(); throw 0; }
-      return r.json().then(function(j){ return {r:r, j:j}; });
-    }).then(function(x){
-      var j = x.j;
-      if (!j.ok) { el.classList.add('salah'); alert(j.pesan || 'Alasan gagal disimpan. Muat ulang halaman lalu coba lagi.'); return; }
+      return r.json();
+    }).then(function(j){
+      if (!j.ok) { el.classList.add('salah'); alert(j.pesan || 'Gagal disimpan. Muat ulang halaman lalu coba lagi.'); return; }
       el.classList.remove('salah');
-      var isi = el.value.trim() !== '';
-      tr.dataset.status = isi ? 'sudah' : 'belum';
-      // kolom "Diisi oleh" langsung diperbarui
-      sel.textContent = '';
-      if (isi) { sel.appendChild(document.createTextNode(j.oleh || '-')); if (j.waktu) { var w = document.createElement('span'); w.className = 'waktu'; w.textContent = j.waktu; sel.appendChild(w); } }
+      tr.dataset.status = ta.value.trim() !== '' ? 'sudah' : 'belum';
+      w.textContent = j.waktu || '';
       el.classList.add('ok'); setTimeout(function(){ el.classList.remove('ok'); }, 1500);
       hitung();
     }).catch(function(err){
       if (err === 0) return;
       el.classList.add('salah');
-      alert('Alasan belum tersimpan (koneksi terputus atau sesi berakhir). Muat ulang halaman lalu isi kembali.');
+      alert('Belum tersimpan (koneksi terputus atau sesi berakhir). Muat ulang halaman lalu isi kembali.');
     });
   });
 })();

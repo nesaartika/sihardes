@@ -636,6 +636,7 @@ class Periode_model extends CI_Model
         $out = array();
         foreach ($this->db->get_where('alasan', array('periode_id' => $periode_id))->result_array() as $a)
         {
+            if (trim($a['teks']) === '') continue;      // baris yang hanya berisi nama pengisi belum dihitung terisi
             $out[$a['kode'] . '|' . $a['kab']] = $a['teks'];
         }
         return $out;
@@ -656,7 +657,7 @@ class Periode_model extends CI_Model
     public function daftar()
     {
         $rows = $this->db->query(
-            'SELECT p.*, (SELECT COUNT(*) FROM alasan a WHERE a.periode_id = p.id) AS terisi
+            'SELECT p.*, (SELECT COUNT(*) FROM alasan a WHERE a.periode_id = p.id AND CHAR_LENGTH(a.teks) > 0) AS terisi
                FROM periode p ORDER BY p.tahun DESC, p.bulan DESC, p.id DESC'
         )->result_array();
         $out = array();
@@ -695,7 +696,7 @@ class Periode_model extends CI_Model
     public function set_alasan($periode_id, $kode, $kab, $teks, $oleh = '')
     {
         $w = array('periode_id' => $periode_id, 'kode' => $kode, 'kab' => (int) $kab);
-        if ($teks === '')
+        if ($teks === '' && trim((string) $oleh) === '')
         {
             $this->db->delete('alasan', $w);
         }
@@ -704,7 +705,7 @@ class Periode_model extends CI_Model
             $this->db->query('INSERT INTO alasan (periode_id, kode, kab, teks, oleh) VALUES (?, ?, ?, ?, ?)
                               ON DUPLICATE KEY UPDATE teks = VALUES(teks), oleh = VALUES(oleh), diubah = CURRENT_TIMESTAMP', array($periode_id, $kode, (int) $kab, $teks, mb_substr((string) $oleh, 0, 120)));
         }
-        return (int) $this->db->where('periode_id', $periode_id)->count_all_results('alasan');
+        return (int) $this->db->where('periode_id', $periode_id)->where('teks <>', '')->count_all_results('alasan');
     }
 
     public function hapus($id)

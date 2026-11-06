@@ -473,6 +473,7 @@ class Cermat extends MY_Controller
         {
             return $this->galat($e->getMessage());
         }
+        $this->session->set_userdata('periode_pilihan', $id);     // admin yang mengunggah langsung membuka periode barunya
         if ($this->catatan_unggah)
         {
             $this->session->set_flashdata('pesan', 'File tersimpan dan semua sheet bisa dilihat di menu Data. ' . $this->catatan_unggah);
@@ -569,12 +570,12 @@ class Cermat extends MY_Controller
             return $this->output->set_status_header(403)->set_output(json_encode(array('ok' => false, 'pesan' => 'Komoditas ini tidak diminta untuk dikonfirmasi oleh kabupaten tersebut.')));
         }
         $lama  = isset($this->data['alasan'][$kode . '|' . $kab]);
-        $oleh  = $this->label_pengguna();
+        $oleh  = trim((string) $this->input->post('oleh'));     // "Diisi oleh": diketik sendiri oleh pengisi
         $terisi = $this->periode->set_alasan($this->aktif, $kode, $kab, $teks, $oleh);
         $jenis = $teks === '' ? 'dikosongkan' : ($lama ? 'diubah' : 'diisi');
         $this->catatan->catat('isi_alasan', $this->data['nama'] . ' - ' . $kode . ' - ' . Cermat_harga::nama_kab($kab) . ' (' . $jenis . ')');
         $this->output->set_output(json_encode(array('ok' => true, 'terisi' => $terisi,
-            'oleh' => $teks === '' ? '' : $oleh, 'waktu' => $teks === '' ? '' : date('d-m-Y H:i'))));
+            'waktu' => ($teks === '' && $oleh === '') ? '' : date('d-m-Y H:i'))));
     }
 
     public function hapus($id = '')
@@ -829,7 +830,8 @@ class Cermat extends MY_Controller
         $d = $id !== '' ? $this->periode->muat($id) : null;
         if ($d)
         {
-            if ( ! is_cli()) $this->session->set_userdata('periode_pilihan', $id);
+            // hanya pilihan yang diklik pengguna di daftar periode (pilih=1) yang diingat; tautan menu tidak mengunci periode
+            if ( ! is_cli() && $this->input->get('pilih')) $this->session->set_userdata('periode_pilihan', $id);
         }
         else
         {
