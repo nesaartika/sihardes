@@ -9,11 +9,6 @@ $wilayah = array();
 foreach ($g['baris'] as $r) foreach ($r['wil'] as $w => $_) $wilayah[$w] = 1;
 $wilayah = array_keys($wilayah); sort($wilayah);
 ?>
-<div class="card" style="margin-bottom:14px">
-  <b>Semua komoditas pada file <?= html_escape($periode['file_asal']) ?></b> (<?= html_escape($periode['nama']) ?>)
-  <div class="hint">Setiap sheet di file menjadi satu <b>dokumen</b> (<?= html_escape(implode(', ', $g['dok'])) ?>). Pilih dokumennya di saringan; formatnya mengikuti isi tiap sheet.
-    Isi aslinya ada di menu <a href="<?= site_url('cermat/data_asli?p=' . $p) ?>">Data</a>, ringkasannya di <a href="<?= site_url('cermat/rekap?p=' . $p) ?>">Rekap</a>.</div>
-</div>
 <?php foreach ($g['gagal'] as $nm => $sebab): ?>
   <div class="card" style="border-left:4px solid var(--warn);padding:10px 14px;margin-bottom:10px">Sheet <b><?= html_escape($nm) ?></b> tidak masuk daftar: <?= html_escape($sebab) ?> Isinya tetap ada di menu Data.</div>
 <?php endforeach; ?>

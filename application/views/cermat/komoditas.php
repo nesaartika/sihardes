@@ -6,12 +6,6 @@ foreach ($komoditas as $k)
     $info[$k['kode']] = $k['kab_info'];     // [kab => [jumlah kecamatan berubah, sudah diminta?]]
 }
 ?>
-<div class="card" style="margin-bottom:14px">
-  <b>Pilih komoditas yang harus dikonfirmasi kabupaten.</b>
-  <div class="hint">Periode: <b><?= html_escape($periode['nama']) ?></b> (<?= html_escape($periode['file_asal']) ?>). Cara pakai: <b>1)</b> pilih kabupaten, <b>2)</b> centang komoditasnya
-    (atau klik <i>Centang semua</i>). Yang dicentang langsung muncul di akun kabupaten itu.</div>
-</div>
-
 <div class="bar" style="gap:10px">
   <b>1. Kabupaten:</b>
   <select id="fkab" style="min-width:230px;font-weight:700">
