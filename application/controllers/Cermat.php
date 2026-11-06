@@ -64,7 +64,8 @@ class Cermat extends MY_Controller
             if ($this->kab_user()) return $this->render('cermat/kosong', 'rekap', array());
             redirect('cermat/unggah');
         }
-        if ( ! $this->punya_hasil()) return $this->kosong('rekap');
+        if ( ! $this->punya_hasil())    // file bukan tabel harga: rekap dibuat dari tiap sheet (admin); akun kabupaten tetap tidak melihat isi file ini
+            return $this->kab_user() ? $this->kosong('rekap') : $this->rekap_sheet();
         $ku = $this->kab_user();
         $komoditas = $this->data['hasil']['komoditas'];
         if ($ku)   // akun kabupaten: hanya baris kabupatennya sendiri
@@ -94,7 +95,7 @@ class Cermat extends MY_Controller
     public function komoditas()
     {
         if ( ! $this->buka_periode()) redirect('cermat/unggah');
-        if ( ! $this->punya_hasil()) return $this->kosong('komoditas');
+        if ( ! $this->punya_hasil()) return $this->komoditas_sheet();    // file bukan tabel harga: daftar komoditas dibuat dari tiap sheet
         $kom = $this->data['hasil']['komoditas'];
         $kab_semua = array();
         foreach ($kom as $i => $k)
@@ -235,6 +236,114 @@ class Cermat extends MY_Controller
                                          'lebar' => array(17.6, 12, 38, 16, 16, 16, 16, 11, 9, 17.6, 12, 12, 38, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9))));
         $nama = 'RH_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . '.xlsx';
         $isi = file_get_contents($tmp); @unlink($tmp);
+        $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);
+        $this->load->helper('download');
+        force_download($nama, $isi);
+    }
+
+    // ---------------------------------------------------------------
+    // File bukan tabel harga (mis. sheet HD, HKD, HPB, HK, Rekonsiliasi):
+    // Komoditas dan Rekap dibuat dari tiap sheet, formatnya mengikuti isi sheet itu (lihat library Sheet_rekap)
+    // ---------------------------------------------------------------
+
+    /** Model satu sheet (komoditas + nilai per wilayah) dari isi sheet yang tersimpan saat unggah. */
+    private function model_sheet($id, $nama)
+    {
+        $d = $this->periode->data_sheet($id, $nama, '', 30000, 0);
+        return $this->sheet_rekap->susun($this->sheet_rekap->analisis($d['baris']));
+    }
+
+    /**
+     * Semua sheet digabung menjadi satu daftar; kolom "Dokumen" = nama sheet (HD, HKD, HK, HPB, ...), apa pun isi file-nya.
+     * @return array|null null bila periode ini tidak punya sheet tersimpan (periode lama)
+     */
+    private function gabung_sheet()
+    {
+        $this->load->library('sheet_rekap');
+        $meta = $this->periode->daftar_sheet($this->aktif);
+        if ( ! $meta) return null;
+        $dok = array(); $baris = array(); $gagal = array();
+        foreach ($meta as $s)
+        {
+            $m = $this->model_sheet($this->aktif, $s['nama']);
+            if ($m['layout'] === 'tidak_ada') { $gagal[$s['nama']] = $m['sebab']; continue; }
+            $dok[] = $s['nama'];
+            foreach ($this->sheet_rekap->gabung($m, $s['nama']) as $r) $baris[] = $r;
+        }
+        return array('dok' => $dok, 'baris' => $baris, 'gagal' => $gagal);
+    }
+
+    private function komoditas_sheet()
+    {
+        $g = $this->gabung_sheet();
+        if ($g === null) return $this->kosong('komoditas');
+        $this->render('cermat/sheet_komoditas', 'komoditas', array('g' => $g));
+    }
+
+    private function rekap_sheet()
+    {
+        $g = $this->gabung_sheet();
+        if ($g === null) return $this->kosong('rekap');
+        $this->render('cermat/sheet_rekap', 'rekap', array('g' => $g));
+    }
+
+    /** Unduh rekap sheet (?sheet=) atau semua sheet sebagai Excel: tiap bagian rekap menjadi satu sheet, susunan kolom sama dengan yang tampil di Rekap. */
+    public function unduh_rekap($id = '')
+    {
+        if ($this->kab_user()) show_404();
+        $d = $this->periode->muat($id);
+        if ( ! $d) show_404();
+        $this->load->library('sheet_rekap');
+        require_once APPPATH . 'libraries/Xlsx_io.php';
+
+        $pilih = (string) $this->input->get('sheet');
+        $sheets = array(); $dipakai = array();
+        foreach ($this->periode->daftar_sheet($id) as $s)
+        {
+            if ($pilih !== '' && $s['nama'] !== $pilih) continue;
+            $m = $this->model_sheet($id, $s['nama']);
+            if ($m['layout'] === 'tidak_ada') continue;
+            $rk = $this->sheet_rekap->rekap($m);
+            foreach ($rk['bagian'] as $b)
+            {
+                if ( ! $b['baris']) continue;
+                $nm = trim(mb_substr(preg_replace('/[\[\]\*\?\/\\\\:]+/', ' ', $s['nama'] . ' ' . $b['pendek']), 0, 28));
+                $asli = $nm; $i = 2;
+                while (isset($dipakai[strtolower($nm)])) $nm = $asli . ' ' . $i++;
+                $dipakai[strtolower($nm)] = 1;
+                $baris = Sheet_rekap::ke_baris($b);
+                $lebar = array();
+                foreach ($baris as $r) foreach ($r as $ci => $v)
+                {
+                    $w = min(60, max(10, mb_strlen((string) $v) + 2));
+                    if ( ! isset($lebar[$ci]) || $w > $lebar[$ci]) $lebar[$ci] = $w;
+                }
+                ksort($lebar);
+                $sheets[] = array('nama' => $nm, 'baris' => $baris, 'header' => true, 'beku' => true, 'filter' => true, 'garis' => true, 'lebar' => array_values($lebar));
+            }
+        }
+        // sheet pertama: daftar gabungan semua dokumen (sama dengan halaman Rekap)
+        $g = $this->gabung_sheet();
+        if ($g && $g['baris'])
+        {
+            $gb = array(array('Dokumen', 'Kode', 'Komoditas', 'Arah', 'Perubahan', 'Wilayah naik', 'Wilayah turun', 'Jumlah wilayah stabil', 'Keterangan'));
+            $nm = function ($l) { $t = array(); foreach ($l as $x) $t[] = $x[0] . ($x[1] !== '' ? ' ' . $x[1] : ''); return implode(', ', $t); };
+            foreach ($g['baris'] as $r)
+            {
+                if ($pilih !== '' && $r['dok'] !== $pilih) continue;
+                if ( ! $r['ada']) continue;
+                $gb[] = array($r['dok'], $r['kode'], $r['nama'], $r['arah'] !== null ? ucfirst($r['arah']) : '', $r['nilai'], $nm($r['naik']), $nm($r['turun']), $r['stabil'], $r['ket']);
+            }
+            array_unshift($sheets, array('nama' => 'Rekap Gabungan', 'baris' => $gb, 'header' => true, 'beku' => true, 'filter' => true, 'garis' => true,
+                                         'lebar' => array(12, 12, 32, 9, 12, 50, 50, 12, 50)));
+        }
+        if ( ! $sheets) show_404();
+
+        $tmp = tempnam(sys_get_temp_dir(), 'rkp');
+        Xlsx_io::tulis($tmp, $sheets);
+        $nama = 'Rekap_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $d['nama']) . ($pilih !== '' ? '_' . preg_replace('/[^A-Za-z0-9 ]+/', '', $pilih) : '') . '.xlsx';
+        $isi = file_get_contents($tmp);
+        @unlink($tmp);
         $this->catatan->catat('unduh', $d['nama'] . ' - ' . $nama);
         $this->load->helper('download');
         force_download($nama, $isi);
@@ -476,7 +585,7 @@ class Cermat extends MY_Controller
         $this->session->set_userdata('periode_pilihan', $id);     // admin yang mengunggah langsung membuka periode barunya
         if ($this->catatan_unggah)
         {
-            $this->session->set_flashdata('pesan', 'File tersimpan dan semua sheet bisa dilihat di menu Data. ' . $this->catatan_unggah);
+            $this->session->set_flashdata('pesan', 'File tersimpan. ' . $this->catatan_unggah);
         }
         $r = $this->periode->muat($id);
         $this->catatan->catat('unggah', $nama . ' - ' . $_FILES['berkas']['name'] . ' (' . $r['hasil']['ringkas']['jml_komoditas'] . ' komoditas)');
@@ -703,7 +812,7 @@ class Cermat extends MY_Controller
             echo 'GAGAL: ' . $e->getMessage() . "\n";
             return;
         }
-        if ($this->catatan_unggah) echo "Perhatian: rekap tidak dibuat. {$this->catatan_unggah}\n";
+        if ($this->catatan_unggah) echo "Catatan: {$this->catatan_unggah}\n";
         $d = $this->periode->muat($id);
         $r = $d['hasil']['ringkas'];
         $this->catatan->catat('unggah', $nama . ' - ' . basename($berkas) . ' (' . $r['jml_komoditas'] . ' komoditas)', 'terminal');
@@ -741,7 +850,8 @@ class Cermat extends MY_Controller
         {
             $hasil = $this->cermat_harga->hitung(array(), $opsi);
             $mentah = null;
-            $this->catatan_unggah = 'File ini tidak berisi tabel harga (kolom Kabupaten, Nama Kecamatan, Kode Komoditas, Nama Komoditas, Nama Kualitas, Harga Bulan Ini, Harga Bulan Sebelumnya), jadi RH dan Rekap Konfirmasi tidak dibuat.';
+            $this->catatan_unggah = 'File ini bukan tabel harga (kolom Kabupaten, Nama Kecamatan, Kode Komoditas, Nama Komoditas, Nama Kualitas, Harga Bulan Ini, Harga Bulan Sebelumnya), '
+                . 'jadi RH tidak dibuat. Menu Data, Komoditas, dan Rekap dibuat dari tiap sheet menurut formatnya masing-masing.';
         }
         $jenis = $this->deteksi_jenis($file_asal, $sheet_data !== null);
         // file tabel harga: yang disimpan hanya Data (data awal) dan sheet RH (daftar kode & tabel bulanan untuk menu RH); file lain: semua sheet
