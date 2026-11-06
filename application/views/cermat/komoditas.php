@@ -13,8 +13,6 @@ foreach ($komoditas as $k)
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?>
   </select>
   <b>2. Komoditas:</b>
-  <button class="btn" type="button" id="bPilih">&#10003; Centang semua</button>
-  <button class="btn alt" type="button" id="bKosong">&#10005; Hapus semua centang</button>
   <span class="chip" id="chipDipilih">Dikonfirmasi: <?= $dipilih ?> komoditas</span>
 </div>
 <form class="bar" id="ffilter" onsubmit="return false">
@@ -127,8 +125,6 @@ foreach ($komoditas as $k)
     var t = terlihat(); if (!t.length) { alert('Tidak ada komoditas yang tampil.'); return; }
     kirim(t.map(function(r){ return r.dataset.kode; }), nilai, {kab: fk.value, massal: true});
   }
-  document.getElementById('bPilih').addEventListener('click', function(){ massal(true); });
-  document.getElementById('bKosong').addEventListener('click', function(){ massal(false); });
   segar();
 })();
 </script>
