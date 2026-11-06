@@ -65,7 +65,7 @@ class Cermat extends MY_Controller
             redirect('cermat/unggah');
         }
         if ( ! $this->punya_hasil())    // file bukan tabel harga: rekap dibuat dari tiap sheet (admin); akun kabupaten tetap tidak melihat isi file ini
-            return $this->kab_user() ? $this->kosong('rekap') : $this->rekap_sheet();
+            return $this->rekap_sheet();
         $ku = $this->kab_user();
         $komoditas = $this->data['hasil']['komoditas'];
         if ($ku)   // akun kabupaten: hanya baris kabupatennya sendiri
@@ -163,7 +163,7 @@ class Cermat extends MY_Controller
         // Menu Data hanya berisi sheet Data (khusus data). File yang bukan tabel harga: semua sheet tampil sebagai tab.
         $tabs = array();
         if ($ada_data) $tabs[] = 'Data';
-        elseif ( ! $ku) foreach ($meta as $m) $tabs[] = $m['nama'];
+        else foreach ($meta as $m) $tabs[] = $m['nama'];
         $sheet = (string) $this->input->get('sheet');
         if ( ! in_array($sheet, $tabs, true)) $sheet = $tabs ? $tabs[0] : 'Data';
 
@@ -936,35 +936,32 @@ class Cermat extends MY_Controller
      */
     private function buka_periode()
     {
-        // Akun kabupaten: hanya periode berisi tabel harga yang dibuka, dan otomatis ikut unggahan terbaru
-        // (file non-tabel-harga seperti Rekonsiliasi dilewati; pilihan lama di sesi gugur bila ada tabel harga yang lebih baru).
+        // Akun kabupaten otomatis ikut unggahan terbaru: pilihan periode lama di sesi gugur bila sejak itu ada unggahan baru.
         $ku = $this->kab_user();
-        $terbaru_kab = $ku ? $this->periode->terbaru_harga() : null;
-        if ($ku && ! is_cli() && (string) $this->session->userdata('periode_pilihan_ref') !== (string) $terbaru_kab)
+        $terbaru = $this->periode->terbaru();
+        if ($ku && ! is_cli() && (string) $this->session->userdata('periode_pilihan_ref') !== (string) $terbaru)
         {
             $this->session->unset_userdata(array('periode_pilihan', 'periode_pilihan_ref'));
         }
 
         $id = (string) $this->input->get('p');
         $d = $id !== '' ? $this->periode->muat($id) : null;
-        if ($d && $ku && empty($d['hasil']['komoditas'])) $d = null;
         if ($d)
         {
             // hanya pilihan yang diklik pengguna di daftar periode (pilih=1) yang diingat; tautan menu tidak mengunci periode
             if ( ! is_cli() && $this->input->get('pilih'))
             {
                 $this->session->set_userdata('periode_pilihan', $id);
-                if ($ku) $this->session->set_userdata('periode_pilihan_ref', (string) $terbaru_kab);
+                if ($ku) $this->session->set_userdata('periode_pilihan_ref', (string) $terbaru);
             }
         }
         else
         {
             $id = is_cli() ? '' : (string) $this->session->userdata('periode_pilihan');
             $d = $id !== '' ? $this->periode->muat($id) : null;
-            if ($d && $ku && empty($d['hasil']['komoditas'])) $d = null;
             if ( ! $d)
             {
-                $id = $ku ? $terbaru_kab : $this->periode->terbaru();
+                $id = $terbaru;
                 $d = $id ? $this->periode->muat($id) : null;
             }
         }
@@ -1044,10 +1041,7 @@ class Cermat extends MY_Controller
         $data['menu']    = $menu;
         $data['p']       = $this->aktif;
         $data['periode'] = $this->data;
-        $daftar = $this->periode->daftar();
-        if ($this->kab_user())   // akun kabupaten hanya melihat file yang berisi tabel harga
-            $daftar = array_values(array_filter($daftar, function ($x) { return $x['ringkas']['jml_komoditas'] > 0; }));
-        $data['daftar_periode'] = $daftar;
+        $data['daftar_periode'] = $this->periode->daftar();
         $data['csrf'] = array($this->security->get_csrf_token_name(), $this->security->get_csrf_hash());
         $this->load->view('layout/head', $data);
         $this->load->view($view, $data);

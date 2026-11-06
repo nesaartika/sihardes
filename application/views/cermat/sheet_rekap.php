@@ -45,7 +45,7 @@ $daftar = function ($l, $kelas) { $h = ''; foreach ($l as $x) $h .= '<span class
   <select id="fwil"><option value="">Semua wilayah</option><?php foreach ($wilayah as $w): ?><option value="<?= html_escape($w) ?>"><?= html_escape($w) ?></option><?php endforeach; ?></select>
   <button class="btn" type="submit">Terapkan</button>
   <button class="btn alt" type="button" id="breset">Reset</button>
-  <a class="btn alt" href="<?= site_url('cermat/unduh_rekap/' . $p) ?>">Unduh rekap (Excel)</a>
+  <?php if ($this->session->userdata('role') !== 'kabupaten'): ?><a class="btn alt" href="<?= site_url('cermat/unduh_rekap/' . $p) ?>">Unduh rekap (Excel)</a><?php endif; ?>
 </form>
 <p class="hint" id="cnt"></p>
 
