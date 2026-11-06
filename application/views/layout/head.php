@@ -79,10 +79,4 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
   <?php if ($pesan = $this->session->flashdata('pesan')): ?>
     <div class="card" style="border-left:4px solid var(--ok);padding:10px 14px;margin-bottom:14px"><?= html_escape($pesan) ?></div>
   <?php endif; ?>
-  <?php if ( ! empty($p) && ! empty($daftar_periode) && $daftar_periode[0]['id'] !== $p): ?>
-    <div class="card" style="border-left:4px solid var(--warn);padding:10px 14px;margin-bottom:14px">
-      Anda sedang membuka periode <b><?= html_escape($periode['nama']) ?></b> (<?= html_escape(mb_strimwidth($periode['file_asal'], 0, 40, '...')) ?>).
-      Ada periode yang lebih baru: <b><?= html_escape($daftar_periode[0]['nama']) ?></b>
-      <a class="btn alt" style="padding:3px 10px;margin-left:8px" href="<?= site_url('cermat/' . ($menu === 'dashboard' ? '' : ($menu === 'data' ? 'data_asli' : ($menu === 'rh' ? 'hasil_rh' : $menu)))) ?>?pilih=1&p=<?= $daftar_periode[0]['id'] ?>">Buka yang terbaru</a>
-    </div>
   <?php endif; ?>
