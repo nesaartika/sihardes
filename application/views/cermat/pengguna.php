@@ -18,10 +18,10 @@
     </select>
     <select name="kab" id="kab"><option value="">Pilih kabupaten</option>
       <?php foreach ($kab_daftar as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
-    <input type="text" name="sandi" placeholder="Kata sandi (kosongkan = acak)" autocomplete="off" style="min-width:210px">
+    <input type="text" name="sandi" placeholder="Kata sandi" required autocomplete="off" style="min-width:210px">
     <button class="btn" type="submit">Buat akun</button>
   <?= form_close() ?>
-  <div class="hint">Kata sandi akun kabupaten ditentukan di sini oleh admin provinsi; akun kabupaten tidak bisa mengubahnya sendiri. Bila kolom sandi dikosongkan, sandi dibuat acak dan ditampilkan satu kali. Login boleh memakai email lengkap atau nama depannya saja.<?= $domain !== '' ? ' Email harus berdomain @' . html_escape($domain) . '.' : '' ?></div>
+  <div class="hint">Kata sandi akun kabupaten ditentukan di sini oleh admin provinsi; akun kabupaten tidak bisa mengubahnya sendiri. Login boleh memakai email lengkap atau nama depannya saja.<?= $domain !== '' ? ' Email harus berdomain @' . html_escape($domain) . '.' : '' ?></div>
 </div>
 
 <div class="tw"><table>
@@ -40,9 +40,6 @@
         <?= form_open('cermat/pengguna_sandi/' . $a['id'], array('style' => 'display:inline')) ?>
           <input type="text" name="sandi" placeholder="Sandi baru" autocomplete="off" style="width:120px;padding:6px 8px;border:1px solid var(--br);border-radius:8px;background:var(--inp);color:var(--tx)">
           <button class="btn alt" type="submit" title="Tetapkan kata sandi ini untuk akun">Atur sandi</button>
-        <?= form_close() ?>
-        <?= form_open('cermat/pengguna_reset/' . $a['id'], array('style' => 'display:inline')) ?>
-          <button class="btn alt" type="submit" title="Buat kata sandi acak baru">Acak</button>
         <?= form_close() ?>
         <a class="btn alt" href="<?= site_url('cermat/pengguna_edit/' . $a['id']) ?>">Edit</a>
         <?php if ( ! $saya): ?>

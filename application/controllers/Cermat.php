@@ -385,9 +385,8 @@ class Cermat extends MY_Controller
 
         if ($galat) { $this->session->set_flashdata('galat_akun', $galat); redirect('cermat/pengguna'); }
 
-        $sandi = (string) $this->input->post('sandi');    // diisi admin; bila kosong dibuat acak
-        if ($sandi === '') $sandi = Pengguna_model::sandi_acak();
-        elseif (strlen($sandi) < $this->sandi_minimal())
+        $sandi = (string) $this->input->post('sandi');    // wajib diisi admin
+        if (strlen($sandi) < $this->sandi_minimal())
         {
             $this->session->set_flashdata('galat_akun', 'Kata sandi minimal ' . $this->sandi_minimal() . ' karakter.');
             redirect('cermat/pengguna');
@@ -504,23 +503,6 @@ class Cermat extends MY_Controller
             {
                 $this->pengguna->reset_sandi($id, $sandi);
                 $this->catatan->catat('reset_sandi', $u['username'] . ' (ditetapkan admin)');
-                $this->session->set_flashdata('sandi_baru', json_encode(array('email' => $u['username'], 'sandi' => $sandi)));
-            }
-        }
-        redirect('cermat/pengguna');
-    }
-
-    public function pengguna_reset($id = 0)
-    {
-        if ($this->input->method() === 'post')
-        {
-            $this->load->model('pengguna_model', 'pengguna');
-            $u = $this->pengguna->ambil($id);
-            if ($u)
-            {
-                $sandi = Pengguna_model::sandi_acak();
-                $this->pengguna->reset_sandi($id, $sandi);
-                $this->catatan->catat('reset_sandi', $u['username']);
                 $this->session->set_flashdata('sandi_baru', json_encode(array('email' => $u['username'], 'sandi' => $sandi)));
             }
         }

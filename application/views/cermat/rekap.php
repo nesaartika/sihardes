@@ -101,6 +101,7 @@ ksort($per_kab);
           <button type="button" class="btn b-simpan" data-aksi="simpan">Simpan</button>
           <button type="button" class="btn alt b-edit" data-aksi="edit">Edit</button>
           <button type="button" class="btn alt b-batal" data-aksi="batal">Batal</button>
+          <button type="button" class="btn red b-hapus" data-aksi="hapus" title="Kosongkan alasan dan nama pengisi">Hapus</button>
         </div>
       </td>
     </tr>
@@ -192,29 +193,50 @@ ksort($per_kab);
       var tr = b.closest('tr'), x = bagian(tr), aksi = b.dataset.aksi;
       if (aksi === 'edit') { kunci(tr, false); tr.classList.add('mengedit'); tampil(tr); x.ta.focus(); return; }
       if (aksi === 'batal') { x.ta.value = tr._asli.t; x.pg.value = tr._asli.o; kunci(tr, true); tampil(tr); return; }
+
+      // kirim ke server (teks & oleh kosong = hapus data tersimpan)
+      var kirim = function(teks, oleh, sukses){
+        var fm = new FormData(); fm.append('kode', x.ta.dataset.kode); fm.append('kab', x.ta.dataset.kab); fm.append('teks', teks); fm.append('oleh', oleh);
+        if (window.CSRF) fm.append(window.CSRF.n, window.CSRF.v);
+        var tulis = b.textContent; b.disabled = true; b.textContent = aksi === 'hapus' ? 'Menghapus...' : 'Menyimpan...';
+        var selesai = function(){ b.disabled = false; b.textContent = tulis; };
+        fetch(URL, {method:'POST', body:fm}).then(function(r){
+          if (r.status === 401) { alert('Sesi habis. Silakan login lagi.'); location.reload(); throw 0; }
+          return r.json();
+        }).then(function(j){
+          selesai();
+          if (!j.ok) { x.ta.classList.add('salah'); alert(j.pesan || 'Gagal diproses. Muat ulang halaman lalu coba lagi.'); return; }
+          x.ta.classList.remove('salah');
+          sukses(j);
+        }).catch(function(err){
+          selesai(); if (err === 0) return;
+          x.ta.classList.add('salah');
+          alert('Belum berhasil (koneksi terputus atau sesi berakhir). Muat ulang halaman lalu coba lagi.');
+        });
+      };
+
+      if (aksi === 'hapus') {
+        var tersimpan = tr._asli.t !== '' || tr._asli.o !== '';
+        if (!tersimpan) { x.ta.value = ''; x.pg.value = ''; tampil(tr); return; }   // belum pernah disimpan: cukup kosongkan isian
+        if (!confirm('Hapus alasan dan nama pengisi yang sudah tersimpan? Isinya akan kosong kembali.')) return;
+        kirim('', '', function(){
+          x.ta.value = ''; x.pg.value = '';
+          tr._asli = {t: '', o: '', w: ''};
+          tr.dataset.status = 'belum';
+          kunci(tr, false); tr.classList.remove('mengedit'); tampil(tr); hitung();
+        });
+        return;
+      }
+
       // simpan
       var teks = x.ta.value.trim(), oleh = x.pg.value.trim();
       if (teks === '') { alert('Alasan belum ditulis.'); x.ta.focus(); return; }
       if (oleh === '') { alert('Nama pengisi belum diketik (kolom "Diisi oleh").'); x.pg.focus(); return; }
-      var fm = new FormData(); fm.append('kode', x.ta.dataset.kode); fm.append('kab', x.ta.dataset.kab); fm.append('teks', teks); fm.append('oleh', oleh);
-      if (window.CSRF) fm.append(window.CSRF.n, window.CSRF.v);
-      var tulis = b.textContent; b.disabled = true; b.textContent = 'Menyimpan...';
-      var selesai = function(){ b.disabled = false; b.textContent = tulis; };
-      fetch(URL, {method:'POST', body:fm}).then(function(r){
-        if (r.status === 401) { alert('Sesi habis. Silakan login lagi.'); location.reload(); throw 0; }
-        return r.json();
-      }).then(function(j){
-        selesai();
-        if (!j.ok) { x.ta.classList.add('salah'); alert(j.pesan || 'Gagal disimpan. Muat ulang halaman lalu coba lagi.'); return; }
-        x.ta.classList.remove('salah');
+      kirim(teks, oleh, function(j){
         x.ta.value = teks; x.pg.value = oleh;
         tr._asli = {t: teks, o: oleh, w: j.waktu || ''};
         tr.dataset.status = 'sudah';
         kunci(tr, true); tampil(tr); hitung();
-      }).catch(function(err){
-        selesai(); if (err === 0) return;
-        x.ta.classList.add('salah');
-        alert('Belum tersimpan (koneksi terputus atau sesi berakhir). Muat ulang halaman lalu isi kembali.');
       });
     });
   }

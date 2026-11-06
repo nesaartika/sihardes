@@ -25,8 +25,11 @@
     <input type="text" name="username" id="username" autocomplete="username" required autofocus>
     <label for="password">Kata sandi</label>
     <input type="password" name="password" id="password" autocomplete="current-password" required>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-top:10px"><input type="checkbox" id="lihat" style="width:auto"> Lihat password</label>
     <button class="btn" type="submit">Masuk</button>
   <?= form_close() ?>
+  <a class="btn alt" href="<?= site_url('auth/sso_login') ?>" style="display:block;text-align:center;margin-top:10px;padding:11px;box-sizing:border-box">Login dengan SSO BPS</a>
 </div>
+<script>document.getElementById('lihat').addEventListener('change',function(){document.getElementById('password').type=this.checked?'text':'password';});</script>
 </body>
 </html>
