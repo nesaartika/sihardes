@@ -18,7 +18,7 @@ foreach ($komoditas as $k)
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari nama / kode komoditas...">
   <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
-  <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option></select>
+  <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Tanpa data</option></select>
   <select id="fpilih"><option value="">Semua status</option><option value="1">Sudah dicentang</option><option value="0">Belum dicentang</option></select>
   <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="fsemua"> Tampilkan juga yang tidak berubah</label>
   <button class="btn" type="submit">Terapkan</button>
@@ -33,13 +33,14 @@ foreach ($komoditas as $k)
   </tr></thead>
   <tbody>
   <?php foreach ($komoditas as $k): ?>
-    <tr data-dok="<?= $k['dokumen'] ?>" data-arah="<?= $k['arah'] ?>" data-kode="<?= html_escape($k['kode']) ?>" data-q="<?= html_escape(strtolower($k['nama'] . ' ' . $k['kode'])) ?>">
+    <tr data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-kode="<?= html_escape($k['kode']) ?>" data-q="<?= html_escape(strtolower($k['nama'] . ' ' . $k['kode'])) ?>">
       <td style="text-align:center"><input type="checkbox" class="pilih" style="width:18px;height:18px"></td>
       <td><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
       <td><?= html_escape($k['kode']) ?></td>
       <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a><?php if ( ! empty($k['satuan'])): ?> <span class="hint">(<?= html_escape($k['satuan']) ?>)</span><?php endif; ?></td>
-      <td><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span></td>
-      <td class="<?= $k['arah'] ?>"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></td>
+      <?php $tanpa = (int) $k['jumlah'] === 0; ?>
+      <td><span class="badge <?= $k['arah'] ?>"><?= $tanpa ? 'tanpa data' : $k['arah'] ?></span></td>
+      <td class="<?= $tanpa ? '' : $k['arah'] ?>"><?= $tanpa ? '-' : Cermat_harga::fmt($k['prov_pct'], 2) ?></td>
       <td class="siapa"></td>
     </tr>
   <?php endforeach; ?>

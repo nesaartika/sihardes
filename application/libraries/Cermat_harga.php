@@ -295,9 +295,14 @@ class Cermat_harga
 
         $kom = array();      // agregat per komoditas
         $tidak_valid = 0;
+        $semua_kom = array();   // semua komoditas yang ada di file, termasuk yang harganya kosong / nol
 
         foreach ($baris as $r)
         {
+            if ( ! isset($semua_kom[$r['kode']])) $semua_kom[$r['kode']] = array('nama' => $r['nama'], 'sat' => array());
+            if ($semua_kom[$r['kode']]['nama'] === '' && $r['nama'] !== '') $semua_kom[$r['kode']]['nama'] = $r['nama'];
+            if ( ! empty($r['satuan'])) $semua_kom[$r['kode']]['sat'][$r['satuan']] = 1;
+
             if ($r['ini'] <= 0 || $r['lalu'] <= 0)
             {
                 $tidak_valid++;
@@ -395,6 +400,29 @@ class Cermat_harga
             );
         }
 
+        // Komoditas yang ada di file tetapi seluruh harganya kosong / nol: tetap dimasukkan (tanpa angka perubahan)
+        $jml_tanpa = 0;
+        foreach ($semua_kom as $kode => $a)
+        {
+            if (isset($kom[$kode])) continue;
+            $jml_tanpa++; $jml_tampil++;
+            $hasil[] = array(
+                'dokumen'   => self::jenis_dokumen($kode),
+                'kode'      => $kode,
+                'nama'      => $a['nama'],
+                'label'     => $a['nama'] . ' (' . $kode . ')',
+                'satuan'    => implode(' / ', array_keys($a['sat'])),
+                'prov_pct'  => 0.0,
+                'g_ini'     => null,
+                'g_lalu'    => null,
+                'arah'      => 'stabil',      // jumlah = 0 menandai "tanpa data"; tampilan menulis "tanpa data", bukan stabil
+                'jumlah'    => 0,
+                'tampil'    => true,
+                'kab'       => array(),
+                'kec_semua' => array(),
+            );
+        }
+
         // HD dahulu, lalu HKD; dalam dokumen urut kode
         usort($hasil, function ($x, $y) {
             if ($x['dokumen'] !== $y['dokumen']) return $x['dokumen'] === 'HD' ? -1 : 1;
@@ -404,7 +432,8 @@ class Cermat_harga
         return array(
             'ringkas' => array(
                 'jml_baris'       => count($baris),
-                'jml_komoditas'   => count($kom),
+                'jml_komoditas'   => count($kom) + $jml_tanpa,
+                'tanpa_data'      => $jml_tanpa,
                 'naik'            => $jml_naik,
                 'turun'           => $jml_turun,
                 'stabil'          => $jml_stabil,
@@ -426,6 +455,7 @@ class Cermat_harga
         foreach ($hasil['komoditas'] as $k)
         {
             $dok = $k['dokumen'];
+            if ((int) $k['jumlah'] === 0) continue;      // komoditas tanpa data tidak ikut statistik arah
             $arah[$dok][$k['arah']]++;
             foreach ($k['kec_semua'] as $c) $kec[$c['kab'] . '|' . $c['kec']] = 1;
             if ($k['jumlah'] >= 3)
@@ -521,7 +551,7 @@ class Cermat_harga
                 $sel = array(
                     $pertama ? $k['dokumen'] : null,
                     $pertama ? $k['label'] : null,
-                    $pertama ? $k['arah'] : null,
+                    $pertama ? ((int) $k['jumlah'] === 0 ? 'tanpa data' : $k['arah']) : null,
                     $daftar ? self::teks_kabupaten($kab, $daftar) : null,
                     isset($alasan[$k['kode'] . '|' . $kab]) ? $alasan[$k['kode'] . '|' . $kab] : null,
                 );

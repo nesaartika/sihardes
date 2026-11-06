@@ -7,7 +7,7 @@ td.oleh .aksi button{padding:4px 12px;font-size:12.5px;line-height:1.4;cursor:po
 tr.terkunci .b-simpan,tr.terkunci .b-batal,tr:not(.terkunci) .b-edit,tr:not(.mengedit) .b-batal{display:none}
 </style>
 <?php
-$tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); });
+$tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']) && ! empty($k['kab']); });
 $admin = empty($kunci_kab);
 // hitung total / belum diisi, juga per kabupaten (untuk ringkasan admin)
 $total = 0; $belum = 0; $per_kab = array();

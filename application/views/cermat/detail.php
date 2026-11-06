@@ -2,7 +2,7 @@
 <div class="cards">
   <div class="card kpi"><div class="l">Komoditas</div><div class="v" style="font-size:20px"><?= html_escape($k['nama']) ?></div>
     <div class="s"><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span> <?= html_escape($k['kode']) ?><?= ! empty($k['satuan']) ? ' &middot; Satuan: ' . html_escape($k['satuan']) : '' ?></div></div>
-  <div class="card kpi"><div class="l">Perubahan Provinsi</div><div class="v <?= $k['arah'] ?>"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></div><div class="s"><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span></div></div>
+  <div class="card kpi"><div class="l">Perubahan Provinsi</div><?php $tanpa = (int) $k['jumlah'] === 0; ?><div class="v <?= $tanpa ? '' : $k['arah'] ?>"><?= $tanpa ? '-' : Cermat_harga::fmt($k['prov_pct'], 2) ?></div><div class="s"><span class="badge <?= $k['arah'] ?>"><?= $tanpa ? 'tanpa data' : $k['arah'] ?></span></div></div>
   <div class="card kpi"><div class="l">Observasi</div><div class="v"><?= $k['jumlah'] ?></div><div class="s">kombinasi kecamatan x kualitas</div></div>
   <div class="card kpi"><div class="l">Kecamatan</div><div class="v"><?= count($k['kec_semua']) ?></div><div class="s"><?= array_sum(array_map('count', isset($k['kab_asli']) ? $k['kab_asli'] : $k['kab'])) ?> perlu konfirmasi</div></div>
 </div>
