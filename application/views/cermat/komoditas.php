@@ -18,7 +18,7 @@ foreach ($komoditas as $k)
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari nama / kode komoditas...">
   <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
-  <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Tanpa data</option></select>
+  <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select>
   <select id="fpilih"><option value="">Semua status</option><option value="1">Sudah dicentang</option><option value="0">Belum dicentang</option></select>
   <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="fsemua"> Tampilkan juga yang tidak berubah</label>
   <button class="btn" type="submit">Terapkan</button>
@@ -34,13 +34,13 @@ foreach ($komoditas as $k)
   <tbody>
   <?php foreach ($komoditas as $k): ?>
     <tr data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-kode="<?= html_escape($k['kode']) ?>" data-q="<?= html_escape(strtolower($k['nama'] . ' ' . $k['kode'])) ?>">
-      <td style="text-align:center"><input type="checkbox" class="pilih" style="width:18px;height:18px"></td>
+      <td style="text-align:center"><input type="checkbox" class="pilih" style="width:18px;height:18px"<?= (int) $k['jumlah'] === 0 ? ' disabled' : '' ?>></td>
       <td><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
       <td><?= html_escape($k['kode']) ?></td>
       <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a><?php if ( ! empty($k['satuan'])): ?> <span class="hint">(<?= html_escape($k['satuan']) ?>)</span><?php endif; ?></td>
       <?php $tanpa = (int) $k['jumlah'] === 0; ?>
-      <td><span class="badge <?= $k['arah'] ?>"><?= $tanpa ? 'tanpa data' : $k['arah'] ?></span></td>
-      <td class="<?= $tanpa ? '' : $k['arah'] ?>"><?= $tanpa ? '-' : Cermat_harga::fmt($k['prov_pct'], 2) ?></td>
+      <td><?php if ( ! $tanpa): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><?php endif; ?></td>
+      <td class="<?= $tanpa ? '' : $k['arah'] ?>"><?= $tanpa ? '' : Cermat_harga::fmt($k['prov_pct'], 2) ?></td>
       <td class="siapa"></td>
     </tr>
   <?php endforeach; ?>
@@ -76,8 +76,9 @@ foreach ($komoditas as $k)
   function saring(){
     var n = 0;
     rows.forEach(function(r){
-      var st = keadaan(r);
-      var ok = st[0] && (f.semua || st[1] || st[2]) &&
+      var st = keadaan(r), tanpa = r.dataset.arah === 'tanpa';
+      // komoditas tanpa data: tampil bila dicari / "tampilkan juga..." dicentang, dan tidak saat satu kabupaten dipilih
+      var ok = (tanpa ? (!fk.value && (f.semua || f.q !== '')) : (st[0] && (f.semua || st[1] || st[2]))) &&
                (!f.q || r.dataset.q.indexOf(f.q) > -1) && (!f.dok || r.dataset.dok === f.dok) && (!f.arah || r.dataset.arah === f.arah) &&
                (!f.pilih || r.dataset.pilih === f.pilih);
       r.style.display = ok ? '' : 'none'; if (ok) n++;
@@ -123,7 +124,7 @@ foreach ($komoditas as $k)
     kirim([el.closest('tr').dataset.kode], el.checked, fk.value ? {kab: fk.value} : {});
   });
   function massal(nilai){
-    var t = terlihat(); if (!t.length) { alert('Tidak ada komoditas yang tampil.'); return; }
+    var t = terlihat().filter(function(r){ return r.dataset.arah !== 'tanpa'; }); if (!t.length) { alert('Tidak ada komoditas yang tampil.'); return; }
     kirim(t.map(function(r){ return r.dataset.kode; }), nilai, {kab: fk.value, massal: true});
   }
   segar();

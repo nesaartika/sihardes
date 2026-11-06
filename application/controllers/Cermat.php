@@ -818,7 +818,7 @@ class Cermat extends MY_Controller
             try
             {
                 $baris = $this->cermat_harga->baca_xlsx($path, $sheet_data);
-                $hasil = $this->cermat_harga->hitung($baris, $opsi);
+                $hasil = $this->cermat_harga->hitung($baris, $opsi, $this->cermat_harga->baca_daftar_komoditas($path));
                 unset($baris);
             }
             catch (RuntimeException $e)    // sheet Data berformat lain: tetap disimpan apa adanya, rekap tidak dibuat

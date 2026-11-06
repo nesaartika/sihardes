@@ -86,6 +86,46 @@ class Cermat_harga
     }
 
     /**
+     * Daftar semua komoditas pada sheet RH (kolom Kode Baru / Kode Komoditas dan Nama Komoditas), termasuk yang
+     * tidak punya baris harga di sheet Data. Dipakai agar komoditas tanpa data tetap muncul (dengan isian kosong).
+     * @return array [kode => nama]; kosong bila sheet RH tidak ada / formatnya lain
+     */
+    public function baca_daftar_komoditas($path)
+    {
+        $out = array();
+        try
+        {
+            require_once APPPATH . 'libraries/Xlsx_io.php';
+            $rows = Xlsx_io::baca($path, 'RH');
+            $ik = null; $in = null; $mulai = 0;
+            foreach (array_slice($rows, 0, 10, true) as $i => $r)
+            {
+                $kb = $kl = $nm = null;
+                foreach ($r as $c => $v)
+                {
+                    $t = strtolower(trim((string) $v));
+                    if ($t === 'kode baru' && $kb === null) $kb = $c;
+                    if ($t === 'kode komoditas' && $kl === null) $kl = $c;
+                    if ($t === 'nama komoditas' && $nm === null) $nm = $c;
+                }
+                if ($nm !== null && ($kb !== null || $kl !== null)) { $ik = $kb !== null ? $kb : $kl; $in = $nm; $mulai = $i + 1; break; }
+            }
+            if ($ik === null) return $out;
+            foreach (array_slice($rows, $mulai, null, true) as $r)
+            {
+                if ( ! isset($r[$ik]) || $r[$ik] === '' || ! isset($r[$in])) continue;
+                $nama = trim((string) $r[$in]);
+                if ($nama === '') continue;
+                $kode = $this->norm_kode($r[$ik]);
+                if ($kode !== '' && ! isset($out[$kode])) $out[$kode] = $nama;
+            }
+        }
+        catch (Exception $e) { return array(); }
+        catch (Error $e) { return array(); }
+        return $out;
+    }
+
+    /**
      * Mencari sheet yang berisi tabel harga (judul kolom Kabupaten, Nama Kecamatan, Kode Komoditas, Nama Komoditas,
      * Nama Kualitas, Harga Bulan Ini, Harga Bulan Sebelumnya), apa pun nama sheet-nya. Sheet "Data" dicek lebih dulu.
      * @return string|null nama sheet, atau null bila file tidak berisi tabel harga
@@ -289,13 +329,14 @@ class Cermat_harga
      *   2. HASIL RH    -> arah perubahan di tingkat provinsi (naik / turun / stabil) menurut RHt
      *   3. Arah + data kecamatan di sheet Data -> kabupaten dan kecamatan yang perlu dikonfirmasi (isi tabel konfirmasi)
      */
-    public function hitung(array $baris, array $opsi = array())
+    public function hitung(array $baris, array $opsi = array(), array $daftar = array())
     {
         $o = array_merge(self::$opsi_default, $opsi);
 
         $kom = array();      // agregat per komoditas
         $tidak_valid = 0;
         $semua_kom = array();   // semua komoditas yang ada di file, termasuk yang harganya kosong / nol
+        foreach ($daftar as $kd => $nm) $semua_kom[$kd] = array('nama' => $nm, 'sat' => array());   // daftar komoditas dari sheet RH
 
         foreach ($baris as $r)
         {
@@ -551,7 +592,7 @@ class Cermat_harga
                 $sel = array(
                     $pertama ? $k['dokumen'] : null,
                     $pertama ? $k['label'] : null,
-                    $pertama ? ((int) $k['jumlah'] === 0 ? 'tanpa data' : $k['arah']) : null,
+                    $pertama ? ((int) $k['jumlah'] === 0 ? null : $k['arah']) : null,
                     $daftar ? self::teks_kabupaten($kab, $daftar) : null,
                     isset($alasan[$k['kode'] . '|' . $kab]) ? $alasan[$k['kode'] . '|' . $kab] : null,
                 );
