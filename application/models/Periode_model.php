@@ -449,7 +449,7 @@ class Periode_model extends CI_Model
     {
         // Periode baru: Hasil RH sudah dihitung dan disimpan saat unggah (tahap 1 pengolahan)
         $rows = $this->db->query('SELECT kode, nama, dokumen, g_lalu, g_ini FROM komoditas
-                                   WHERE periode_id = ? AND g_ini IS NOT NULL AND g_lalu IS NOT NULL ORDER BY urut', array($periode_id))->result_array();
+                                   WHERE periode_id = ? AND ((g_ini IS NOT NULL AND g_lalu IS NOT NULL) OR jumlah = 0) ORDER BY urut', array($periode_id))->result_array();
         if ( ! $rows)   // periode lama: hitung dari tabel harga
         {
             $rows = $this->db->query(
@@ -465,6 +465,12 @@ class Periode_model extends CI_Model
         $sat = $this->satuan_peta($periode_id);
         foreach ($rows as $r)
         {
+            if ($r['g_ini'] === null || $r['g_lalu'] === null)     // komoditas tanpa data: tetap dimuat, nilainya kosong
+            {
+                $out[] = array('kode' => $r['kode'], 'nama' => $r['nama'], 'dokumen' => $r['dokumen'],
+                               'satuan' => isset($sat[$r['kode']]) ? $sat[$r['kode']] : '', 'g_lalu' => null, 'g_ini' => null, 'rht' => null);
+                continue;
+            }
             $gl = (float) $r['g_lalu']; $gi = (float) $r['g_ini'];
             $out[] = array('kode' => $r['kode'], 'nama' => $r['nama'], 'dokumen' => $r['dokumen'],
                            'satuan' => isset($sat[$r['kode']]) ? $sat[$r['kode']] : '', 'g_lalu' => $gl, 'g_ini' => $gi, 'rht' => $gl > 0 ? ($gi / $gl - 1) * 100 : 0.0);

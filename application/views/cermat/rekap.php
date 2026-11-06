@@ -7,7 +7,7 @@ td.oleh .aksi button{padding:4px 12px;font-size:12.5px;line-height:1.4;cursor:po
 tr.terkunci .b-simpan,tr.terkunci .b-batal,tr:not(.terkunci) .b-edit,tr:not(.mengedit) .b-batal{display:none}
 </style>
 <?php
-$tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']) && ! empty($k['kab']); });
+$tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); });
 $admin = empty($kunci_kab);
 // hitung total / belum diisi, juga per kabupaten (untuk ringkasan admin)
 $total = 0; $belum = 0; $per_kab = array();
@@ -42,7 +42,7 @@ ksort($per_kab);
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari komoditas / kode / kecamatan...">
   <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
-  <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option></select>
+  <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select>
   <?php if ($admin): ?>
   <select id="fkab"><option value="">Semua kabupaten</option>
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
@@ -77,7 +77,14 @@ ksort($per_kab);
       $teks = strtolower($k['label']);
       foreach ($k['kec_semua'] as $c) if ($c['flag']) $teks .= ' ' . strtolower($c['kec']);
   ?>
-  <tbody class="grp" data-dok="<?= $k['dokumen'] ?>" data-arah="<?= $k['arah'] ?>" data-kab=",<?= implode(',', array_keys($k['kab'])) ?>," data-q="<?= html_escape($teks) ?>">
+  <tbody class="grp" data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-kab=",<?= implode(',', array_keys($k['kab'])) ?>," data-q="<?= html_escape($teks) ?>">
+    <?php if ( ! $rows): ?>
+    <tr class="tanpa-data">
+      <td><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
+      <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
+      <td></td><td></td><td></td><td></td>
+    </tr>
+    <?php endif; ?>
     <?php foreach ($rows as $kab => $daftar):
         $kunci = $k['kode'] . '|' . $kab; $isi = isset($alasan[$kunci]) ? $alasan[$kunci] : '';
         $m = isset($meta[$kunci]) ? $meta[$kunci] : null; $terkunci = trim($isi) !== ''; ?>
@@ -128,8 +135,8 @@ ksort($per_kab);
       // baris per kabupaten: saring menurut kabupaten dan status alasan
       var terlihat = 0;
       [].forEach.call(g.querySelectorAll('tr'), function(tr){
-        var kabTr = tr.querySelector('textarea.alasan').dataset.kab;
-        var tampil = (!f.kab || kabTr === f.kab) && (!f.status || tr.dataset.status === f.status);
+        var ta = tr.querySelector('textarea.alasan');
+        var tampil = ta ? ((!f.kab || ta.dataset.kab === f.kab) && (!f.status || tr.dataset.status === f.status)) : (!f.kab && !f.status);   // baris komoditas tanpa data: tanpa kabupaten/alasan
         tr.style.display = tampil ? '' : 'none'; if (tampil) terlihat++;
       });
       if (ok && !terlihat) ok = false;
@@ -178,7 +185,7 @@ ksort($per_kab);
   }
   if (tbl)
   {
-    [].forEach.call(tbl.querySelectorAll('tbody tr'), function(tr){
+    [].forEach.call(tbl.querySelectorAll('tbody tr:not(.tanpa-data)'), function(tr){
       var x = bagian(tr), w = x.st.textContent.split('\u00b7')[1];
       tr._asli = {t: x.ta.value, o: x.pg.value, w: w ? w.trim() : ''};
     });
