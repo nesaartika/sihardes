@@ -19,24 +19,9 @@ foreach ($tampil as $r) foreach ($r['wil'] as $w => $_) $wilayah[$w] = 1;
 $wilayah = array_keys($wilayah); sort($wilayah);
 $daftar = function ($l, $kelas) { $h = ''; foreach ($l as $x) $h .= '<span class="badge ' . $kelas . '" style="margin:1px 2px 1px 0">' . html_escape(trim($x[0] . ' ' . $x[1])) . '</span>'; return $h; };
 ?>
-<div class="card" style="margin-bottom:14px">
-  <b>Rekap file <?= html_escape($periode['file_asal']) ?></b> (<?= html_escape($periode['nama']) ?>)
-  <div class="hint">Setiap sheet di file menjadi satu <b>dokumen</b> (<?= html_escape(implode(', ', $g['dok'])) ?>), seperti HD dan HKD. Format kolom mengikuti isi sheet; file ini bukan tabel harga, jadi tidak ada kolom alasan yang diisi kabupaten.</div>
-</div>
 <?php foreach ($g['gagal'] as $nm => $sebab): ?>
   <div class="card" style="border-left:4px solid var(--warn);padding:10px 14px;margin-bottom:10px">Sheet <b><?= html_escape($nm) ?></b> tidak masuk rekap: <?= html_escape($sebab) ?> Isinya tetap ada di menu Data.</div>
 <?php endforeach; ?>
-
-<?php if ($ring): ?>
-<div class="tw" style="max-height:none;margin-bottom:16px"><table>
-  <thead><tr><th>Dokumen</th><th>Komoditas</th><th>Naik</th><th>Turun</th><th>Stabil</th><th>Belum ada data</th></tr></thead>
-  <tbody>
-  <?php foreach ($ring as $d => $c): ?>
-    <tr><td><span class="badge <?= $warna[$d] ?>"><?= html_escape($d) ?></span></td><td><?= $c['n'] ?></td><td class="naik"><?= $c['naik'] ?></td><td class="turun"><?= $c['turun'] ?></td><td class="stabil"><?= $c['stabil'] ?></td><td><?= $c['kosong'] ?></td></tr>
-  <?php endforeach; ?>
-  </tbody>
-</table></div>
-<?php endif; ?>
 
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari nama / kode komoditas...">
