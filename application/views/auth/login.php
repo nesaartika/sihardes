@@ -28,7 +28,21 @@
     <label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-top:10px"><input type="checkbox" id="lihat" style="width:auto"> Lihat password</label>
     <button class="btn" type="submit">Masuk</button>
   <?= form_close() ?>
-  <a class="btn alt" href="<?= site_url('auth/sso_login') ?>" style="display:block;text-align:center;margin-top:10px;padding:11px;box-sizing:border-box">Login dengan SSO BPS</a>
+  <?php $logo_bps = FCPATH . 'assets/img/logo_bps.png'; ?>
+  <a class="btn alt" href="<?= site_url('auth/sso_login') ?>" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;padding:11px;box-sizing:border-box">
+    <?php if (is_file($logo_bps)): ?>
+      <img src="<?= base_url('assets/img/logo_bps.png') ?>" alt="" style="height:22px;width:auto">
+    <?php else: ?>
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <g transform="skewX(-8) translate(2 0)">
+          <rect x="1" y="14" width="5" height="5" rx="1" fill="#0b8fd6"/><rect x="1" y="8" width="5" height="5" rx="1" fill="#1aa7f0"/>
+          <rect x="8" y="14" width="5" height="5" rx="1" fill="#2fb34a"/><rect x="8" y="8" width="5" height="5" rx="1" fill="#0b8fd6"/><rect x="8" y="2" width="5" height="5" rx="1" fill="#f58220"/>
+          <rect x="15" y="14" width="5" height="5" rx="1" fill="#f58220"/><rect x="15" y="8" width="5" height="5" rx="1" fill="#2fb34a"/>
+        </g>
+      </svg>
+    <?php endif; ?>
+    <span>Login dengan SSO BPS</span>
+  </a>
 </div>
 <script>document.getElementById('lihat').addEventListener('change',function(){document.getElementById('password').type=this.checked?'text':'password';});</script>
 </body>
