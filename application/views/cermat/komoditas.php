@@ -14,6 +14,9 @@ foreach ($komoditas as $k)
   </select>
   <b>2. Komoditas:</b>
   <span class="chip" id="chipDipilih">Dikonfirmasi: <?= $dipilih ?> komoditas</span>
+  <?= form_open('cermat/lengkapi_komoditas?p=' . $p, array('style' => 'display:inline;margin:0')) ?>
+    <button class="btn alt" type="submit" title="Masukkan komoditas di sheet RH yang belum ada pada periode ini (nilainya kosong)">Lengkapi komoditas kosong</button>
+  <?= form_close() ?>
 </div>
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari nama / kode komoditas...">

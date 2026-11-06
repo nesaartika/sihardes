@@ -245,6 +245,35 @@ class Periode_model extends CI_Model
         return $this->db->trans_status();
     }
 
+    /**
+     * Melengkapi periode yang sudah ada: komoditas pada daftar (sheet RH file asli) yang belum tercatat ditambahkan
+     * tanpa data (nilai kosong). Alasan, penugasan, dan data lain pada periode itu tidak disentuh.
+     * @return int jumlah komoditas yang ditambahkan
+     */
+    public function tambah_komoditas_kosong($id, array $daftar)
+    {
+        $ada = array();
+        foreach ($this->db->select('kode')->get_where('komoditas', array('periode_id' => $id))->result_array() as $r) $ada[(string) $r['kode']] = 1;
+        $id_kom = (int) $this->db->query('SELECT COALESCE(MAX(id),0) m FROM komoditas')->row()->m;
+        $urut   = (int) $this->db->query('SELECT COALESCE(MAX(urut),0) m FROM komoditas WHERE periode_id = ?', array($id))->row()->m;
+        $baru = array();
+        foreach ($daftar as $kode => $nama)
+        {
+            $kode = (string) $kode;
+            if ($kode === '' || isset($ada[$kode])) continue;
+            $baru[] = array('id' => ++$id_kom, 'periode_id' => $id, 'urut' => ++$urut, 'kode' => mb_substr($kode, 0, 12), 'nama' => mb_substr((string) $nama, 0, 150),
+                            'dokumen' => ctype_digit($kode) ? 'HKD' : 'HD', 'prov_pct' => 0, 'g_ini' => null, 'g_lalu' => null, 'arah' => 'stabil', 'jumlah' => 0, 'tampil' => 1);
+        }
+        if ($baru)
+        {
+            $this->db->trans_start();
+            $this->sisip('komoditas', $baru);
+            $this->db->query('UPDATE periode SET jml_komoditas = jml_komoditas + ? WHERE id = ?', array(count($baru), $id));
+            $this->db->trans_complete();
+        }
+        return count($baru);
+    }
+
     private function sisip($tabel, array $baris)
     {
         foreach (array_chunk($baris, 500) as $potong) $this->db->insert_batch($tabel, $potong);

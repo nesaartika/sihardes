@@ -114,6 +114,31 @@ class Cermat extends MY_Controller
         $this->render('cermat/komoditas', 'komoditas', array('komoditas' => $kom, 'daftar_kab' => $kab_semua));
     }
 
+    /** Melengkapi periode yang sedang dibuka dengan komoditas kosong dari sheet RH file aslinya (tanpa unggah ulang, alasan tidak hilang). */
+    public function lengkapi_komoditas()
+    {
+        if ($this->input->method() !== 'post' || ! $this->buka_periode() || $this->kab_user()) redirect('cermat/komoditas');
+        $id = $this->aktif;
+        $d = $this->periode->muat($id);
+        $f = ($d && ! empty($d['berkas_asli'])) ? $this->dir_upload . basename($d['berkas_asli']) : '';
+        if ($f === '' || ! is_file($f))
+        {
+            $this->session->set_flashdata('pesan', 'File Excel asli periode ini tidak ditemukan di folder writable/upload, jadi tidak bisa dilengkapi. Unggah ulang file Excel-nya.');
+            redirect('cermat/komoditas?p=' . $id);
+        }
+        $daftar = $this->cermat_harga->baca_daftar_komoditas($f);
+        if ( ! $daftar)
+        {
+            $this->session->set_flashdata('pesan', 'Daftar komoditas pada sheet RH tidak terbaca dari file asli (sheet RH tidak ada atau kolom Kode Baru / Nama Komoditas tidak ditemukan).');
+            redirect('cermat/komoditas?p=' . $id);
+        }
+        $n = $this->periode->tambah_komoditas_kosong($id, $daftar);
+        $this->catatan->catat('unggah', $d['nama'] . ' - melengkapi ' . $n . ' komoditas tanpa data dari sheet RH');
+        $this->session->set_flashdata('pesan', $n > 0 ? $n . ' komoditas tanpa data ditambahkan (dari ' . count($daftar) . ' komoditas di sheet RH). Cari di kolom pencarian atau centang "Tampilkan juga yang tidak berubah".'
+                                                      : 'Semua ' . count($daftar) . ' komoditas di sheet RH sudah tercatat pada periode ini.');
+        redirect('cermat/komoditas?p=' . $id);
+    }
+
     public function detail($kode = '')
     {
         if ( ! $this->buka_periode()) redirect('cermat/unggah');
