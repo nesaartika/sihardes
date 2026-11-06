@@ -25,8 +25,8 @@ foreach ($tampil as $k)
 ksort($per_kab);
 ?>
 <?php if ($total > 0): ?>
-<div class="peringatan <?= $belum === 0 ? 'selesai' : '' ?>" id="bnr" data-total="<?= $total ?>">
-  <span id="bnrTeks"><?= $belum === 0 ? 'Semua alasan sudah terisi (' . $total . ' dari ' . $total . ').' : 'Masih ada ' . $belum . ' alasan yang belum diisi dari ' . $total . ' yang diminta.' ?></span>
+<div class="peringatan" id="bnr" data-total="<?= $total ?>" <?= $belum === 0 ? 'style="display:none"' : '' ?>>
+  <span id="bnrTeks">Masih ada <?= $belum ?> alasan yang belum diisi dari <?= $total ?> yang diminta.</span>
   <button type="button" class="btn" id="bLompat" <?= $belum === 0 ? 'style="display:none"' : '' ?>>Ke alasan yang belum diisi</button>
 </div>
 <?php endif; ?>
@@ -151,10 +151,8 @@ ksort($per_kab);
   function hitung(){
     if (!bnr) return;
     var total = +bnr.dataset.total, belum = document.querySelectorAll('#tbl tr[data-status="belum"]').length;
-    bnr.classList.toggle('selesai', belum === 0);
-    bnrTeks.textContent = belum === 0 ? 'Semua alasan sudah terisi (' + total + ' dari ' + total + ').'
-                                      : 'Masih ada ' + belum + ' alasan yang belum diisi dari ' + total + ' yang diminta.';
-    bLompat.style.display = belum === 0 ? 'none' : '';
+    bnr.style.display = belum === 0 ? 'none' : '';   // semua terisi = peringatan hilang
+    bnrTeks.textContent = 'Masih ada ' + belum + ' alasan yang belum diisi dari ' + total + ' yang diminta.';
   }
   if (bLompat) bLompat.addEventListener('click', function(){
     // buka filter bila menyembunyikan baris yang belum diisi, lalu lompat ke yang pertama

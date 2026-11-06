@@ -10,20 +10,3 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $config['domain_email']       = 'bps.go.id';
 $config['simpan_semua_sheet'] = FALSE;
 $config['sandi_minimal']      = 8;
-
-/*
- * Login SSO BPS (OpenID Connect / Keycloak). Isi setelah aplikasi didaftarkan sebagai client di SSO BPS.
- * sso_aktif         : TRUE = tombol "Login dengan SSO BPS" berfungsi.
- * sso_url           : alamat server Keycloak, tanpa garis miring di akhir.
- * sso_realm         : nama realm.
- * sso_client_id     : dari pengelola SSO BPS.
- * sso_client_secret : dari pengelola SSO BPS (kosongkan bila client bertipe public).
- * sso_redirect_uri  : harus SAMA PERSIS dengan yang didaftarkan, misal http://localhost/cermat_harga/auth/sso_callback
- *                     (kosongkan = dibuat otomatis dari base_url).
- */
-$config['sso_aktif']         = TRUE;
-$config['sso_url']           = 'https://accounts.bps.go.id';   // sesuaikan kalau beda
-$config['sso_realm']         = 'pegawai';                      // sesuaikan kalau beda
-$config['sso_client_id']     = '...';
-$config['sso_client_secret'] = '...';
-$config['sso_redirect_uri']  = '';  // kosong = otomatis http://localhost/cermat_harga/auth/sso_callback
