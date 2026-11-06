@@ -682,6 +682,16 @@ class Periode_model extends CI_Model
         return $r ? $r->id : null;
     }
 
+    /**
+     * Periode terbaru yang berisi tabel harga (punya komoditas). Dipakai akun kabupaten supaya tidak "jatuh"
+     * ke file non-tabel-harga (mis. Rekonsiliasi) yang diunggah belakangan dan tidak punya komoditas.
+     */
+    public function terbaru_harga()
+    {
+        $r = $this->db->query('SELECT id FROM periode WHERE jml_komoditas > 0 ORDER BY tahun DESC, bulan DESC, id DESC LIMIT 1')->row();
+        return $r ? $r->id : null;
+    }
+
     public function cari_nama($nama)
     {
         list($bulan, $tahun) = self::pecah_nama($nama);
