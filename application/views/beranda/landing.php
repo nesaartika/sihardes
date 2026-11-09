@@ -145,11 +145,9 @@ main{flex:1;display:flex;flex-direction:column;background:var(--navy)}
     <div class="lebar hero-isi">
       <div class="hero-teks">
         <h1>Perubahan harga perdesaan, dicermati dalam satu tempat.</h1>
-        <p class="lead">Unggah file Hitung RH, lihat komoditas yang berubah, dan catat alasannya per kabupaten. Rekap konfirmasi siap diunduh sebagai Excel.</p>
         <div class="aksi">
           
-            <a class="tbl tbl-utama" href="<?= site_url('auth/login') ?>">Masuk ke aplikasi</a>
-            <span class="catatan">Akun dibuat oleh admin provinsi.</span>
+            <a class="tbl tbl-utama" href="<?= site_url('auth/login') ?>">Login</a>
           
         </div>
       </div>
@@ -192,8 +190,6 @@ main{flex:1;display:flex;flex-direction:column;background:var(--navy)}
             </tbody>
           </table>
         </div>
-        <figcaption id="buku-ket">Kecamatan yang searah dengan provinsi dan berubah 5% atau lebih masuk daftar konfirmasi.</figcaption>
-      </figure>
     </div>
   </section>
 

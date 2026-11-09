@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Masuk - Fenomena Harga</title>
+<title>Welcome - Fenomena Harga</title>
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 <style>
   body{align-items:center;justify-content:center;min-height:100vh;background:var(--side)}
@@ -27,7 +27,7 @@
     <label for="password">Kata sandi</label>
     <input type="password" name="password" id="password" autocomplete="current-password" required>
     <label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-top:10px"><input type="checkbox" id="lihat" style="width:auto"> Lihat password</label>
-    <button class="btn" type="submit">Masuk</button>
+    <button class="btn" type="submit">Login</button>
   <?= form_close() ?>
   <a class="balik" href="<?= site_url('') ?>">&larr; Kembali ke halaman depan</a>
 </div>
