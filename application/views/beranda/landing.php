@@ -105,7 +105,7 @@ main{flex:1;display:flex;align-items:center}
     <div>
       <h1>Selamat Datang di Fenomena Harga</h1>
       <div class="aksi">
-        <a class="tbl" href="<?= site_url($sudah_masuk ? 'cermat' : 'auth/login') ?>"><?= $sudah_masuk ? 'Buka dashboard' : 'Masuk untuk mulai' ?></a>
+        <a class="tbl" href="<?= site_url($sudah_masuk ? 'cermat' : 'auth/login') ?>"><?= $sudah_masuk ? 'Buka dashboard' : 'Login' ?></a>
       </div>
     </div>
 
