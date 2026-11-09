@@ -45,9 +45,7 @@ main{flex:1;display:flex;align-items:center}
 .hero-isi{width:100%;max-width:1120px;margin:0 auto;padding:24px 24px 56px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center}
 .hero h1{margin:0 0 28px;font-size:clamp(2rem,4vw,3rem);line-height:1.18;font-weight:700;letter-spacing:-.01em;color:var(--tx)}
 .aksi{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
-.fitur{list-style:none;margin:30px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
-.fitur li{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--chip);border:1px solid var(--br);border-radius:99px;font-size:14px;color:var(--mut)}
-.fitur li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pri)}
+.hero p.lead{margin:0 0 28px;max-width:30em;font-size:18px;line-height:1.65;color:var(--mut)}
 
 .ilus{width:100%;height:auto;max-width:520px;justify-self:center;overflow:visible}
 .ilus .i-bayang{fill:var(--navy);opacity:.10}
@@ -106,11 +104,10 @@ main{flex:1;display:flex;align-items:center}
   <div class="hero-isi">
     <div>
       <h1>Perubahan harga perdesaan, dicermati dalam satu tempat.</h1>
-      <ul class="fitur">
-        <li>Unggah file Hitung RH</li>
-        <li>Dihitung otomatis</li>
-        <li>Rekap siap diunduh</li>
-      </ul>
+      <p class="lead">Unggah file Hitung RH, biarkan aplikasi menghitung perubahan harga tiap komoditas, lalu tinjau kecamatan yang perlu dikonfirmasi. Rekapnya siap diunduh.</p>
+      <div class="aksi">
+        <a class="tbl" href="<?= site_url($sudah_masuk ? 'cermat' : 'auth/login') ?>"><?= $sudah_masuk ? 'Buka dashboard' : 'Masuk untuk mulai' ?></a>
+      </div>
     </div>
 
     <svg class="ilus" viewBox="0 0 520 440" role="img" aria-label="Ilustrasi grafik perubahan harga komoditas perdesaan">
