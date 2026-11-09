@@ -9,6 +9,10 @@ tr.terkunci .b-simpan,tr.terkunci .b-batal,tr:not(.terkunci) .b-edit,tr:not(.men
 <?php
 $tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); });
 $admin = empty($kunci_kab);
+$sheet = ! empty($periode['mode_sheet']);      // file bukan tabel harga: komoditas x wilayah dibentuk dari sheet
+$dok_daftar = array();
+foreach ($komoditas as $k) $dok_daftar[$k['dokumen']] = 1;
+$dok_daftar = array_keys($dok_daftar);
 // hitung total / belum diisi, juga per kabupaten (untuk ringkasan admin)
 $total = 0; $belum = 0; $per_kab = array();
 foreach ($tampil as $k)
@@ -41,10 +45,10 @@ ksort($per_kab);
 
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari komoditas / kode / kecamatan...">
-  <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
+  <select id="fdok"><option value="">Semua dokumen</option><?php foreach ($dok_daftar as $dk): ?><option><?= html_escape($dk) ?></option><?php endforeach; ?></select>
   <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select>
   <?php if ($admin): ?>
-  <select id="fkab"><option value="">Semua kabupaten</option>
+  <select id="fkab"><option value="">Semua <?= $sheet ? 'wilayah' : 'kabupaten' ?></option>
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
   <?php else: ?>
   <input type="hidden" id="fkab" value="">
@@ -53,7 +57,8 @@ ksort($per_kab);
   <select id="fstatus"><option value="">Semua status alasan</option><option value="belum">Belum diisi</option><option value="sudah">Sudah diisi</option></select>
   <button class="btn" type="submit">Terapkan</button>
   <button class="btn alt" type="button" id="breset">Reset</button>
-  <?php if ($admin): ?><a class="btn alt" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Atur komoditas &amp; kabupaten yang mengisi</a><?php endif; ?>
+  <?php if ($admin): ?><a class="btn alt" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
+  <?php if ($admin && $sheet): ?><a class="btn alt" href="<?= site_url('cermat/rekap?ringkasan=1&p=' . $p) ?>" title="Ringkasan naik / turun per sheet (baca-saja)">Ringkasan per sheet</a><?php endif; ?>
 </form>
 <p class="hint" id="cnt"></p>
 
@@ -70,19 +75,19 @@ ksort($per_kab);
 <?php else: ?>
 <div class="tw">
 <table id="tbl">
-  <thead><tr><th style="width:70px">Dokumen</th><th style="width:210px">Komoditas</th><th style="width:130px">Perubahan Harga Perdesaan Provinsi</th><th>Kabupaten</th><th style="width:340px">Alasan</th><th style="width:190px">Diisi oleh (ketik nama)</th></tr></thead>
+  <thead><tr><th style="width:70px">Dokumen</th><th style="width:210px">Komoditas</th><th style="width:130px"><?= $sheet ? 'Arah / Perubahan' : 'Perubahan Harga Perdesaan Provinsi' ?></th><th><?= $sheet ? 'Wilayah' : 'Kabupaten' ?></th><th style="width:340px">Alasan</th><th style="width:190px">Diisi oleh (ketik nama)</th></tr></thead>
   <?php foreach ($tampil as $k):
       $rows = $k['kab'];
       $jml = count($rows); $pertama = true;
       $teks = strtolower($k['label']);
-      foreach ($k['kec_semua'] as $c) if ($c['flag']) $teks .= ' ' . strtolower($c['kec']);
+      foreach ($k['kec_semua'] as $c) if ($c['flag']) $teks .= ' ' . strtolower($c['kec'] . ' ' . Cermat_harga::nama_kab($c['kab']));
   ?>
   <tbody class="grp" data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-kab=",<?= implode(',', array_keys($k['kab'])) ?>," data-q="<?= html_escape($teks) ?>">
     <?php if ( ! $rows): ?>
     <tr class="tanpa-data">
-      <td><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
-      <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
-      <td><?php if ((int) $k['jumlah'] > 0): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></div><?php endif; ?></td>
+      <td><span class="badge <?= Cermat_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
+      <td><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['label']) ?><?php else: ?><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
+      <td><?php if ((int) $k['jumlah'] > 0): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Cermat_harga::fmt($k['prov_pct'], 2) ?></div><?php endif; ?></td>
       <td></td><td></td><td></td>
     </tr>
     <?php endif; ?>
@@ -91,9 +96,9 @@ ksort($per_kab);
         $m = isset($meta[$kunci]) ? $meta[$kunci] : null; $terkunci = trim($isi) !== ''; ?>
     <tr class="<?= $terkunci ? 'terkunci' : '' ?>" data-status="<?= $terkunci ? 'sudah' : 'belum' ?>">
       <?php if ($pertama): ?>
-        <td rowspan="<?= $jml ?>"><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
-        <td rowspan="<?= $jml ?>"><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
-        <td rowspan="<?= $jml ?>"><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></div></td>
+        <td rowspan="<?= $jml ?>"><span class="badge <?= Cermat_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
+        <td rowspan="<?= $jml ?>"><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['label']) ?><?php else: ?><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
+        <td rowspan="<?= $jml ?>"><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Cermat_harga::fmt($k['prov_pct'], 2) ?></div></td>
       <?php $pertama = false; endif; ?>
       <td>
         <?= html_escape(Cermat_harga::teks_kabupaten($kab, $daftar)) ?>

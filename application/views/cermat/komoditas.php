@@ -1,5 +1,9 @@
 <?php
 $dipilih = 0; $info = array();
+$sheet = ! empty($periode['mode_sheet']);      // file bukan tabel harga: komoditas x wilayah dibentuk dari sheet
+$dok_daftar = array();
+foreach ($komoditas as $k) $dok_daftar[$k['dokumen']] = 1;
+$dok_daftar = array_keys($dok_daftar);
 foreach ($komoditas as $k)
 {
     if ( ! empty($k['dipilih'])) $dipilih++;
@@ -7,20 +11,24 @@ foreach ($komoditas as $k)
 }
 ?>
 <div class="bar" style="gap:10px">
-  <b>1. Kabupaten:</b>
+  <b>1. <?= $sheet ? 'Wilayah' : 'Kabupaten' ?>:</b>
   <select id="fkab" style="min-width:230px;font-weight:700">
-    <option value="">Semua kabupaten</option>
+    <option value="">Semua <?= $sheet ? 'wilayah' : 'kabupaten' ?></option>
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?>
   </select>
   <b>2. Komoditas:</b>
   <span class="chip" id="chipDipilih">Dikonfirmasi: <?= $dipilih ?> komoditas</span>
+  <?php if ( ! $sheet): ?>
   <?= form_open('cermat/lengkapi_komoditas?p=' . $p, array('style' => 'display:inline;margin:0')) ?>
     <button class="btn alt" type="submit" title="Masukkan komoditas di sheet RH yang belum ada pada periode ini (nilainya kosong)">Lengkapi komoditas kosong</button>
   <?= form_close() ?>
+  <?php else: ?>
+  <a class="btn alt" href="<?= site_url('cermat/rekap?ringkasan=1&p=' . $p) ?>" title="Ringkasan naik / turun per sheet (baca-saja)">Ringkasan per sheet</a>
+  <?php endif; ?>
 </div>
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari nama / kode komoditas...">
-  <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
+  <select id="fdok"><option value="">Semua dokumen</option><?php foreach ($dok_daftar as $dk): ?><option><?= html_escape($dk) ?></option><?php endforeach; ?></select>
   <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select>
   <select id="fpilih"><option value="">Semua status</option><option value="1">Sudah dicentang</option><option value="0">Belum dicentang</option></select>
   <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="fsemua" checked> Tampilkan juga yang tidak berubah &amp; yang kosong (tanpa data)</label>
@@ -32,18 +40,18 @@ foreach ($komoditas as $k)
 <div class="tw"><table id="tbl">
   <thead><tr>
     <th style="width:58px;text-align:center"><input type="checkbox" id="semua" title="Centang / hapus centang semua yang tampil"></th>
-    <th>Dokumen</th><th>Kode</th><th style="min-width:220px">Komoditas</th><th>Arah</th><th>Perubahan</th><th style="min-width:240px">Kabupaten yang diminta mengisi</th>
+    <th>Dokumen</th><th>Kode</th><th style="min-width:220px">Komoditas</th><th>Arah</th><th>Perubahan</th><th style="min-width:240px"><?= $sheet ? 'Wilayah' : 'Kabupaten' ?> yang diminta mengisi</th>
   </tr></thead>
   <tbody>
   <?php foreach ($komoditas as $k): ?>
     <tr data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-kode="<?= html_escape($k['kode']) ?>" data-q="<?= html_escape(strtolower($k['nama'] . ' ' . $k['kode'])) ?>">
       <td style="text-align:center"><input type="checkbox" class="pilih" style="width:18px;height:18px"></td>
-      <td><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
-      <td><?= html_escape($k['kode']) ?></td>
-      <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a><?php if ( ! empty($k['satuan'])): ?> <span class="hint">(<?= html_escape($k['satuan']) ?>)</span><?php endif; ?></td>
+      <td><span class="badge <?= Cermat_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
+      <td><?= html_escape(isset($k['kode_asli']) ? $k['kode_asli'] : $k['kode']) ?></td>
+      <td><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['nama']) ?><?php else: ?><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?> <span class="hint">(<?= html_escape($k['satuan']) ?>)</span><?php endif; ?></td>
       <?php $tanpa = (int) $k['jumlah'] === 0; ?>
       <td><?php if ( ! $tanpa): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><?php endif; ?></td>
-      <td class="<?= $tanpa ? '' : $k['arah'] ?>"><?= $tanpa ? '' : Cermat_harga::fmt($k['prov_pct'], 2) ?></td>
+      <td class="<?= $tanpa ? '' : $k['arah'] ?>"><?= $tanpa ? '' : (isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Cermat_harga::fmt($k['prov_pct'], 2)) ?></td>
       <td class="siapa"></td>
     </tr>
   <?php endforeach; ?>
@@ -73,7 +81,7 @@ foreach ($komoditas as $k)
     var cb = r.querySelector('input.pilih'); cb.checked = st[2];
     cb.disabled = false;      // semua komoditas di file bisa dipilih; komoditas kosong tanpa kabupaten terpilih = diarahkan ke semua kabupaten
     cb.title = (r.dataset.arah === 'tanpa' && !kab) ? 'Komoditas kosong: dicentang = semua kabupaten diminta mengisi alasan' : '';
-    r.querySelector('td.siapa').textContent = nama.length ? (nama.length >= Object.keys(NAMA).length ? 'Semua kabupaten' : nama.join(', ')) : '-';
+    r.querySelector('td.siapa').textContent = nama.length ? (nama.length >= Object.keys(NAMA).length ? 'Semua wilayah' : nama.join(', ')) : '-';
     r.dataset.pilih = st[2] ? '1' : '0';
     if (kab && inf[kab] && inf[kab][0] > 0) r.querySelector('td.siapa').textContent += (nama.length ? '' : '') + '   [' + inf[kab][0] + ' kecamatan berubah di ' + NAMA[kab] + ']';
   }

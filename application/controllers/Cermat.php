@@ -40,7 +40,7 @@ class Cermat extends MY_Controller
     {
         if (is_cli()) { echo "Untuk terminal gunakan: php cermat.php \"<file.xlsx>\" [\"Bulan Tahun\"]\n"; return; }
         if ( ! $this->buka_periode()) { redirect('cermat/unggah'); }
-        if ( ! $this->punya_hasil()) return $this->kosong('dashboard');
+        if ( ! $this->punya_hasil() || $this->mode_sheet()) return $this->kosong('dashboard');
         $d = $this->data;
         $this->render('cermat/dashboard', 'dashboard', array(
             'ringkas' => $d['hasil']['ringkas'],
@@ -64,8 +64,8 @@ class Cermat extends MY_Controller
             if ($this->kab_user()) return $this->render('cermat/kosong', 'rekap', array());
             redirect('cermat/unggah');
         }
-        if ( ! $this->punya_hasil())    // file bukan tabel harga: rekap dibuat dari tiap sheet (admin); akun kabupaten tetap tidak melihat isi file ini
-            return $this->rekap_sheet();
+        if ( ! $this->punya_hasil()) return $this->rekap_sheet();
+        if ($this->mode_sheet() && $this->input->get('ringkasan') && ! $this->kab_user()) return $this->rekap_sheet();    // ringkasan per sheet (baca-saja)
         $this->lengkapi_otomatis();
         $ku = $this->kab_user();
         $komoditas = $this->data['hasil']['komoditas'];
@@ -96,7 +96,7 @@ class Cermat extends MY_Controller
     public function komoditas()
     {
         if ( ! $this->buka_periode()) redirect('cermat/unggah');
-        if ( ! $this->punya_hasil()) return $this->komoditas_sheet();    // file bukan tabel harga: daftar komoditas dibuat dari tiap sheet
+        if ( ! $this->punya_hasil()) return $this->komoditas_sheet();    // sheet tidak ada yang bisa dibaca
         $this->lengkapi_otomatis();
         $kom = $this->data['hasil']['komoditas'];
         $kab_semua = array();
@@ -126,7 +126,7 @@ class Cermat extends MY_Controller
      */
     private function lengkapi_otomatis()
     {
-        if ($this->kab_user() || ! $this->aktif || ! $this->data || ! empty($this->data['komoditas_lengkap'])) return;
+        if ($this->kab_user() || ! $this->aktif || ! $this->data || ! empty($this->data['komoditas_lengkap']) || $this->mode_sheet()) return;
         $f = ! empty($this->data['berkas_asli']) ? $this->dir_upload . basename($this->data['berkas_asli']) : '';
         if ($f === '' || ! is_file($f)) return;      // file asli tidak ada: tombol "Lengkapi komoditas kosong" tetap bisa dipakai setelah unggah ulang
         $daftar = $this->cermat_harga->baca_daftar_komoditas($f);
@@ -239,7 +239,7 @@ class Cermat extends MY_Controller
     public function hasil_rh()
     {
         if ( ! $this->buka_periode()) { if ($this->kab_user()) return $this->render('cermat/kosong', 'rh', array()); redirect('cermat/unggah'); }
-        if ( ! $this->punya_hasil()) return $this->kosong('rh');
+        if ( ! $this->punya_hasil() || $this->mode_sheet()) return $this->kosong('rh');
         $per = (int) $this->input->get('per');
         if ( ! in_array($per, array(25, 50, 100), true)) $per = 50;
         $hal = max(1, (int) $this->input->get('hal'));
@@ -617,7 +617,8 @@ class Cermat extends MY_Controller
         }
         $r = $this->periode->muat($id);
         $this->catatan->catat('unggah', $nama . ' - ' . $_FILES['berkas']['name'] . ' (' . $r['hasil']['ringkas']['jml_komoditas'] . ' komoditas)');
-        redirect($r['hasil']['ringkas']['jml_komoditas'] > 0 ? 'cermat?p=' . $id : 'cermat/data_asli?p=' . $id);
+        if ($r['hasil']['ringkas']['jml_komoditas'] > 0) redirect('cermat?p=' . $id);
+        redirect($this->periode->daftar_sheet($id) ? 'cermat/komoditas?p=' . $id : 'cermat/data_asli?p=' . $id);      // file berformat lain: langsung ke daftar komoditas untuk dikonfirmasi
     }
 
     /**
@@ -646,10 +647,11 @@ class Cermat extends MY_Controller
         $kab    = ($kab_p !== null && $kab_p !== '') ? (int) $kab_p : null;
 
         // kabupaten yang punya data per komoditas: [kode => [kab => jumlah kecamatan perlu konfirmasi]]
-        $ada = array(); $dikenal = array();
+        $ada = array(); $dikenal = array(); $semua_wil = array();
         foreach ($this->data['hasil']['komoditas'] as $k)
         {
             $dikenal[$k['kode']] = 1;
+            if ( ! empty($k['wil_semua'])) $semua_wil[$k['kode']] = $k['wil_semua'];
             foreach ($k['kec_semua'] as $c)
             {
                 if ( ! isset($ada[$k['kode']][$c['kab']])) $ada[$k['kode']][$c['kab']] = 0;
@@ -664,7 +666,7 @@ class Cermat extends MY_Controller
             if ($kab !== null)
             {
                 // komoditas kosong / kabupaten tanpa data tetap boleh diarahkan lewat kotak satuan (alasan diisi tanpa angka)
-                if (( ! $massal || ! $ada[$c]) && isset(Cermat_harga::$kabupaten[$kab])) { $pasangan[] = array($c, $kab); continue; }     // komoditas kosong selalu boleh
+                if (( ! $massal || ! $ada[$c])  && Cermat_harga::kab_dikenal($kab)) { $pasangan[] = array($c, $kab); continue; }     // komoditas kosong selalu boleh
                 // tombol massal per kabupaten hanya menugaskan komoditas yang kecamatannya berubah (oranye); kotak satuan boleh yang mana saja
                 if (isset($ada[$c][$kab]) && ( ! $massal || ! $nilai || $ada[$c][$kab] > 0)) $pasangan[] = array($c, $kab);
                 continue;
@@ -673,7 +675,7 @@ class Cermat extends MY_Controller
             {
                 $target = array_keys(array_filter($ada[$c]));
                 if ( ! $target && ! $massal) $target = array_keys($ada[$c]);
-                if ( ! $target && ! $ada[$c]) $target = array_keys(Cermat_harga::$kabupaten);      // komoditas kosong (tanpa data kabupaten): diarahkan ke semua kabupaten
+                if ( ! $target && ! $ada[$c]) $target = isset($semua_wil[$c]) ? $semua_wil[$c] : array_keys(Cermat_harga::$kabupaten);      // komoditas kosong (tanpa data kabupaten): diarahkan ke semua kabupaten / wilayah di sheet-nya
                 foreach ($target as $kb) $pasangan[] = array($c, (int) $kb);
             }
             elseif (isset($this->data['penugasan'][$c]))
@@ -739,6 +741,8 @@ class Cermat extends MY_Controller
     {
         $d = $this->periode->muat($id);
         if ( ! $d) show_404();
+        $this->aktif = $id;
+        $this->adaptasi_sheet($d);
         $this->terapkan_pilihan($d);
         $tmp = tempnam(sys_get_temp_dir(), 'cmt');
         $this->cermat_harga->tulis_xlsx($d['hasil'], $tmp, '', $d['alasan']);
@@ -951,10 +955,32 @@ class Cermat extends MY_Controller
         return stripos($nama, 'admin') !== false ? $nama : $nama . ' (Admin Provinsi)';
     }
 
-    /** Apakah periode aktif berisi tabel harga (ada komoditas)? File lain (bukan tabel harga) hanya punya menu Data. */
+    /** Apakah periode aktif punya daftar komoditas (dari tabel harga, atau dari sheet file berformat lain)? */
     private function punya_hasil()
     {
         return ! empty($this->data['hasil']['komoditas']);
+    }
+
+    /** Periode aktif berasal dari file berformat lain (bukan tabel harga): komoditasnya dibentuk dari sheet. */
+    private function mode_sheet()
+    {
+        return ! empty($this->data['mode_sheet']);
+    }
+
+    /**
+     * File yang bukan tabel harga (matriks NAIK/TURUN/STABIL, daftar komoditas x wilayah, dll.) tetap bisa dikonfirmasi:
+     * isi tiap sheet diubah menjadi daftar komoditas x wilayah yang sama bentuknya dengan hasil tabel harga (lihat Sheet_rekap::ke_hasil),
+     * sehingga centang komoditas, penugasan wilayah, dan pengisian alasan memakai alur yang sama.
+     */
+    private function adaptasi_sheet(array &$d)
+    {
+        if ( ! empty($d['hasil']['komoditas'])) return;
+        $g = $this->gabung_sheet();
+        if ($g === null || ! $g['baris']) return;
+        $h = Sheet_rekap::ke_hasil($g['baris']);
+        Cermat_harga::$kab_extra = $h['wilayah'];
+        $d['hasil'] = $h['hasil'];
+        $d['mode_sheet'] = true;
     }
 
     /** Menu samping tidak berubah-ubah: halaman yang belum bisa dibuka menampilkan keterangan, bukan pindah halaman. */
@@ -1000,6 +1026,7 @@ class Cermat extends MY_Controller
         }
         if ( ! $d) { $this->aktif = null; $this->data = null; return false; }
         $this->aktif = $id;
+        $this->adaptasi_sheet($d);
         $this->terapkan_pilihan($d);
         $this->data = $d;
         return true;

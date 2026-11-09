@@ -146,6 +146,12 @@ class Periode_model extends CI_Model
                 CONSTRAINT `fk_penugasan_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
+        // File berformat lain (bukan tabel harga): nomor wilayah bisa lebih dari 255 -> kolom kab diperlebar (alasan & penugasan)
+        foreach (array('alasan', 'penugasan') as $tb)
+        {
+            $kol = $this->db->query("SHOW COLUMNS FROM `" . $tb . "` LIKE 'kab'")->row_array();
+            if ($kol && stripos($kol['Type'], 'tinyint') !== false) $this->db->query("ALTER TABLE `" . $tb . "` MODIFY `kab` SMALLINT UNSIGNED NOT NULL");
+        }
         // Penanda: daftar komoditas periode ini sudah dilengkapi dengan seluruh komoditas di file Excel asli (termasuk yang tanpa data)
         if ( ! $this->db->field_exists('komoditas_lengkap', 'periode'))
         {

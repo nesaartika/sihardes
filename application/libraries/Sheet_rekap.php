@@ -640,6 +640,83 @@ class Sheet_rekap
     }
 
     // ------------------------------------------------------------------
+    // 3c. KE BENTUK "HASIL" (agar file berformat apa pun bisa dikonfirmasi seperti tabel harga)
+    // ------------------------------------------------------------------
+
+    /**
+     * Mengubah baris gabungan semua sheet (lihat gabung()) menjadi struktur 'hasil' yang sama dengan tabel harga:
+     * satu komoditas per baris sheet, wilayah (kolom matriks / kolom wilayah daftar) menjadi "kabupaten" yang bisa ditugasi mengisi alasan.
+     * Kabupaten/kota Kalbar memakai nomor aslinya (jadi akun kabupaten melihat bagiannya sendiri); wilayah lain diberi nomor 100 ke atas.
+     * Nomor wilayah dan kode komoditas dihitung dari isi file saja, jadi sama setiap kali periode dibuka.
+     * @return array ['hasil' => [ringkas, komoditas], 'wilayah' => [nomor => nama]]
+     */
+    public static function ke_hasil(array $baris)
+    {
+        // nomor wilayah
+        $nama_wil = array();
+        foreach ($baris as $r) foreach ($r['wil'] as $w => $_) $nama_wil[(string) $w] = 1;
+        $nama_wil = array_keys($nama_wil);
+        sort($nama_wil, SORT_NATURAL | SORT_FLAG_CASE);
+        $id_wil = array(); $wilayah = array(); $n = 100;
+        foreach ($nama_wil as $w)
+        {
+            $kb = Cermat_harga::kab_dari_nama($w);
+            if ($kb === 0) { while (isset($wilayah[$n])) $n++; $kb = $n++; $wilayah[$kb] = $w; }
+            $id_wil[$w] = $kb;
+        }
+
+        $dok_wil = array(); $pakai = array(); $komoditas = array();
+        $naik = $turun = $stabil = 0;
+        foreach ($baris as $r)
+        {
+            $dok = trim(preg_replace('/[<>"\'&\s]+/', ' ', (string) $r['dok']));
+            $kunci = $dok . '|' . $r['kode'] . '|' . $r['nama'];
+            $sama = isset($pakai[$kunci]) ? $pakai[$kunci] + 1 : 0; $pakai[$kunci] = $sama;
+            $kode = 'X' . substr(md5($sama ? $kunci . '#' . $sama : $kunci), 0, 10);
+
+            $label = array();
+            foreach ($r['naik'] as $x)  $label[(string) $x[0]] = $x[1];
+            foreach ($r['turun'] as $x) $label[(string) $x[0]] = $x[1];
+            $semua = array(); $flag = array();
+            foreach ($r['wil'] as $w => $arah)
+            {
+                $w = (string) $w; $kb = $id_wil[$w];
+                $dok_wil[$dok][$kb] = 1;
+                $ubah = ($arah === 'naik' || $arah === 'turun');
+                $lb = (isset($label[$w]) && $label[$w] !== '') ? $label[$w] : ucfirst((string) $arah);
+                $item = array('kab' => $kb, 'kec' => '', 'persen' => $arah === 'naik' ? 1.0 : ($arah === 'turun' ? -1.0 : 0.0), 'n' => 1,
+                              'flag' => $ubah, 'outlier' => false, 'rinci' => array(), 'label' => $lb);
+                $semua[] = $item;
+                if ($ubah) $flag[$kb][] = $item;
+            }
+            ksort($flag);
+            $jumlah = $r['ada'] ? max(1, count($semua)) : 0;
+            $arah_k = in_array($r['arah'], array('naik', 'turun', 'stabil'), true) ? $r['arah'] : 'stabil';
+            if ($jumlah > 0) { if ($arah_k === 'naik') $naik++; elseif ($arah_k === 'turun') $turun++; else $stabil++; }
+            $nama = trim((string) $r['nama']) !== '' ? trim((string) $r['nama']) : (string) $r['kode'];
+            $komoditas[] = array(
+                'dokumen' => $dok, 'kode' => $kode, 'kode_asli' => (string) $r['kode'], 'dari_sheet' => true, 'nama' => $nama,
+                'label' => $nama . ((string) $r['kode'] !== '' ? ' (' . $r['kode'] . ')' : ''), 'satuan' => '',
+                'prov_pct' => 0.0, 'nilai_teks' => $r['nilai'] !== '' ? $r['nilai'] : ($jumlah > 0 ? ucfirst($arah_k) : ''),
+                'g_ini' => null, 'g_lalu' => null, 'arah' => $arah_k, 'jumlah' => $jumlah, 'tampil' => true,
+                'kab' => $flag, 'kec_semua' => $semua, 'wil_semua' => array(), 'dok_ref' => $dok,
+            );
+        }
+        foreach ($komoditas as $i => $k) { $komoditas[$i]['wil_semua'] = isset($dok_wil[$k['dok_ref']]) ? array_keys($dok_wil[$k['dok_ref']]) : array(); unset($komoditas[$i]['dok_ref']); }
+
+        return array(
+            'hasil' => array(
+                'ringkas' => array(
+                    'jml_baris' => count($baris), 'jml_komoditas' => count($komoditas), 'naik' => $naik, 'turun' => $turun, 'stabil' => $stabil,
+                    'perlu_konfirmasi' => 0, 'tidak_valid' => 0, 'opsi' => Cermat_harga::$opsi_default,
+                ),
+                'komoditas' => $komoditas,
+            ),
+            'wilayah' => $wilayah,
+        );
+    }
+
+    // ------------------------------------------------------------------
     // 4. UNTUK EXCEL
     // ------------------------------------------------------------------
 

@@ -66,8 +66,10 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
       </select>
       <?php
       // tombol unduh mengikuti halaman: RH -> format sheet RH; Data / file bukan tabel harga -> file asli yang diunggah; selain itu -> Rekap Konfirmasi
-      $tanpa_hasil = empty($periode['hasil']['komoditas']);
+      $mode_sheet = ! empty($periode['mode_sheet']);      // file bukan tabel harga, tetap dikonfirmasi lewat Komoditas & Rekap
+      $tanpa_hasil = empty($periode['hasil']['komoditas']) || $mode_sheet;
       if ($menu === 'rh')                      { $unduh = site_url('cermat/unduh_rh/' . $p);  $unduh_ket = 'Unduh RH (format sheet RH)'; }
+      elseif ($menu === 'rekap' && $mode_sheet && ! $this->input->get('ringkasan')) { $unduh = site_url('cermat/unduh/' . $p); $unduh_ket = 'Unduh Rekap Konfirmasi'; }
       elseif ($menu === 'rekap' && $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); $unduh = site_url('cermat/unduh_rekap/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh rekap sheet ' . $sh : 'Unduh rekap semua sheet'; }
       elseif ($menu === 'data' || $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); if ($sh === '' && ! $tanpa_hasil) $sh = 'Data'; $unduh = site_url('cermat/unduh_data/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh sheet ' . $sh . ' apa adanya' : 'Unduh file Excel asli (format sama dengan yang diunggah)'; }
       else                                     { $unduh = site_url('cermat/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }

@@ -34,6 +34,12 @@ class Cermat_harga
         72 => 'Kota Singkawang',
     );
 
+    /**
+     * Wilayah di luar 14 kabupaten/kota Kalbar yang muncul pada file berformat lain (mis. provinsi / kabupaten daerah lain di sheet Rekonsiliasi).
+     * Diberi nomor 100 ke atas agar bisa disimpan di kolom kab seperti kabupaten biasa. Diisi saat periode dibuka: [nomor => nama].
+     */
+    public static $kab_extra = array();
+
     /** Opsi bawaan */
     public static $opsi_default = array(
         'ambang_kec'     => 5.0,   // % perubahan minimum kecamatan agar masuk daftar konfirmasi
@@ -537,7 +543,31 @@ class Cermat_harga
 
     public static function nama_kab($kode)
     {
-        return isset(self::$kabupaten[$kode]) ? self::$kabupaten[$kode] : 'Kab. ' . $kode;
+        if (isset(self::$kabupaten[$kode])) return self::$kabupaten[$kode];
+        return isset(self::$kab_extra[$kode]) ? self::$kab_extra[$kode] : 'Kab. ' . $kode;
+    }
+
+    /** Nomor wilayah yang sah untuk penugasan: kabupaten Kalbar atau wilayah tambahan dari file berformat lain */
+    public static function kab_dikenal($kode)
+    {
+        return isset(self::$kabupaten[$kode]) || isset(self::$kab_extra[$kode]);
+    }
+
+    /** Nama wilayah ("KAB SAMBAS", "Kabupaten Sambas", "sambas") -> nomor kabupaten Kalbar; 0 bila bukan salah satu dari 14 kabupaten/kota */
+    public static function kab_dari_nama($nama)
+    {
+        $t = strtolower(trim(preg_replace('/\s+/', ' ', (string) $nama)));
+        $t = trim(preg_replace('/^(kabupaten|kab\.?)\s+/', '', $t));
+        foreach (self::$kabupaten as $kode => $nm) if (strtolower($nm) === $t) return $kode;
+        return 0;
+    }
+
+    /** Kelas warna lencana dokumen: HD / HKD tetap, nama sheet lain (HPB, HK, ...) berganti-ganti agar mudah dibedakan */
+    public static function kelas_dok($dok)
+    {
+        $d = strtolower((string) $dok);
+        if ($d === 'hd' || $d === 'hkd') return $d;
+        return (crc32($d) % 2) ? 'hkd' : 'hd';
     }
 
     public static function judul($s)
@@ -556,7 +586,7 @@ class Cermat_harga
     public static function teks_kabupaten($kab, array $daftar)
     {
         $nama = array();
-        foreach ($daftar as $d) $nama[] = $d['kec'];
+        foreach ($daftar as $d) if (trim((string) $d['kec']) !== '') $nama[] = $d['kec'];
         if ( ! $nama) return self::nama_kab($kab);      // tanpa kecamatan (komoditas kosong): hanya nama kabupaten
         return self::nama_kab($kab) . ' (' . implode(', ', $nama) . ')';
     }
@@ -565,7 +595,7 @@ class Cermat_harga
     public static function teks_rinci(array $daftar)
     {
         $t = array();
-        foreach ($daftar as $d) $t[] = $d['kec'] . ' ' . self::fmt($d['persen']);
+        foreach ($daftar as $d) $t[] = trim($d['kec'] . ' ' . (isset($d['label']) ? $d['label'] : self::fmt($d['persen'])));
         return implode('; ', $t);
     }
 
