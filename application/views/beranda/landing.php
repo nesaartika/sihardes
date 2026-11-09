@@ -42,13 +42,36 @@ a{color:var(--pri)}
 .merek small{display:block;font-size:12px;color:var(--mut)}
 
 main{flex:1;display:flex;align-items:center}
-.hero-isi{width:100%;max-width:1120px;margin:0 auto;padding:24px 24px 56px;}
+.hero-isi{width:100%;max-width:1120px;margin:0 auto;padding:24px 24px 56px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center}
 .hero h1{margin:0 0 28px;font-size:clamp(2rem,4vw,3rem);line-height:1.18;font-weight:700;letter-spacing:-.01em;color:var(--tx)}
 .aksi{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
 .fitur{list-style:none;margin:30px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
 .fitur li{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--chip);border:1px solid var(--br);border-radius:99px;font-size:14px;color:var(--mut)}
 .fitur li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pri)}
 
+.ilus{width:100%;height:auto;max-width:520px;justify-self:center;overflow:visible}
+.ilus .i-bayang{fill:var(--navy);opacity:.10}
+.ilus .i-kartu2{fill:var(--bg2);stroke:var(--br);stroke-width:1.5}
+.ilus .i-kartu{fill:var(--card);stroke:var(--br);stroke-width:1.5;filter:drop-shadow(0 22px 30px rgba(14,39,72,.16))}
+.ilus .i-garis{fill:var(--navy);opacity:.85}
+.ilus .i-garis2{fill:var(--br)}
+.ilus .i-grid path{stroke:var(--br);stroke-width:1.5;stroke-dasharray:4 6}
+.ilus .i-bar{fill:var(--bg2)}
+.ilus .i-bar2{fill:var(--pri);opacity:.35}
+.ilus .i-area{fill:var(--pri);opacity:.12}
+.ilus .i-tren{stroke:var(--pri)}
+.ilus .i-titik circle{fill:var(--card);stroke:var(--pri);stroke-width:4}
+.ilus .i-pri{fill:var(--pri)}
+.ilus .i-putih{stroke:#fff}
+.ilus .i-putihf{fill:#fff}
+.ilus .i-naik{fill:var(--naik)}
+.ilus .i-turun{fill:var(--turun)}
+.ilus .i-warn{fill:var(--warn)}
+.ilus .i-padi{stroke:var(--naik)}
+.ilus .i-padi path:nth-child(n+2){fill:var(--naik);fill-opacity:.18}
+.ilus .i-koin{fill:var(--warn);opacity:.9}
+.ilus .i-koin2{fill:none;stroke:#fff;stroke-width:3;opacity:.8}
+.ilus .i-naik,.ilus .i-turun,.ilus .i-warn{filter:drop-shadow(0 10px 14px rgba(14,39,72,.22))}
 
 .kaki{background:var(--navy);color:var(--on-navy-mut);font-size:14px}
 .kaki-isi{display:flex;justify-content:space-between;align-items:center;gap:12px 24px;flex-wrap:wrap;padding-top:22px;padding-bottom:22px}
@@ -58,7 +81,7 @@ main{flex:1;display:flex;align-items:center}
 .kaki a:hover{text-decoration:underline}
 
 @media (max-width:900px){
-  .hero-isi{padding-bottom:40px}
+  .hero-isi{grid-template-columns:1fr;gap:36px;padding-bottom:40px}
 }
 @media (max-width:520px){
   .lebar,.hero-isi{padding-left:18px;padding-right:18px}
@@ -89,6 +112,54 @@ main{flex:1;display:flex;align-items:center}
         <li>Rekap siap diunduh</li>
       </ul>
     </div>
+
+    <svg class="ilus" viewBox="0 0 520 440" role="img" aria-label="Ilustrasi grafik perubahan harga komoditas perdesaan">
+      <ellipse class="i-bayang" cx="260" cy="410" rx="200" ry="14"/>
+      <!-- panel belakang -->
+      <rect class="i-kartu2" x="70" y="40" width="380" height="300" rx="22" transform="rotate(-4 260 190)"/>
+      <!-- panel utama -->
+      <rect class="i-kartu" x="50" y="60" width="400" height="300" rx="22"/>
+      <rect class="i-garis" x="82" y="92" width="96" height="12" rx="6"/>
+      <rect class="i-garis2" x="82" y="114" width="64" height="8" rx="4"/>
+      <circle class="i-pri" cx="416" cy="100" r="16"/>
+      <path class="i-putih" d="M409 104l5-6 4 4 6-7" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- garis bantu -->
+      <g class="i-grid"><path d="M82 190h336M82 240h336M82 290h336"/></g>
+      <!-- batang -->
+      <rect class="i-bar" x="96"  y="250" width="30" height="60"  rx="7"/>
+      <rect class="i-bar" x="148" y="226" width="30" height="84"  rx="7"/>
+      <rect class="i-bar" x="200" y="262" width="30" height="48"  rx="7"/>
+      <rect class="i-bar2" x="252" y="200" width="30" height="110" rx="7"/>
+      <rect class="i-bar" x="304" y="236" width="30" height="74"  rx="7"/>
+      <rect class="i-bar" x="356" y="214" width="30" height="96"  rx="7"/>
+      <!-- area + garis tren -->
+      <path class="i-area" d="M96 232 L148 200 L200 238 L267 160 L319 196 L371 150 L371 310 L96 310Z"/>
+      <path class="i-tren" d="M96 232 L148 200 L200 238 L267 160 L319 196 L371 150" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g class="i-titik"><circle cx="96" cy="232" r="6"/><circle cx="148" cy="200" r="6"/><circle cx="200" cy="238" r="6"/><circle cx="267" cy="160" r="8"/><circle cx="319" cy="196" r="6"/><circle cx="371" cy="150" r="6"/></g>
+      <!-- lencana naik -->
+      <g transform="translate(396 238)">
+        <rect class="i-naik" x="0" y="0" width="74" height="74" rx="20"/>
+        <path class="i-putih" d="M37 54V22M23 36l14-14 14 14" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <!-- lencana turun -->
+      <g transform="translate(14 258)">
+        <rect class="i-turun" x="0" y="0" width="64" height="64" rx="18"/>
+        <path class="i-putih" d="M32 20v26M20 34l12 12 12-12" fill="none" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <!-- lencana peringatan -->
+      <g transform="translate(60 14)">
+        <rect class="i-warn" x="0" y="0" width="52" height="52" rx="15"/>
+        <path class="i-putih" d="M26 14v16" fill="none" stroke-width="5" stroke-linecap="round"/><circle class="i-putihf" cx="26" cy="38" r="3.2"/>
+      </g>
+      <!-- tunas padi -->
+      <g class="i-padi" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M118 400c0-30 2-52 10-76"/><path d="M128 324c-16 2-22 14-24 26c14-2 22-12 24-26z"/><path d="M127 348c14 0 22 10 22 22c-14 0-22-8-22-22z"/><path d="M122 376c-12-2-20 4-24 14c12 4 22 0 24-14z"/>
+        <path d="M168 400c0-22 2-38 8-56"/><path d="M176 344c-12 2-16 10-18 20c12-2 16-8 18-20z"/><path d="M174 370c10 0 16 7 16 16c-10 0-16-6-16-16z"/>
+      </g>
+      <!-- cabai & koin -->
+      <circle class="i-koin" cx="400" cy="396" r="22"/><circle class="i-koin2" cx="400" cy="396" r="14"/>
+      <circle class="i-koin" cx="446" cy="404" r="14"/><circle class="i-koin2" cx="446" cy="404" r="8"/>
+    </svg>
   </div>
 </main>
 
