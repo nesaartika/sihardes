@@ -11,7 +11,7 @@ class Beranda extends MY_Controller
 
     public function index()
     {
-        $this->load->view('beranda/login', array(
+        $this->load->view('beranda/landing', array(
             'sudah_masuk' => (bool) $this->session->userdata('user_id'),
             'nama'        => (string) $this->session->userdata('nama'),
         ));
