@@ -66,6 +66,7 @@ class Cermat extends MY_Controller
         }
         if ( ! $this->punya_hasil())    // file bukan tabel harga: rekap dibuat dari tiap sheet (admin); akun kabupaten tetap tidak melihat isi file ini
             return $this->rekap_sheet();
+        $this->lengkapi_otomatis();
         $ku = $this->kab_user();
         $komoditas = $this->data['hasil']['komoditas'];
         if ($ku)   // akun kabupaten: hanya baris kabupatennya sendiri
@@ -96,6 +97,7 @@ class Cermat extends MY_Controller
     {
         if ( ! $this->buka_periode()) redirect('cermat/unggah');
         if ( ! $this->punya_hasil()) return $this->komoditas_sheet();    // file bukan tabel harga: daftar komoditas dibuat dari tiap sheet
+        $this->lengkapi_otomatis();
         $kom = $this->data['hasil']['komoditas'];
         $kab_semua = array();
         foreach ($kom as $i => $k)
@@ -112,6 +114,21 @@ class Cermat extends MY_Controller
         }
         ksort($kab_semua);
         $this->render('cermat/komoditas', 'komoditas', array('komoditas' => $kom, 'daftar_kab' => $kab_semua));
+    }
+
+    /**
+     * Periode yang diunggah sebelum perbaikan ini belum memuat komoditas yang hanya ada di sheet RH (tanpa baris harga di sheet Data).
+     * Dilengkapi otomatis satu kali dari file Excel asli, lalu ditandai; alasan dan penugasan yang sudah ada tidak disentuh.
+     */
+    private function lengkapi_otomatis()
+    {
+        if ($this->kab_user() || ! $this->aktif || ! $this->data || ! empty($this->data['komoditas_lengkap'])) return;
+        $f = ! empty($this->data['berkas_asli']) ? $this->dir_upload . basename($this->data['berkas_asli']) : '';
+        if ($f === '' || ! is_file($f)) return;      // file asli tidak ada: tombol "Lengkapi komoditas kosong" tetap bisa dipakai setelah unggah ulang
+        $daftar = $this->cermat_harga->baca_daftar_komoditas($f);
+        if ($daftar) $this->periode->tambah_komoditas_kosong($this->aktif, $daftar);
+        else         $this->periode->tandai_lengkap($this->aktif);
+        $this->buka_periode();                        // muat ulang agar komoditas baru ikut tampil
     }
 
     /** Melengkapi periode yang sedang dibuka dengan komoditas kosong dari sheet RH file aslinya (tanpa unggah ulang, alasan tidak hilang). */
@@ -981,7 +998,8 @@ class Cermat extends MY_Controller
 
     /**
      * Hanya komoditas x kabupaten yang diarahkan admin provinsi yang dikonfirmasi: yang tidak diarahkan tidak punya baris kabupaten
-     * (tidak tampil di Rekap, akun kabupaten, dashboard, dan Excel). Data aslinya disimpan di 'kab_asli'.
+     * (tetap muncul di Rekap admin dan Excel dengan kolom Kabupaten/Alasan kosong; akun kabupaten hanya melihat yang diarahkan ke kabupatennya).
+     * Data aslinya disimpan di 'kab_asli'.
      * Bila admin mengarahkan kabupaten yang tidak punya kecamatan di atas ambang, semua kecamatan kabupaten itu ditampilkan.
      */
     private function terapkan_pilihan(array &$d)
@@ -1004,8 +1022,8 @@ class Cermat extends MY_Controller
             ksort($baru);
             $k['kab'] = $baru;
             $k['dipilih'] = ! empty($baru);
-            $k['tampil'] = ! empty($baru);
-            if ($k['tampil']) $n++;
+            $k['tampil'] = TRUE;                 // semua komoditas pada file tetap tampil; kolom kabupaten kosong bila tidak diarahkan
+            if ( ! empty($baru)) $n++;           // yang dihitung "perlu konfirmasi" hanya yang diarahkan ke kabupaten
         }
         unset($k);
         $d['hasil']['ringkas']['perlu_konfirmasi'] = $n;

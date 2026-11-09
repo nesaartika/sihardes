@@ -23,7 +23,7 @@ foreach ($komoditas as $k)
   <select id="fdok"><option value="">Semua dokumen</option><option>HD</option><option>HKD</option></select>
   <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select>
   <select id="fpilih"><option value="">Semua status</option><option value="1">Sudah dicentang</option><option value="0">Belum dicentang</option></select>
-  <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="fsemua"> Tampilkan juga yang tidak berubah</label>
+  <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="fsemua" checked> Tampilkan juga yang tidak berubah &amp; yang kosong (tanpa data)</label>
   <button class="btn" type="submit">Terapkan</button>
   <button class="btn alt" type="button" id="breset">Reset</button>
 </form>
@@ -57,7 +57,7 @@ foreach ($komoditas as $k)
       q = document.getElementById('q'), fd = document.getElementById('fdok'), fa = document.getElementById('farah'),
       fp = document.getElementById('fpilih'), fk = document.getElementById('fkab'), fs = document.getElementById('fsemua'),
       cnt = document.getElementById('cnt'), semua = document.getElementById('semua');
-  var f = {q:'', dok:'', arah:'', pilih:'', semua:false};
+  var f = {q:'', dok:'', arah:'', pilih:'', semua:true};   // bawaan: semua komoditas di file tampil
 
   // keadaan satu baris menurut kabupaten yang dipilih: [ada data?, berubah?, sudah diminta?]
   function keadaan(r){
@@ -80,7 +80,7 @@ foreach ($komoditas as $k)
     var n = 0;
     rows.forEach(function(r){
       var st = keadaan(r), tanpa = r.dataset.arah === 'tanpa';
-      // komoditas tanpa data: tampil bila dicari / "tampilkan juga..." dicentang, dan tidak saat satu kabupaten dipilih
+      // komoditas tanpa data: ikut tampil (arah kosong) selama tidak sedang menyaring satu kabupaten (mereka memang tidak punya data kabupaten)
       var ok = (tanpa ? (!fk.value && (f.semua || f.q !== '')) : (st[0] && (f.semua || st[1] || st[2]))) &&
                (!f.q || r.dataset.q.indexOf(f.q) > -1) && (!f.dok || r.dataset.dok === f.dok) && (!f.arah || r.dataset.arah === f.arah) &&
                (!f.pilih || r.dataset.pilih === f.pilih);
@@ -94,7 +94,7 @@ foreach ($komoditas as $k)
   document.getElementById('ffilter').addEventListener('submit', terapkan);
   fk.addEventListener('change', terapkan);
   document.getElementById('breset').addEventListener('click', function(){
-    q.value = ''; fd.value = ''; fa.value = ''; fp.value = ''; fs.checked = false; terapkan();
+    q.value = ''; fd.value = ''; fa.value = ''; fp.value = ''; fs.checked = true; terapkan();
   });
 
   function kirim(kode, nilai, opsi){

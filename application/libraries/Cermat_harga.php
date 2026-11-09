@@ -411,7 +411,9 @@ class Cermat_harga
                 return $x['kab'] <=> $y['kab'] ?: strcmp($x['kec'], $y['kec']);
             });
 
-            $tampil = ! empty($daftar) || ($arah === 'stabil' && $o['tampil_stabil']);
+            // Semua komoditas di file selalu ikut ditampilkan (rekap, Excel, daftar komoditas); yang perlu dikonfirmasi hanya dihitung terpisah
+            $tampil = true;
+            $perlu  = ! empty($daftar) || ($arah === 'stabil' && $o['tampil_stabil']);
 
             // Kelompokkan per kabupaten
             $per_kab = array();
@@ -423,7 +425,7 @@ class Cermat_harga
             }
             unset($lst);
 
-            if ($tampil) $jml_tampil++;
+            if ($perlu) $jml_tampil++;
             $hasil[] = array(
                 'dokumen'   => $dok,
                 'kode'      => $kode,
@@ -446,7 +448,7 @@ class Cermat_harga
         foreach ($semua_kom as $kode => $a)
         {
             if (isset($kom[$kode])) continue;
-            $jml_tanpa++; $jml_tampil++;
+            $jml_tanpa++;      // tanpa data: tetap tampil (arah dikosongkan), tetapi tidak dihitung "perlu konfirmasi"
             $hasil[] = array(
                 'dokumen'   => self::jenis_dokumen($kode),
                 'kode'      => $kode,

@@ -82,7 +82,8 @@ ksort($per_kab);
     <tr class="tanpa-data">
       <td><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
       <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
-      <td></td><td></td><td></td><td></td>
+      <td><?php if ((int) $k['jumlah'] > 0): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= Cermat_harga::fmt($k['prov_pct'], 2) ?></div><?php endif; ?></td>
+      <td></td><td></td><td></td>
     </tr>
     <?php endif; ?>
     <?php foreach ($rows as $kab => $daftar):

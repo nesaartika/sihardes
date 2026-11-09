@@ -146,6 +146,11 @@ class Periode_model extends CI_Model
                 CONSTRAINT `fk_penugasan_periode` FOREIGN KEY (`periode_id`) REFERENCES `periode` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
+        // Penanda: daftar komoditas periode ini sudah dilengkapi dengan seluruh komoditas di file Excel asli (termasuk yang tanpa data)
+        if ( ! $this->db->field_exists('komoditas_lengkap', 'periode'))
+        {
+            $this->db->query('ALTER TABLE periode ADD COLUMN komoditas_lengkap TINYINT(1) NOT NULL DEFAULT 0');
+        }
         // Database versi lama: periode yang sama sempat dibatasi unik -> longgarkan agar beberapa file per periode dapat disimpan
         if ($this->db->query("SHOW INDEX FROM periode WHERE Key_name = 'uq_bulan_tahun'")->num_rows() > 0)
         {
@@ -199,6 +204,7 @@ class Periode_model extends CI_Model
             'perlu_konfirmasi' => $r['perlu_konfirmasi'], 'tidak_valid' => $r['tidak_valid'],
             'jenis' => isset($data['jenis']) ? $data['jenis'] : self::$jenis_data[0],
             'berkas_asli' => isset($data['berkas_asli']) ? $data['berkas_asli'] : null,
+            'komoditas_lengkap' => 1,      // hitung() sudah memasukkan semua komoditas di file (termasuk yang tanpa data)
         ));
 
         $id_kom = (int) $this->db->query('SELECT COALESCE(MAX(id),0) m FROM komoditas')->row()->m;
@@ -271,7 +277,14 @@ class Periode_model extends CI_Model
             $this->db->query('UPDATE periode SET jml_komoditas = jml_komoditas + ? WHERE id = ?', array(count($baru), $id));
             $this->db->trans_complete();
         }
+        $this->tandai_lengkap($id);
         return count($baru);
+    }
+
+    /** Menandai periode: seluruh komoditas file asli sudah tercatat (tidak perlu dilengkapi otomatis lagi). */
+    public function tandai_lengkap($id)
+    {
+        $this->db->update('periode', array('komoditas_lengkap' => 1), array('id' => $id));
     }
 
     private function sisip($tabel, array $baris)
@@ -345,6 +358,7 @@ class Periode_model extends CI_Model
             'alasan_meta' => $this->alasan_meta($id),
             'penugasan' => $this->penugasan($id),
             'berkas_asli' => isset($p['berkas_asli']) ? $p['berkas_asli'] : null,
+            'komoditas_lengkap' => isset($p['komoditas_lengkap']) ? (int) $p['komoditas_lengkap'] : 1,
         );
     }
 
