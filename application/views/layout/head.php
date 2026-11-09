@@ -22,7 +22,7 @@ $ikon = array(
  'riwayat'   => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
 );
 $menu_item = array(
- 'dashboard' => array('Dashboard', ''),
+ 'dashboard' => array('Dashboard', 'cermat'),
  'unggah'    => array('Unggah Data', 'cermat/unggah'),
  'data'      => array('Data', 'cermat/data_asli'),
  'rh'        => array('RH', 'cermat/hasil_rh'),

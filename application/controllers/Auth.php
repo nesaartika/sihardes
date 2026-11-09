@@ -19,7 +19,7 @@ class Auth extends MY_Controller
 
     public function login()
     {
-        if ($this->session->userdata('user_id')) redirect('/');
+        if ($this->session->userdata('user_id')) redirect('cermat');
         $galat = $this->session->flashdata('galat_login');
 
         if ($this->input->method() === 'post')
@@ -42,7 +42,7 @@ class Auth extends MY_Controller
                     ));
                     $this->pengguna->catat_login($u['id']);
                     $this->catatan->catat('login', 'Berhasil masuk', $u['username']);
-                    redirect($u['wajib_ganti'] ? 'auth/ganti_sandi' : ($u['role'] === 'kabupaten' ? 'cermat/rekap' : '/'));
+                    redirect($u['wajib_ganti'] ? 'auth/ganti_sandi' : ($u['role'] === 'kabupaten' ? 'cermat/rekap' : 'cermat'));
                 }
 
                 $this->catatan->catat('login_gagal', 'Percobaan masuk gagal', mb_substr(trim((string) $this->input->post('username')), 0, 50));
@@ -95,7 +95,7 @@ class Auth extends MY_Controller
                 $this->catatan->catat('ganti_sandi', 'Kata sandi diganti');
                 $this->session->set_userdata('wajib_ganti', 0);
                 $this->session->set_flashdata('pesan', 'Kata sandi berhasil diganti.');
-                redirect('/');
+                redirect('cermat');
             }
         }
         $this->load->view('auth/ganti_sandi', array('galat' => $galat, 'wajib' => $wajib));

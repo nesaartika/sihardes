@@ -28,21 +28,6 @@ foreach ($tampil as $k)
 }
 ksort($per_kab);
 ?>
-<?php if ($total > 0): ?>
-<div class="peringatan" id="bnr" data-total="<?= $total ?>" <?= $belum === 0 ? 'style="display:none"' : '' ?>>
-  <span id="bnrTeks">Masih ada <?= $belum ?> alasan yang belum diisi dari <?= $total ?> yang diminta.</span>
-  <button type="button" class="btn" id="bLompat" <?= $belum === 0 ? 'style="display:none"' : '' ?>>Ke alasan yang belum diisi</button>
-</div>
-<?php endif; ?>
-
-<?php if ($admin && $per_kab): ?>
-<div class="ringkas-kab" title="Progres pengisian alasan per kabupaten">
-  <?php foreach ($per_kab as $kb => $v): ?>
-    <span class="chip <?= $v[0] === $v[1] ? 'lengkap' : 'kurang' ?>"><?= html_escape(Cermat_harga::nama_kab($kb)) ?>: <?= $v[1] ?>/<?= $v[0] ?></span>
-  <?php endforeach; ?>
-</div>
-<?php endif; ?>
-
 <form class="bar" id="ffilter" onsubmit="return false">
   <input type="text" id="q" placeholder="Cari komoditas / kode / kecamatan...">
   <select id="fdok"><option value="">Semua dokumen</option><?php foreach ($dok_daftar as $dk): ?><option><?= html_escape($dk) ?></option><?php endforeach; ?></select>

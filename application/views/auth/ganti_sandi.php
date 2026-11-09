@@ -30,7 +30,7 @@
     <label for="sandi_ulang">Ulangi kata sandi baru</label>
     <input type="password" name="sandi_ulang" id="sandi_ulang" autocomplete="new-password" required>
     <button class="btn" type="submit">Simpan</button>
-    <?php if (empty($wajib)): ?> <a class="btn alt" href="<?= site_url('/') ?>">Batal</a><?php endif; ?>
+    <?php if (empty($wajib)): ?> <a class="btn alt" href="<?= site_url('cermat') ?>">Batal</a><?php endif; ?>
     <a href="<?= site_url('auth/logout') ?>" style="float:right;margin-top:26px;font-size:13px">Keluar</a>
   <?= form_close() ?>
 </div>
