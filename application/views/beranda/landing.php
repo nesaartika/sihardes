@@ -132,11 +132,9 @@ a{color:var(--pri)}
 <header class="atas">
   <div class="lebar atas-isi">
     <a class="merek" href="<?= site_url('') ?>"><b>Fenomena Harga</b><span>BPS Provinsi Kalimantan Barat</span></a>
-    <?php if ($sudah_masuk): ?>
-      <a class="tbl tbl-terang" href="<?= site_url('cermat') ?>">Buka dashboard</a>
-    <?php else: ?>
+    
       <a class="tbl tbl-terang" href="<?= site_url('auth/login') ?>">Masuk</a>
-    <?php endif; ?>
+    
   </div>
 </header>
 
@@ -147,13 +145,10 @@ a{color:var(--pri)}
         <h1>Perubahan harga perdesaan, dicermati dalam satu tempat.</h1>
         <p class="lead">Unggah file Hitung RH, lihat komoditas yang berubah, dan catat alasannya per kabupaten. Rekap konfirmasi siap diunduh sebagai Excel.</p>
         <div class="aksi">
-          <?php if ($sudah_masuk): ?>
-            <a class="tbl tbl-utama" href="<?= site_url('cermat') ?>">Buka dashboard</a>
-            <span class="catatan">Masuk sebagai <?= html_escape($nama !== '' ? $nama : 'pengguna') ?></span>
-          <?php else: ?>
+          
             <a class="tbl tbl-utama" href="<?= site_url('auth/login') ?>">Masuk ke aplikasi</a>
             <span class="catatan">Akun dibuat oleh admin provinsi.</span>
-          <?php endif; ?>
+          
         </div>
       </div>
 
@@ -245,13 +240,6 @@ a{color:var(--pri)}
           </ul>
         </div>
       </div>
-      <div class="penutup">
-        <?php if ($sudah_masuk): ?>
-          <a class="tbl tbl-utama" href="<?= site_url('cermat') ?>">Buka dashboard</a>
-        <?php else: ?>
-          <a class="tbl tbl-utama" href="<?= site_url('auth/login') ?>">Masuk ke aplikasi</a>
-        <?php endif; ?>
-      </div>
     </div>
   </section>
 </main>
@@ -264,11 +252,9 @@ a{color:var(--pri)}
       <p>Badan Pusat Statistik Provinsi Kalimantan Barat</p>
     </div>
     <nav class="kaki-tautan" aria-label="Tautan footer">
-      <?php if ($sudah_masuk): ?>
-        <a href="<?= site_url('cermat') ?>">Dashboard</a>
-      <?php else: ?>
+      
         <a href="<?= site_url('auth/login') ?>">Masuk</a>
-      <?php endif; ?>
+      
       <a href="https://kalbar.bps.go.id" rel="noopener" target="_blank">kalbar.bps.go.id</a>
     </nav>
   </div>
