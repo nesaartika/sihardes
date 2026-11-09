@@ -6,7 +6,7 @@
 .kaki-app a{font-weight:600}
 </style>
   <footer class="kaki-app">
-    <span>Badan Pusat Statistik Provinsi Kalimantan Barat &copy; <?= date('Y') ?></span>
+    <span>Badan Pusat Statistik Provinsi Kalimantan Barat <?= date('Y') ?></span>
     <nav aria-label="Tautan footer">
       <a href="<?= site_url('') ?>">Halaman Awal</a>
       <a href="https://kalbar.bps.go.id" rel="noopener" target="_blank">kalbar.bps.go.id</a>
