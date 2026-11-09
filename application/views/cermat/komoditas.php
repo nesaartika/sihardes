@@ -37,7 +37,7 @@ foreach ($komoditas as $k)
   <tbody>
   <?php foreach ($komoditas as $k): ?>
     <tr data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-kode="<?= html_escape($k['kode']) ?>" data-q="<?= html_escape(strtolower($k['nama'] . ' ' . $k['kode'])) ?>">
-      <td style="text-align:center"><input type="checkbox" class="pilih" style="width:18px;height:18px"<?= (int) $k['jumlah'] === 0 ? ' disabled' : '' ?>></td>
+      <td style="text-align:center"><input type="checkbox" class="pilih" style="width:18px;height:18px"></td>
       <td><span class="badge <?= strtolower($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
       <td><?= html_escape($k['kode']) ?></td>
       <td><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a><?php if ( ! empty($k['satuan'])): ?> <span class="hint">(<?= html_escape($k['satuan']) ?>)</span><?php endif; ?></td>
@@ -70,7 +70,9 @@ foreach ($komoditas as $k)
   function gambar(r){   // isi kotak centang dan keterangan kabupaten
     var inf = INFO[r.dataset.kode] || {}, st = keadaan(r), kab = fk.value, nama = [];
     Object.keys(inf).forEach(function(k){ if (inf[k][1]) nama.push(NAMA[k]); });
-    r.querySelector('input.pilih').checked = st[2];
+    var cb = r.querySelector('input.pilih'); cb.checked = st[2];
+    cb.disabled = r.dataset.arah === 'tanpa' && !kab;      // komoditas kosong: pilih kabupatennya dulu
+    cb.title = cb.disabled ? 'Pilih kabupaten di atas dulu untuk mengarahkan komoditas kosong' : '';
     r.querySelector('td.siapa').textContent = nama.length ? nama.join(', ') : '-';
     r.dataset.pilih = st[2] ? '1' : '0';
     if (kab && inf[kab] && inf[kab][0] > 0) r.querySelector('td.siapa').textContent += (nama.length ? '' : '') + '   [' + inf[kab][0] + ' kecamatan berubah di ' + NAMA[kab] + ']';
@@ -81,7 +83,7 @@ foreach ($komoditas as $k)
     rows.forEach(function(r){
       var st = keadaan(r), tanpa = r.dataset.arah === 'tanpa';
       // komoditas tanpa data: ikut tampil (arah kosong) selama tidak sedang menyaring satu kabupaten (mereka memang tidak punya data kabupaten)
-      var ok = (tanpa ? (!fk.value && (f.semua || f.q !== '')) : (st[0] && (f.semua || st[1] || st[2]))) &&
+      var ok = (tanpa ? (f.semua || f.q !== '') : (st[0] && (f.semua || st[1] || st[2]))) &&
                (!f.q || r.dataset.q.indexOf(f.q) > -1) && (!f.dok || r.dataset.dok === f.dok) && (!f.arah || r.dataset.arah === f.arah) &&
                (!f.pilih || r.dataset.pilih === f.pilih);
       r.style.display = ok ? '' : 'none'; if (ok) n++;
@@ -111,7 +113,8 @@ foreach ($komoditas as $k)
       if (!j.ok) throw 1;
       document.getElementById('chipDipilih').textContent = 'Dikonfirmasi: ' + j.dipilih + ' komoditas';
       Object.keys(j.peta).forEach(function(kd){     // samakan dengan keadaan di server
-        var inf = INFO[kd] || {};
+        var inf = INFO[kd] || (INFO[kd] = {});
+        j.peta[kd].forEach(function(k){ if (!inf[k]) inf[k] = [0, 1]; });     // kabupaten tanpa data (komoditas kosong) yang baru diarahkan
         Object.keys(inf).forEach(function(k){ inf[k][1] = j.peta[kd].indexOf(+k) > -1 ? 1 : 0; });
       });
       segar();

@@ -109,6 +109,10 @@ class Cermat extends MY_Controller
                 if ($c['flag']) $info[$c['kab']][0]++;
                 $kab_semua[$c['kab']] = Cermat_harga::nama_kab($c['kab']);
             }
+            if ( ! empty($this->data['penugasan'][$k['kode']]))     // ditugaskan ke kabupaten yang tidak punya data komoditas ini (mis. komoditas kosong)
+            {
+                foreach ($this->data['penugasan'][$k['kode']] as $kb => $_) if ( ! isset($info[$kb])) $info[$kb] = array(0, true);
+            }
             ksort($info);
             $kom[$i]['kab_info'] = $info;
         }
@@ -642,9 +646,10 @@ class Cermat extends MY_Controller
         $kab    = ($kab_p !== null && $kab_p !== '') ? (int) $kab_p : null;
 
         // kabupaten yang punya data per komoditas: [kode => [kab => jumlah kecamatan perlu konfirmasi]]
-        $ada = array();
+        $ada = array(); $dikenal = array();
         foreach ($this->data['hasil']['komoditas'] as $k)
         {
+            $dikenal[$k['kode']] = 1;
             foreach ($k['kec_semua'] as $c)
             {
                 if ( ! isset($ada[$k['kode']][$c['kab']])) $ada[$k['kode']][$c['kab']] = 0;
@@ -654,9 +659,12 @@ class Cermat extends MY_Controller
         $pasangan = array();
         foreach ($bersih as $c)
         {
-            if ( ! isset($ada[$c])) continue;
+            if ( ! isset($dikenal[$c])) continue;
+            if ( ! isset($ada[$c])) $ada[$c] = array();
             if ($kab !== null)
             {
+                // komoditas kosong / kabupaten tanpa data tetap boleh diarahkan lewat kotak satuan (alasan diisi tanpa angka)
+                if ( ! $massal && isset(Cermat_harga::$kabupaten[$kab])) { $pasangan[] = array($c, $kab); continue; }
                 // tombol massal per kabupaten hanya menugaskan komoditas yang kecamatannya berubah (oranye); kotak satuan boleh yang mana saja
                 if (isset($ada[$c][$kab]) && ( ! $massal || ! $nilai || $ada[$c][$kab] > 0)) $pasangan[] = array($c, $kab);
                 continue;
@@ -1015,9 +1023,8 @@ class Cermat extends MY_Controller
                 if (isset($k['kab_asli'][$kb])) { $baru[$kb] = $k['kab_asli'][$kb]; continue; }
                 $lst = array();
                 foreach ($k['kec_semua'] as $c) if ((int) $c['kab'] === (int) $kb) $lst[] = $c;
-                if ( ! $lst) continue;
                 usort($lst, function ($x, $y) { return abs($y['persen']) <=> abs($x['persen']); });
-                $baru[$kb] = $lst;
+                $baru[$kb] = $lst;      // bisa kosong (komoditas tanpa data / kabupaten tanpa data): tetap diminta mengisi alasan
             }
             ksort($baru);
             $k['kab'] = $baru;

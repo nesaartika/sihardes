@@ -557,6 +557,7 @@ class Cermat_harga
     {
         $nama = array();
         foreach ($daftar as $d) $nama[] = $d['kec'];
+        if ( ! $nama) return self::nama_kab($kab);      // tanpa kecamatan (komoditas kosong): hanya nama kabupaten
         return self::nama_kab($kab) . ' (' . implode(', ', $nama) . ')';
     }
 
@@ -595,7 +596,7 @@ class Cermat_harga
                     $pertama ? $k['dokumen'] : null,
                     $pertama ? $k['label'] : null,
                     $pertama ? ((int) $k['jumlah'] === 0 ? null : $k['arah']) : null,
-                    $daftar ? self::teks_kabupaten($kab, $daftar) : null,
+                    $kab ? self::teks_kabupaten($kab, $daftar) : null,
                     isset($alasan[$k['kode'] . '|' . $kab]) ? $alasan[$k['kode'] . '|' . $kab] : null,
                 );
                 if ($ada_sat) array_splice($sel, 2, 0, array($pertama && ! empty($k['satuan']) ? $k['satuan'] : null));
