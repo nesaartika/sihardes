@@ -194,61 +194,11 @@ a{color:var(--pri)}
       </figure>
     </div>
   </section>
-
-  <section class="blok" aria-labelledby="alur">
-    <div class="lebar">
-      <h2 id="alur">Dari file Excel sampai rekap, empat langkah</h2>
-      <ol class="langkah">
-        <li>
-          <h3>Unggah file</h3>
-          <p>Pilih file Hitung RH bulanan (.xlsx), lalu tentukan bulan dan tahunnya.</p>
-        </li>
-        <li>
-          <h3>Perubahan dihitung</h3>
-          <p>Perubahan provinsi per komoditas memakai rata-rata geometrik, sama dengan kolom RHt di sheet RH.</p>
-        </li>
-        <li>
-          <h3>Alasan dicatat</h3>
-          <p>Komoditas dan kecamatan yang masuk daftar konfirmasi diberi alasan oleh petugas kabupaten.</p>
-        </li>
-        <li>
-          <h3>Rekap diunduh</h3>
-          <p>Rekap konfirmasi dan hasil RH diunduh sebagai Excel dalam format yang sudah dipakai.</p>
-        </li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="blok blok-alt" aria-labelledby="peran">
-    <div class="lebar">
-      <h2 id="peran">Setiap akun melihat yang perlu dilihat</h2>
-      <div class="dua">
-        <div class="peran">
-          <h3>Admin provinsi</h3>
-          <ul>
-            <li>Mengunggah data bulanan dan memilih periode</li>
-            <li>Memantau dashboard, daftar komoditas, dan riwayat periode</li>
-            <li>Mengelola akun pengguna dan melihat log aktivitas</li>
-          </ul>
-        </div>
-        <div class="peran">
-          <h3>Akun kabupaten</h3>
-          <ul>
-            <li>Membuka Data, RH, dan Rekap Konfirmasi untuk kabupatennya</li>
-            <li>Mengisi dan menyimpan alasan perubahan harga</li>
-            <li>Meminta kata sandi atau akun baru ke admin provinsi</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-
 <footer class="kaki">
   <div class="lebar kaki-isi">
     <div class="kaki-merek">
       <b>Fenomena Harga</b>
-      <p>Pengumpulan Fenomena Perubahan Harga Perdesaan</p>
+      <p>Fenomena Perubahan Harga Perdesaan</p>
       <p>Badan Pusat Statistik Provinsi Kalimantan Barat</p>
     </div>
     <nav class="kaki-tautan" aria-label="Tautan footer">
