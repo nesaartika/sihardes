@@ -96,6 +96,7 @@ main{flex:1;display:flex;align-items:center}
       <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
       <span><b>Fenomena Harga</b><small>BPS Provinsi Kalimantan Barat</small></span>
     </a>
+    <a class="tbl tbl-kecil" href="<?= site_url('auth/login') ?>">Login</a>
   </div>
 </header>
 
@@ -103,7 +104,6 @@ main{flex:1;display:flex;align-items:center}
   <div class="hero-isi">
     <div>
       <h1>Perubahan harga perdesaan, dicermati dalam satu tempat.</h1>
-      <div class="aksi"><a class="tbl" href="<?= site_url('auth/login') ?>">Login</a></div>
       <ul class="fitur">
         <li>Unggah file Hitung RH</li>
         <li>Dihitung otomatis</li>
