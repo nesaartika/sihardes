@@ -117,6 +117,40 @@ main{flex:1;display:flex;align-items:center}
         <span>Contoh tampilan, angka rekaan</span>
       </div>
       <div class="gulir">
+        <table>
+          <thead>
+            <tr><th scope="col">Komoditas</th><th scope="col" class="n">Provinsi</th><th scope="col" class="n">Kecamatan</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr class="tandai">
+              <th scope="row">Beras</th>
+              <td class="n naik"><span aria-hidden="true">&#9650;</span> +1,8%</td>
+              <td class="n naik"><span aria-hidden="true">&#9650;</span> +6,2%</td>
+              <td><span class="lencana perlu">Perlu konfirmasi</span></td>
+            </tr>
+            <tr class="tandai">
+              <th scope="row">Cabai rawit</th>
+              <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;7,4%</td>
+              <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;9,1%</td>
+              <td><span class="lencana perlu">Perlu konfirmasi</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Minyak goreng</th>
+              <td class="n naik"><span aria-hidden="true">&#9650;</span> +0,6%</td>
+              <td class="n naik"><span aria-hidden="true">&#9650;</span> +1,1%</td>
+              <td><span class="lencana wajar">Wajar</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Garam</th>
+              <td class="n stabil">0,0%</td>
+              <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;0,9%</td>
+              <td><span class="lencana wajar">Wajar</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <figcaption id="buku-ket">Kecamatan yang searah dengan provinsi dan berubah 5% atau lebih masuk daftar konfirmasi.</figcaption>
+    </figure>
   </div>
 </main>
 
