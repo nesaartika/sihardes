@@ -104,9 +104,6 @@ main{flex:1;display:flex;align-items:center}
   <div class="hero-isi">
     <div>
       <h1>Perubahan harga perdesaan, dicermati dalam satu tempat.</h1>
-      <div class="aksi">
-        <a class="tbl" href="<?= site_url($sudah_masuk ? 'cermat' : 'auth/login') ?>"><?= $sudah_masuk ? 'Buka dashboard' : 'Masuk untuk mulai' ?></a>
-      </div>
     </div>
 
     <svg class="ilus" viewBox="0 0 520 440" role="img" aria-label="Ilustrasi grafik perubahan harga komoditas perdesaan">
