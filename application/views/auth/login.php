@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Masuk - Fenomena Harga</title>
+<title>Login - Fenomena Harga</title>
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 <style>
   body{align-items:center;justify-content:center;min-height:100vh;background:var(--side)}
@@ -25,14 +25,14 @@
   <?php if ( ! empty($sudah)): ?><div class="sesi">Anda masih masuk sebagai <b><?= html_escape($sudah) ?></b>. <a href="<?= site_url('cermat') ?>">Lanjut ke dashboard</a> atau login dengan akun lain di bawah.</div><?php endif; ?>
   <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
   <?= form_open('auth/login') ?>
-    <label for="username">Email atau nama pengguna</label>
+    <label for="username">Email/Username </label>
     <input type="text" name="username" id="username" autocomplete="username" required autofocus>
-    <label for="password">Kata sandi</label>
+    <label for="password">Password</label>
     <input type="password" name="password" id="password" autocomplete="current-password" required>
-    <label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-top:10px"><input type="checkbox" id="lihat" style="width:auto"> Lihat password</label>
-    <button class="btn" type="submit">Masuk</button>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-top:10px"><input type="checkbox" id="lihat" style="width:auto">
+    <button class="btn" type="submit">Login</button>
   <?= form_close() ?>
-  <a class="balik" href="<?= site_url('') ?>">&larr; Kembali ke halaman depan</a>
+  <a class="balik" href="<?= site_url('') ?>">&larr; </a>
 </div>
 <script>document.getElementById('lihat').addEventListener('change',function(){document.getElementById('password').type=this.checked?'text':'password';});</script>
 </body>
