@@ -71,9 +71,9 @@ foreach ($komoditas as $k)
     var inf = INFO[r.dataset.kode] || {}, st = keadaan(r), kab = fk.value, nama = [];
     Object.keys(inf).forEach(function(k){ if (inf[k][1]) nama.push(NAMA[k]); });
     var cb = r.querySelector('input.pilih'); cb.checked = st[2];
-    cb.disabled = r.dataset.arah === 'tanpa' && !kab;      // komoditas kosong: pilih kabupatennya dulu
-    cb.title = cb.disabled ? 'Pilih kabupaten di atas dulu untuk mengarahkan komoditas kosong' : '';
-    r.querySelector('td.siapa').textContent = nama.length ? nama.join(', ') : '-';
+    cb.disabled = false;      // semua komoditas di file bisa dipilih; komoditas kosong tanpa kabupaten terpilih = diarahkan ke semua kabupaten
+    cb.title = (r.dataset.arah === 'tanpa' && !kab) ? 'Komoditas kosong: dicentang = semua kabupaten diminta mengisi alasan' : '';
+    r.querySelector('td.siapa').textContent = nama.length ? (nama.length >= Object.keys(NAMA).length ? 'Semua kabupaten' : nama.join(', ')) : '-';
     r.dataset.pilih = st[2] ? '1' : '0';
     if (kab && inf[kab] && inf[kab][0] > 0) r.querySelector('td.siapa').textContent += (nama.length ? '' : '') + '   [' + inf[kab][0] + ' kecamatan berubah di ' + NAMA[kab] + ']';
   }
@@ -130,7 +130,7 @@ foreach ($komoditas as $k)
     kirim([el.closest('tr').dataset.kode], el.checked, fk.value ? {kab: fk.value} : {});
   });
   function massal(nilai){
-    var t = terlihat().filter(function(r){ return r.dataset.arah !== 'tanpa'; }); if (!t.length) { alert('Tidak ada komoditas yang tampil.'); return; }
+    var t = terlihat(); if (!t.length) { alert('Tidak ada komoditas yang tampil.'); return; }
     kirim(t.map(function(r){ return r.dataset.kode; }), nilai, {kab: fk.value, massal: true});
   }
   segar();

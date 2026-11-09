@@ -664,7 +664,7 @@ class Cermat extends MY_Controller
             if ($kab !== null)
             {
                 // komoditas kosong / kabupaten tanpa data tetap boleh diarahkan lewat kotak satuan (alasan diisi tanpa angka)
-                if ( ! $massal && isset(Cermat_harga::$kabupaten[$kab])) { $pasangan[] = array($c, $kab); continue; }
+                if (( ! $massal || ! $ada[$c]) && isset(Cermat_harga::$kabupaten[$kab])) { $pasangan[] = array($c, $kab); continue; }     // komoditas kosong selalu boleh
                 // tombol massal per kabupaten hanya menugaskan komoditas yang kecamatannya berubah (oranye); kotak satuan boleh yang mana saja
                 if (isset($ada[$c][$kab]) && ( ! $massal || ! $nilai || $ada[$c][$kab] > 0)) $pasangan[] = array($c, $kab);
                 continue;
@@ -673,6 +673,7 @@ class Cermat extends MY_Controller
             {
                 $target = array_keys(array_filter($ada[$c]));
                 if ( ! $target && ! $massal) $target = array_keys($ada[$c]);
+                if ( ! $target && ! $ada[$c]) $target = array_keys(Cermat_harga::$kabupaten);      // komoditas kosong (tanpa data kabupaten): diarahkan ke semua kabupaten
                 foreach ($target as $kb) $pasangan[] = array($c, (int) $kb);
             }
             elseif (isset($this->data['penugasan'][$c]))
