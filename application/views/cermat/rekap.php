@@ -43,7 +43,6 @@ ksort($per_kab);
   <button class="btn" type="submit">Terapkan</button>
   <button class="btn alt" type="button" id="breset">Reset</button>
   <?php if ($admin): ?><a class="btn alt" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
-  <?php if ($admin && $sheet): ?><a class="btn alt" href="<?= site_url('cermat/rekap?ringkasan=1&p=' . $p) ?>" title="Ringkasan naik / turun per sheet (baca-saja)">Ringkasan per sheet</a><?php endif; ?>
 </form>
 <p class="hint" id="cnt"></p>
 
