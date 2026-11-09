@@ -104,8 +104,6 @@ main{flex:1;display:flex;align-items:center}
   <div class="hero-isi">
     <div>
       <h1>Perubahan harga perdesaan, dicermati dalam satu tempat.</h1>
-      <p class="lead">Unggah file Hitung RH, biarkan aplikasi menghitung perubahan harga tiap komoditas, lalu tinjau kecamatan yang perlu dikonfirmasi. Rekapnya siap diunduh.</p>
-      <div class="aksi">
         <a class="tbl" href="<?= site_url($sudah_masuk ? 'cermat' : 'auth/login') ?>"><?= $sudah_masuk ? 'Buka dashboard' : 'Masuk untuk mulai' ?></a>
       </div>
     </div>
