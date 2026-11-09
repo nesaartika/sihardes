@@ -1,9 +1,6 @@
 </main>
 <?php
 $peran_f = $this->session->userdata('role');
-$tautan_menu = ($peran_f === 'kabupaten')
-    ? array('Data' => 'cermat/data_asli', 'RH' => 'cermat/hasil_rh', 'Rekap Konfirmasi' => 'cermat/rekap')
-    : array('Dashboard' => 'cermat', 'Unggah Data' => 'cermat/unggah', 'Rekap Konfirmasi' => 'cermat/rekap', 'Riwayat Periode' => 'cermat/riwayat');
 ?>
 <style>
 .kaki-app{display:block;margin-top:auto;border-top:0;background:var(--side);color:#cfd9ea;padding:30px 24px 0;font-size:13px}
@@ -37,9 +34,7 @@ $tautan_menu = ($peran_f === 'kabupaten')
       <nav aria-label="Tautan lain">
         <h4>Tautan</h4>
         <ul>
-          <li><a href="<?= site_url('') ?>">Halaman depan</a></li>
           <li><a href="https://kalbar.bps.go.id" rel="noopener" target="_blank">kalbar.bps.go.id</a></li>
-          <?php if ($peran_f !== 'kabupaten'): ?><li><a href="<?= site_url('auth/ganti_sandi') ?>">Ganti sandi</a></li><?php endif; ?>
           <li><a href="<?= site_url('auth/logout') ?>">Keluar</a></li>
         </ul>
       </nav>
