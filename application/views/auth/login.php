@@ -29,7 +29,7 @@
     <input type="text" name="username" id="username" autocomplete="username" required autofocus>
     <label for="password">Password</label>
     <input type="password" name="password" id="password" autocomplete="current-password" required>
-    <label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-top:10px"><input type="checkbox" id="lihat" style="width:auto">
+    <label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-top:10px"><input type="checkbox" id="lihat" style="width:auto"> Lihat password</label>
     <button class="btn" type="submit">Login</button>
   <?= form_close() ?>
   <a class="balik" href="<?= site_url('') ?>">&larr; </a>
