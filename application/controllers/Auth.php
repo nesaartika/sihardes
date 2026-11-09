@@ -19,7 +19,8 @@ class Auth extends MY_Controller
 
     public function login()
     {
-        if ($this->session->userdata('user_id')) redirect('cermat');
+        // halaman login selalu tampil; bila sesi lama masih aktif, view menampilkan pemberitahuan + tautan ke dashboard
+        $sudah = $this->session->userdata('user_id') ? (string) $this->session->userdata('nama') : '';
         $galat = $this->session->flashdata('galat_login');
 
         if ($this->input->method() === 'post')
@@ -60,7 +61,7 @@ class Auth extends MY_Controller
                 }
             }
         }
-        $this->load->view('auth/login', array('galat' => $galat));
+        $this->load->view('auth/login', array('galat' => $galat, 'sudah' => $sudah));
     }
 
     public function logout()

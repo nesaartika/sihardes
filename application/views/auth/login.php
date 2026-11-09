@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Welcome - Fenomena Harga</title>
+<title>Masuk - Fenomena Harga</title>
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 <style>
   body{align-items:center;justify-content:center;min-height:100vh;background:var(--side)}
@@ -13,6 +13,8 @@
   .kotak label{display:block;font-weight:700;margin:12px 0 4px}
   .kotak input{width:100%;padding:10px;border:1px solid var(--br);border-radius:8px;background:var(--inp);color:var(--tx);font-size:14px}
   .kotak .btn{width:100%;margin-top:18px;padding:11px}
+  .kotak .sesi{background:var(--pri2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:13px}
+  .kotak .sesi a{font-weight:700}
   .kotak .balik{display:block;text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--br);font-size:13px;font-weight:600}
 </style>
 </head>
@@ -20,6 +22,7 @@
 <div class="card kotak">
   <h1><a href="<?= site_url('') ?>" style="color:inherit">Fenomena Harga</a></h1>
   <p class="sub">Pengumpulan Fenomena Perubahan Harga Perdesaan<br>BPS Provinsi Kalimantan Barat</p>
+  <?php if ( ! empty($sudah)): ?><div class="sesi">Anda masih masuk sebagai <b><?= html_escape($sudah) ?></b>. <a href="<?= site_url('cermat') ?>">Lanjut ke dashboard</a> atau login dengan akun lain di bawah.</div><?php endif; ?>
   <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
   <?= form_open('auth/login') ?>
     <label for="username">Email atau nama pengguna</label>
@@ -27,7 +30,7 @@
     <label for="password">Kata sandi</label>
     <input type="password" name="password" id="password" autocomplete="current-password" required>
     <label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-top:10px"><input type="checkbox" id="lihat" style="width:auto"> Lihat password</label>
-    <button class="btn" type="submit">Login</button>
+    <button class="btn" type="submit">Masuk</button>
   <?= form_close() ?>
   <a class="balik" href="<?= site_url('') ?>">&larr; Kembali ke halaman depan</a>
 </div>

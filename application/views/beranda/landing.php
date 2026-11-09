@@ -6,210 +6,163 @@
 <title>Fenomena Harga - BPS Provinsi Kalimantan Barat</title>
 <meta name="description" content="Aplikasi pencermatan dan rekapitulasi perubahan harga perdesaan, BPS Provinsi Kalimantan Barat.">
 <style>
-/* Halaman depan Fenomena Harga. Mandiri: tidak memakai app.css (layout aplikasi berbasis sidebar). */
 :root{
-  --bg:#f3f5f9;--card:#fff;--tx:#1b2433;--mut:#5d6a7d;--br:#e2e7ef;
-  --pri:#1d5fd0;--pri-tx:#fff;--navy:#0e2748;--navy2:#16365f;--on-navy:#e6edf8;--on-navy-mut:#a9b9d3;--aksen:#8db8ff;
-  --naik:#14803c;--turun:#d6342c;--stb:#5d6a7d;--warn:#b45309;--warnbg:#fff4e0;--ok:#14803c;--okbg:rgba(20,128,60,.12);
-  --alt:#e9eef6;
+  --bg:#f3f6fb;--bg2:#e3ecfb;--card:#fff;--tx:#14233b;--mut:#5a6779;--br:#dde4ef;
+  --pri:#1d5fd0;--pri-tx:#fff;--navy:#0e2748;--on-navy:#e6edf8;--on-navy-mut:#a9b9d3;
+  --naik:#14803c;--turun:#d6342c;--stb:#5a6779;--warn:#b45309;--warnbg:#fff4e0;--ok:#14803c;--okbg:rgba(20,128,60,.12);
+  --chip:#fff;
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --bg:#0f1520;--card:#182131;--tx:#e8edf5;--mut:#93a0b4;--br:#2a3548;
-    --pri:#6aa3ff;--pri-tx:#0a1220;--navy:#0a1220;--navy2:#142038;--on-navy:#e8edf5;--on-navy-mut:#93a0b4;
+    --bg:#0f1520;--bg2:#13203a;--card:#182131;--tx:#e8edf5;--mut:#93a0b4;--br:#2a3548;
+    --pri:#6aa3ff;--pri-tx:#0a1220;--navy:#0a1220;
     --naik:#4ade80;--turun:#ff7b72;--stb:#93a0b4;--warn:#fbbf24;--warnbg:#3a2c10;--ok:#4ade80;--okbg:rgba(74,222,128,.14);
-    --alt:#121b2a;
+    --chip:#182131;
   }
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--tx);font:16px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;color:var(--tx);
+  background:radial-gradient(1100px 520px at 85% -10%,var(--bg2),transparent 70%),var(--bg);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
 a{color:var(--pri)}
-:focus-visible{outline:3px solid var(--aksen);outline-offset:2px}
+:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
 .lebar{width:100%;max-width:1120px;margin:0 auto;padding:0 24px}
-
 .lewati{position:absolute;left:12px;top:-60px;background:var(--card);color:var(--tx);padding:8px 14px;border-radius:8px;z-index:50}
 .lewati:focus{top:12px}
 
-/* tombol */
-.tbl{display:inline-block;padding:11px 20px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none;line-height:1.2}
-.tbl-utama{background:var(--pri);color:var(--pri-tx)}
-.tbl-utama:hover{filter:brightness(1.08)}
-.tbl-terang{background:transparent;color:var(--on-navy);border:1px solid rgba(255,255,255,.35);padding:9px 18px}
-.tbl-terang:hover{background:rgba(255,255,255,.1)}
-.hero .tbl-utama{background:#fff;color:var(--navy)}
-@media (prefers-color-scheme:dark){.hero .tbl-utama{background:var(--pri);color:var(--pri-tx)}}
+.tbl{display:inline-block;padding:12px 26px;border-radius:10px;font-weight:600;font-size:15px;text-decoration:none;line-height:1.2;background:var(--pri);color:var(--pri-tx);box-shadow:0 6px 16px rgba(29,95,208,.28)}
+.tbl:hover{filter:brightness(1.07)}
+.tbl-kecil{padding:9px 20px;box-shadow:none}
 
-/* bilah atas + hero berbagi satu latar navy */
-.atas{background:var(--navy)}
-.atas-isi{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:16px;padding-bottom:16px}
-.merek{display:flex;flex-direction:column;text-decoration:none;color:#fff;line-height:1.25}
-.merek b{font-size:17px;letter-spacing:.2px}
-.merek span{font-size:12px;color:var(--on-navy-mut)}
+.atas-isi{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;padding-bottom:20px}
+.merek{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--tx);line-height:1.25}
+.logo{width:40px;height:40px;border-radius:11px;background:var(--navy);display:grid;place-items:center;flex:none}
+.logo svg{width:22px;height:22px;stroke:#fff}
+.merek b{display:block;font-size:17px;font-weight:700;color:var(--tx)}
+.merek small{display:block;font-size:12px;color:var(--mut)}
 
-main{flex:1;display:flex;flex-direction:column;background:var(--navy)}
-.hero{flex:1;display:flex;align-items:center;background:var(--navy);color:var(--on-navy);padding:32px 0 64px}
-.hero .hero-isi{width:100%;max-width:1120px;margin:0 auto;padding:0 24px}
-.hero-isi{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:48px;align-items:center}
-.hero h1{margin:0 0 16px;font-size:clamp(2rem,4.4vw,3.25rem);line-height:1.1;font-weight:800;letter-spacing:-.025em;color:#fff;max-width:15em}
-.lead{margin:0 0 28px;font-size:1.1rem;color:var(--on-navy-mut);max-width:34em}
-.aksi{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
-.catatan{font-size:14px;color:var(--on-navy-mut)}
+main{flex:1;display:flex;align-items:center}
+.hero-isi{width:100%;max-width:1120px;margin:0 auto;padding:24px 24px 56px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center}
+.hero h1{margin:0 0 28px;font-size:clamp(2rem,4vw,3rem);line-height:1.18;font-weight:700;letter-spacing:-.01em;color:var(--tx)}
+.aksi{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.fitur{list-style:none;margin:30px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
+.fitur li{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--chip);border:1px solid var(--br);border-radius:99px;font-size:14px;color:var(--mut)}
+.fitur li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pri)}
 
-/* tabel contoh: elemen utama halaman */
-.buku{margin:0;background:var(--card);color:var(--tx);border-radius:14px;box-shadow:0 18px 40px rgba(0,0,0,.35);overflow:hidden}
-.buku-kepala{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--br)}
+.buku{margin:0;background:var(--card);border:1px solid var(--br);border-radius:16px;box-shadow:0 24px 50px rgba(14,39,72,.16);overflow:hidden}
+.buku-kepala{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--br)}
 .buku-kepala b{font-size:15px}
 .buku-kepala span{font-size:12px;color:var(--mut)}
 .gulir{overflow-x:auto}
 .buku table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-.buku th,.buku td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--br);white-space:nowrap;font-size:14px}
-.buku thead th{font-size:12px;font-weight:700;color:var(--mut);background:var(--bg)}
-.buku tbody th{font-weight:700}
+.buku th,.buku td{padding:13px 14px;text-align:left;border-bottom:1px solid var(--br);white-space:nowrap;font-size:14px}
+.buku th:first-child,.buku td:first-child{padding-left:20px}
+.buku th:last-child,.buku td:last-child{padding-right:20px}
+.buku thead th{font-size:12px;font-weight:600;color:var(--mut);background:var(--bg)}
+.buku tbody th{font-weight:600}
 .buku .n{text-align:right}
 .buku tbody tr:last-child th,.buku tbody tr:last-child td{border-bottom:0}
-.naik{color:var(--naik);font-weight:700}.turun{color:var(--turun);font-weight:700}.stabil{color:var(--stb);font-weight:700}
+.naik{color:var(--naik);font-weight:600}.turun{color:var(--turun);font-weight:600}.stabil{color:var(--stb);font-weight:600}
 .n span[aria-hidden]{font-size:10px;margin-right:2px}
-.lencana{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.lencana{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600}
 .lencana.perlu{background:var(--warnbg);color:var(--warn)}
 .lencana.wajar{background:var(--okbg);color:var(--ok)}
-.tandai th,.tandai td{box-shadow:inset 0 0 0 100vmax rgba(180,83,9,.06)}
-.tandai th:first-child{box-shadow:inset 4px 0 0 var(--warn),inset 0 0 0 100vmax rgba(180,83,9,.06)}
-.buku figcaption{padding:12px 18px 14px;font-size:13px;color:var(--mut);border-top:1px solid var(--br)}
-/* satu gerak saat halaman dibuka: baris yang ditandai menyala sekali */
-@media (prefers-reduced-motion:no-preference){
-  .tandai th,.tandai td{animation:nyala 1.4s ease-out .5s both}
-  @keyframes nyala{from{box-shadow:inset 0 0 0 100vmax rgba(180,83,9,0)}to{box-shadow:inset 0 0 0 100vmax rgba(180,83,9,.06)}}
-  .tandai th:first-child{animation-name:nyala1}
-  @keyframes nyala1{from{box-shadow:inset 0 0 0 var(--warn),inset 0 0 0 100vmax rgba(180,83,9,0)}to{box-shadow:inset 4px 0 0 var(--warn),inset 0 0 0 100vmax rgba(180,83,9,.06)}}
-}
+.tandai th,.tandai td{background:rgba(180,83,9,.06)}
+.tandai th:first-child{box-shadow:inset 4px 0 0 var(--warn)}
+.buku figcaption{padding:13px 20px 15px;font-size:13px;color:var(--mut);border-top:1px solid var(--br)}
 
-/* bagian isi */
-.blok{padding:64px 0}
-.blok-alt{background:var(--alt)}
-.blok h2{margin:0 0 28px;font-size:clamp(1.4rem,2.6vw,1.9rem);line-height:1.25;letter-spacing:-.015em;max-width:24em}
-.blok h3{margin:0 0 6px;font-size:1.05rem}
-.blok p{margin:0;color:var(--mut)}
-
-.langkah{list-style:none;margin:44px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;counter-reset:l}
-.langkah li{position:relative;padding:20px 22px 4px 0;border-top:3px solid var(--br);counter-increment:l}
-.langkah li::before{content:counter(l);position:absolute;top:-3px;left:0;transform:translateY(-100%);font-weight:800;color:var(--pri);font-size:14px;padding-bottom:6px}
-.langkah li:first-child{border-top-color:var(--pri)}
-.langkah p{font-size:15px}
-
-.dua{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
-.peran{background:var(--card);border:1px solid var(--br);border-radius:12px;padding:22px 24px}
-.peran ul{margin:10px 0 0;padding-left:20px;color:var(--mut)}
-.peran li{margin:6px 0}
-.penutup{margin-top:32px}
-
-/* footer */
-.kaki{border-top:1px solid rgba(255,255,255,.14);background:var(--navy);color:var(--on-navy-mut);padding:40px 0 22px}
-.kaki-isi{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap}
-.kaki-merek b{display:block;color:#fff;font-size:17px;margin-bottom:6px}
-.kaki-merek p{margin:0;font-size:14px}
-.kaki-tautan{display:flex;flex-direction:column;gap:8px;font-size:14px}
-.kaki-tautan a{color:var(--on-navy);text-decoration:none}
-.kaki-tautan a:hover{text-decoration:underline}
-.kaki-bawah{margin-top:28px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:13px}
+.kaki{background:var(--navy);color:var(--on-navy-mut);font-size:14px}
+.kaki-isi{display:flex;justify-content:space-between;align-items:center;gap:12px 24px;flex-wrap:wrap;padding-top:22px;padding-bottom:22px}
+.kaki b{color:#fff;margin-right:8px}
+.kaki nav{display:flex;gap:20px}
+.kaki a{color:var(--on-navy);text-decoration:none;font-weight:600}
+.kaki a:hover{text-decoration:underline}
 
 @media (max-width:900px){
-  .hero{padding:24px 0 40px}
-  .hero-isi{grid-template-columns:1fr;gap:32px}
-  .langkah{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:36px}
-  .langkah li{margin-top:22px}
-  .dua{grid-template-columns:1fr}
-  .blok{padding:48px 0}
+  .hero-isi{grid-template-columns:1fr;gap:36px;padding-bottom:40px}
 }
 @media (max-width:520px){
-  .lebar{padding:0 18px}
-  .langkah{grid-template-columns:1fr}
+  .lebar,.hero-isi{padding-left:18px;padding-right:18px}
+  .merek small{display:none}
 }
-
 </style>
 </head>
 <body>
 <a class="lewati" href="#isi">Lewati ke isi</a>
 
-<header class="atas">
+<header>
   <div class="lebar atas-isi">
-    <a class="merek" href="<?= site_url('') ?>"><b>Fenomena Harga</b><span>BPS Provinsi Kalimantan Barat</span></a>
-    
-      <a class="tbl tbl-terang" href="<?= site_url('auth/login') ?>">Masuk</a>
-    
+    <a class="merek" href="<?= site_url('') ?>">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
+      <span><b>Fenomena Harga</b><small>BPS Provinsi Kalimantan Barat</small></span>
+    </a>
+    <a class="tbl tbl-kecil" href="<?= site_url('auth/login') ?>">Login</a>
   </div>
 </header>
 
-<main id="isi">
-  <section class="hero">
-    <div class="lebar hero-isi">
-      <div class="hero-teks">
-        <h1>Perubahan harga perdesaan, dicermati dalam satu tempat.</h1>
-        <div class="aksi">
-          
-            <a class="tbl tbl-utama" href="<?= site_url('auth/login') ?>">Login</a>
-          
-        </div>
-      </div>
-
-      <figure class="buku" aria-labelledby="buku-ket">
-        <div class="buku-kepala">
-          <b>Rekap konfirmasi</b>
-          <span>Contoh tampilan, angka rekaan</span>
-        </div>
-        <div class="gulir">
-          <table>
-            <thead>
-              <tr><th scope="col">Komoditas</th><th scope="col" class="n">Provinsi</th><th scope="col" class="n">Kecamatan terjauh</th><th scope="col">Status</th></tr>
-            </thead>
-            <tbody>
-              <tr class="tandai">
-                <th scope="row">Beras</th>
-                <td class="n naik"><span aria-hidden="true">&#9650;</span> +1,8%</td>
-                <td class="n naik"><span aria-hidden="true">&#9650;</span> +6,2%</td>
-                <td><span class="lencana perlu">Perlu konfirmasi</span></td>
-              </tr>
-              <tr class="tandai">
-                <th scope="row">Cabai rawit</th>
-                <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;7,4%</td>
-                <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;9,1%</td>
-                <td><span class="lencana perlu">Perlu konfirmasi</span></td>
-              </tr>
-              <tr>
-                <th scope="row">Minyak goreng</th>
-                <td class="n naik"><span aria-hidden="true">&#9650;</span> +0,6%</td>
-                <td class="n naik"><span aria-hidden="true">&#9650;</span> +1,1%</td>
-                <td><span class="lencana wajar">Wajar</span></td>
-              </tr>
-              <tr>
-                <th scope="row">Garam</th>
-                <td class="n stabil">0,0%</td>
-                <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;0,9%</td>
-                <td><span class="lencana wajar">Wajar</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+<main id="isi" class="hero">
+  <div class="hero-isi">
+    <div>
+      <h1>Perubahan harga perdesaan, dicermati dalam satu tempat.</h1>
+      <div class="aksi"><a class="tbl" href="<?= site_url('auth/login') ?>">Login</a></div>
+      <ul class="fitur">
+        <li>Unggah file Hitung RH</li>
+        <li>Dihitung otomatis</li>
+        <li>Rekap siap diunduh</li>
+      </ul>
     </div>
-  </section>
 
+    <figure class="buku" aria-labelledby="buku-ket">
+      <div class="buku-kepala">
+        <b>Rekap konfirmasi</b>
+        <span>Contoh tampilan, angka rekaan</span>
+      </div>
+      <div class="gulir">
+        <table>
+          <thead>
+            <tr><th scope="col">Komoditas</th><th scope="col" class="n">Provinsi</th><th scope="col" class="n">Kecamatan</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr class="tandai">
+              <th scope="row">Beras</th>
+              <td class="n naik"><span aria-hidden="true">&#9650;</span> +1,8%</td>
+              <td class="n naik"><span aria-hidden="true">&#9650;</span> +6,2%</td>
+              <td><span class="lencana perlu">Perlu konfirmasi</span></td>
+            </tr>
+            <tr class="tandai">
+              <th scope="row">Cabai rawit</th>
+              <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;7,4%</td>
+              <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;9,1%</td>
+              <td><span class="lencana perlu">Perlu konfirmasi</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Minyak goreng</th>
+              <td class="n naik"><span aria-hidden="true">&#9650;</span> +0,6%</td>
+              <td class="n naik"><span aria-hidden="true">&#9650;</span> +1,1%</td>
+              <td><span class="lencana wajar">Wajar</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Garam</th>
+              <td class="n stabil">0,0%</td>
+              <td class="n turun"><span aria-hidden="true">&#9660;</span> &minus;0,9%</td>
+              <td><span class="lencana wajar">Wajar</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <figcaption id="buku-ket">Kecamatan yang searah dengan provinsi dan berubah 5% atau lebih masuk daftar konfirmasi.</figcaption>
+    </figure>
+  </div>
 </main>
 
 <footer class="kaki">
   <div class="lebar kaki-isi">
-    <div class="kaki-merek">
-      <b>Fenomena Harga</b>
-      <p>Pengumpulan Fenomena Perubahan Harga Perdesaan</p>
-      <p>Badan Pusat Statistik Provinsi Kalimantan Barat</p>
-    </div>
-    <nav class="kaki-tautan" aria-label="Tautan footer">
-      
-        <a href="<?= site_url('auth/login') ?>">Masuk</a>
-      
+    <span><b>Fenomena Harga</b>Badan Pusat Statistik Provinsi Kalimantan Barat &copy; <?= date('Y') ?></span>
+    <nav aria-label="Tautan footer">
+      <a href="<?= site_url('auth/login') ?>">Login</a>
       <a href="https://kalbar.bps.go.id" rel="noopener" target="_blank">kalbar.bps.go.id</a>
     </nav>
   </div>
-  <div class="lebar"><div class="kaki-bawah">&copy; <?= date('Y') ?> BPS Provinsi Kalimantan Barat</div></div>
 </footer>
 </body>
 </html>
