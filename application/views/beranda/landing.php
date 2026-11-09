@@ -156,7 +156,7 @@ main{flex:1;display:flex;align-items:center}
 
 <footer class="kaki">
   <div class="lebar kaki-isi">
-    <span><b>Fenomena Harga</b>Badan Pusat Statistik Provinsi Kalimantan Barat &copy; <?= date('Y') ?></span>
+    <span>Badan Pusat Statistik Provinsi Kalimantan Barat &copy; <?= date('Y') ?></span>
     <nav aria-label="Tautan footer">
       <a href="<?= site_url('auth/login') ?>">Login</a>
       <a href="https://kalbar.bps.go.id" rel="noopener" target="_blank">kalbar.bps.go.id</a>
