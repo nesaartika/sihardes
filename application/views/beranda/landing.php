@@ -23,7 +23,7 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--tx);font:16px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
 a{color:var(--pri)}
 :focus-visible{outline:3px solid var(--aksen);outline-offset:2px}
 .lebar{width:100%;max-width:1120px;margin:0 auto;padding:0 24px}
@@ -47,7 +47,9 @@ a{color:var(--pri)}
 .merek b{font-size:17px;letter-spacing:.2px}
 .merek span{font-size:12px;color:var(--on-navy-mut)}
 
-.hero{background:var(--navy);color:var(--on-navy);padding:40px 0 72px}
+main{flex:1;display:flex;flex-direction:column;background:var(--navy)}
+.hero{flex:1;display:flex;align-items:center;background:var(--navy);color:var(--on-navy);padding:32px 0 64px}
+.hero .hero-isi{width:100%;max-width:1120px;margin:0 auto;padding:0 24px}
 .hero-isi{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:48px;align-items:center}
 .hero h1{margin:0 0 16px;font-size:clamp(2rem,4.4vw,3.25rem);line-height:1.1;font-weight:800;letter-spacing:-.025em;color:#fff;max-width:15em}
 .lead{margin:0 0 28px;font-size:1.1rem;color:var(--on-navy-mut);max-width:34em}
@@ -102,7 +104,7 @@ a{color:var(--pri)}
 .penutup{margin-top:32px}
 
 /* footer */
-.kaki{background:var(--navy);color:var(--on-navy-mut);padding:40px 0 22px}
+.kaki{border-top:1px solid rgba(255,255,255,.14);background:var(--navy);color:var(--on-navy-mut);padding:40px 0 22px}
 .kaki-isi{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap}
 .kaki-merek b{display:block;color:#fff;font-size:17px;margin-bottom:6px}
 .kaki-merek p{margin:0;font-size:14px}
@@ -112,7 +114,7 @@ a{color:var(--pri)}
 .kaki-bawah{margin-top:28px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:13px}
 
 @media (max-width:900px){
-  .hero{padding:28px 0 48px}
+  .hero{padding:24px 0 40px}
   .hero-isi{grid-template-columns:1fr;gap:32px}
   .langkah{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:36px}
   .langkah li{margin-top:22px}
@@ -195,53 +197,6 @@ a{color:var(--pri)}
     </div>
   </section>
 
-  <section class="blok" aria-labelledby="alur">
-    <div class="lebar">
-      <h2 id="alur">Dari file Excel sampai rekap, empat langkah</h2>
-      <ol class="langkah">
-        <li>
-          <h3>Unggah file</h3>
-          <p>Pilih file Hitung RH bulanan (.xlsx), lalu tentukan bulan dan tahunnya.</p>
-        </li>
-        <li>
-          <h3>Perubahan dihitung</h3>
-          <p>Perubahan provinsi per komoditas memakai rata-rata geometrik, sama dengan kolom RHt di sheet RH.</p>
-        </li>
-        <li>
-          <h3>Alasan dicatat</h3>
-          <p>Komoditas dan kecamatan yang masuk daftar konfirmasi diberi alasan oleh petugas kabupaten.</p>
-        </li>
-        <li>
-          <h3>Rekap diunduh</h3>
-          <p>Rekap konfirmasi dan hasil RH diunduh sebagai Excel dalam format yang sudah dipakai.</p>
-        </li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="blok blok-alt" aria-labelledby="peran">
-    <div class="lebar">
-      <h2 id="peran">Setiap akun melihat yang perlu dilihat</h2>
-      <div class="dua">
-        <div class="peran">
-          <h3>Admin provinsi</h3>
-          <ul>
-            <li>Mengunggah data bulanan dan memilih periode</li>
-            <li>Memantau dashboard, daftar komoditas, dan riwayat periode</li>
-            <li>Mengelola akun pengguna dan melihat log aktivitas</li>
-          </ul>
-        </div>
-        <div class="peran">
-          <h3>Akun kabupaten</h3>
-          <ul>
-            <li>Membuka Data, RH, dan Rekap Konfirmasi untuk kabupatennya</li>
-            <li>Mengisi dan menyimpan alasan perubahan harga</li>
-            <li>Meminta kata sandi atau akun baru ke admin provinsi</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
 </main>
 
 <footer class="kaki">
