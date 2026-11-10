@@ -17,7 +17,6 @@
   <div class="card-body p-4">
     <h1 class="h4 fw-bold mb-1"><a href="<?= site_url('') ?>" class="text-decoration-none text-body"><?= html_escape($nama_app) ?></a></h1>
     <p class="text-secondary small mb-3"><?= html_escape($nama_app_ket) ?><br>BPS Provinsi Kalimantan Barat</p>
-    <?php if ( ! empty($sudah)): ?><div class="alert alert-info py-2 small">Anda masih masuk sebagai <b><?= html_escape($sudah) ?></b>. <a href="<?= site_url('cermat') ?>">Lanjut ke dashboard</a> atau login dengan akun lain di bawah.</div><?php endif; ?>
     <?php if ( ! empty($galat)): ?><div class="alert alert-danger py-2 small"><?= html_escape($galat) ?></div><?php endif; ?>
     <?= form_open('auth/login') ?>
       <div class="mb-3">
