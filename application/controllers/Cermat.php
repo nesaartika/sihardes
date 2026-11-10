@@ -1105,7 +1105,7 @@ class Cermat extends MY_Controller
         }
         ksort($tmp);      // urut menurut kode kabupaten
         $out = array();
-        foreach ($tmp as $kab => $v) $out[Cermat_harga::label_kab($kab)] = $v;
+        foreach ($tmp as $kab => $v) $out[Cermat_harga::nama_kab($kab)] = $v;
         return $out;
     }
 

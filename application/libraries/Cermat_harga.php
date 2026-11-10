@@ -520,7 +520,7 @@ class Cermat_harga
         }
         ksort($per_kab);      // urut menurut kode kabupaten
         $dgn_label = array();
-        foreach ($per_kab as $kab => $v) $dgn_label[self::label_kab($kab)] = $v;
+        foreach ($per_kab as $kab => $v) $dgn_label[self::nama_kab($kab)] = $v;
         $per_kab = $dgn_label;
 
         $top = array();

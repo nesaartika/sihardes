@@ -38,7 +38,7 @@ ksort($per);
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select></div>
   <?php else: ?>
   <input type="hidden" id="fkab" value="">
-  <div class="col-auto"><span class="chip"><?= html_escape(Cermat_harga::label_kab((int) $kunci_kab)) ?></span></div>
+  <div class="col-auto"><span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span></div>
   <?php endif; ?>
   <div class="col-auto"><select class="form-select form-select-sm" id="fstatus"><option value="">Semua status alasan</option><option value="belum">Belum diisi</option><option value="sudah">Sudah diisi</option></select></div>
   <div class="col-auto d-flex gap-2">
@@ -77,7 +77,7 @@ ksort($per);
   <tbody class="grp" data-kab="<?= (int) $kb ?>">
     <tr class="kab-head table-primary">
       <th colspan="6" style="position:static;text-transform:none;font-size:14px;letter-spacing:0;color:inherit">
-        <?php if (Cermat_harga::kode_kab($kb) !== ''): ?><span class="badge text-bg-primary me-2"><?= Cermat_harga::kode_kab($kb) ?></span><?php endif; ?><?= html_escape(Cermat_harga::nama_kab($kb)) ?>
+        <?= html_escape(Cermat_harga::nama_kab($kb)) ?>
         <span class="fw-normal text-secondary ms-2"><?= count($baris) ?> komoditas &middot; <span class="n-isi"><?= $n_isi ?></span> terisi</span>
       </th>
     </tr>
