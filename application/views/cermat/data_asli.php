@@ -47,7 +47,7 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
   </tr></thead>
   <tbody>
   <?php foreach ($baris as $r): ?>
-    <tr><?php foreach ($r as $i => $v): if (strcasecmp(trim((string) $kolom[$i]), 'Column1') === 0) continue; ?><td<?= ($v !== null && is_numeric($v)) ? ' style="text-align:right"' : '' ?>><?= html_escape((string) $v) ?></td><?php endforeach; ?></tr>
+    <tr><?php foreach ($r as $i => $v): if (strcasecmp(trim((string) $kolom[$i]), 'Column1') === 0) continue; ?><td<?= ($v !== null && is_numeric($v)) ? ' style="text-align:right"' : '' ?>><?= html_escape((strcasecmp(trim((string) $kolom[$i]), 'Kabupaten') === 0 && is_numeric($v) && Cermat_harga::kode_kab((int) $v) !== '') ? Cermat_harga::kode_kab((int) $v) : (string) $v) ?></td><?php endforeach; ?></tr>
   <?php endforeach; ?>
   </tbody>
 </table></div>
