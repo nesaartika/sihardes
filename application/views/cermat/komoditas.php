@@ -19,6 +19,9 @@ foreach ($komoditas as $k)
   </select>
   <b class="ms-2">2. Komoditas:</b>
   <span class="chip" id="chipDipilih">Dikonfirmasi: <?= $dipilih ?> komoditas</span>
+  <?= form_open('cermat/reset_penugasan?p=' . $p, array('style' => 'display:inline;margin:0', 'onsubmit' => "return confirm('Kembalikan pilihan ke bawaan awal? Centang yang Anda atur sendiri akan diganti (alasan yang sudah diisi tidak dihapus).')")) ?>
+    <button class="btn btn-outline-danger btn-sm" type="submit" title="Centang ulang otomatis komoditas yang berubah ke kabupaten terkait">Kembalikan pilihan awal</button>
+  <?= form_close() ?>
   <?php if ( ! $sheet): ?>
   <?= form_open('cermat/lengkapi_komoditas?p=' . $p, array('style' => 'display:inline;margin:0')) ?>
     <button class="btn btn-outline-primary btn-sm" type="submit" title="Masukkan komoditas di sheet RH yang belum ada pada periode ini (nilainya kosong)">Lengkapi komoditas kosong</button>

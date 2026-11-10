@@ -678,6 +678,15 @@ class Periode_model extends CI_Model
         return $this->hitung_dipilih($periode_id);
     }
 
+    /** Hapus semua penugasan; pembacaan berikutnya mengisi ulang bawaan awal (komoditas yang berubah -> kabupaten terkait). */
+    public function reset_penugasan($periode_id)
+    {
+        $this->db->delete('penugasan', array('periode_id' => $periode_id));
+        $this->db->update('periode', array('penugasan_siap' => 0), array('id' => $periode_id));
+        $this->penugasan($periode_id);      // isi ulang sekarang
+        return $this->hitung_dipilih($periode_id);
+    }
+
     /** Jumlah komoditas yang diminta dikonfirmasi; sekaligus memperbarui ringkasan periode. */
     public function hitung_dipilih($periode_id)
     {
