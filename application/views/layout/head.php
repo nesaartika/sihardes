@@ -125,6 +125,17 @@ document.addEventListener('DOMContentLoaded', function(){
   window.addEventListener('resize', function(){ if (window.innerWidth > 900) set(false); });
 });
 </script>
+<script>
+/* Tombol Unduh Excel disatukan dengan baris filter halaman (bila ada) supaya rapi */
+document.addEventListener('DOMContentLoaded', function(){
+  var box = document.getElementById('aksiHalaman'); if (!box) return;
+  var form = document.querySelector('main form#ffilter, main form.bar'); if (!form) return;
+  var tbl = box.firstElementChild;
+  if (form.classList.contains('row')) { var col = document.createElement('div'); col.className = 'col-auto ms-md-auto'; col.appendChild(tbl); form.appendChild(col); }
+  else { tbl.style.marginLeft = 'auto'; form.appendChild(tbl); }
+  box.remove();
+});
+</script>
 <div class="wrap">
   <header class="top bs">
     <button type="button" class="btn-menu" id="btnMenu" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
@@ -154,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function(){
   </header>
   <main>
   <?php if ( ! empty($unduh) && $p && ! $akun_kab && in_array($menu, array('data', 'rh', 'rekap'))): ?>
-    <div class="bs aksi-halaman"><a class="btn btn-sm btn-unduh" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>" aria-label="<?= html_escape($unduh_ket) ?>"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h8M12 11v8"/></svg><span class="teks">Unduh Excel</span></a></div>
+    <div class="bs aksi-halaman" id="aksiHalaman"><a class="btn btn-sm btn-unduh" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>" aria-label="<?= html_escape($unduh_ket) ?>"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h8M12 11v8"/></svg><span class="teks">Unduh Excel</span></a></div>
   <?php endif; ?>
   <?php if ($pesan = $this->session->flashdata('pesan')): ?>
     <div class="alert alert-success py-2 mb-3"><?= html_escape($pesan) ?></div>
