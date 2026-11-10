@@ -25,7 +25,7 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
   <input type="text" name="q" value="<?= html_escape($q) ?>" placeholder="Cari di semua kolom...">
   <?php if ($mode === 'data' && empty($kunci_kab) && ! empty($kab_nilai)): ?>
   <select name="kab"><option value="">Semua Kabupaten</option>
-    <?php foreach ($kab_nilai as $v): ?><option value="<?= html_escape($v) ?>" <?= (string) $f['kab'] === (string) $v ? 'selected' : '' ?>><?= html_escape($v) ?> - <?= html_escape(Cermat_harga::nama_kab((int) $v)) ?></option><?php endforeach; ?></select>
+    <?php foreach ($kab_nilai as $v): ?><option value="<?= html_escape($v) ?>" <?= (string) $f['kab'] === (string) $v ? 'selected' : '' ?>><?= html_escape(Cermat_harga::label_kab((int) $v)) ?></option><?php endforeach; ?></select>
   <?php elseif ($mode === 'data' && ! empty($kunci_kab)): ?>
   <span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span>
   <?php endif; ?>
