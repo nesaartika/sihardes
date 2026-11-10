@@ -47,6 +47,7 @@ $ikon = array(
 $menu_item = array(
  'dashboard' => array('Dashboard', 'cermat'),
  'unggah'    => array('Unggah Data', 'cermat/unggah'),
+ 'data'      => array('Data', 'cermat/data_asli'),
  'rh'        => array('RH', 'cermat/hasil_rh'),
  'rekap'     => array('Rekap Konfirmasi', 'cermat/rekap'),
  'komoditas' => array('Semua Komoditas', 'cermat/komoditas'),
@@ -56,7 +57,7 @@ $menu_item = array(
 );
 $role = $this->session->userdata('role');
 $akun_kab = ($role === 'kabupaten');
-if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('rh', 'rekap')));   // akun kabupaten: RH dan Rekap
+if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rh', 'rekap')));   // akun kabupaten: Data, RH, dan Rekap
 // Menu samping SELALU sama untuk tiap peran (tidak berubah menurut periode/file yang dibuka atau diunggah).
 $nm_user = (string) $this->session->userdata('nama');
 $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
