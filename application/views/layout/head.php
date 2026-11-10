@@ -24,6 +24,13 @@
 .unduh-bar{margin-left:auto}
 @media (max-width:767px){
   .col-unduh .btn-unduh,.unduh-bar{width:100%;justify-content:center;margin-left:0;flex:1 0 100%;padding-top:9px;padding-bottom:9px}
+  /* halaman Data & RH di HP: filter tersusun rapi 2 kolom */
+  main form.bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+  main form.bar input[type=text]{grid-column:1/-1;width:100%;min-width:0}
+  main form.bar select{width:100%;min-width:0}
+  main form.bar .chip{grid-column:1/-1;justify-self:start}
+  main form.bar .btn{width:100%;justify-content:center;text-align:center;margin:0;padding:10px 12px;display:inline-flex;align-items:center}
+  main form.bar .unduh-bar{grid-column:1/-1;margin:0}
 }
 
 /* HP/tablet: sidebar muncul dari samping lewat tombol garis tiga */
