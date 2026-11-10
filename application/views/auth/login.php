@@ -30,7 +30,7 @@ body{min-height:100vh;margin:0;color:var(--tx);font:15px/1.6 "Segoe UI",system-u
   <div class="merek">
     <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo SIHARDES"><defs><linearGradient id="lgB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d5fd0"/><stop offset="1" stop-color="#0aa5e8"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#lgB)"/><rect x="10" y="27" width="5" height="11" rx="2.5" fill="#fff" opacity=".55"/><rect x="21.5" y="21" width="5" height="17" rx="2.5" fill="#fff" opacity=".55"/><rect x="33" y="15" width="5" height="23" rx="2.5" fill="#fff" opacity=".55"/><path d="M9 25l9-8 8 5 13-11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="39" cy="11" r="3.2" fill="#7cf5c6"/></svg>
     <b><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></b>
-    <small><?= html_escape(config_item('nama_app_ket') ?: 'Sistem Informasi Harga Perdesaan') ?></small>
+    <small>BPS Provinsi Kalimantan Barat</small>
   </div>
   <?php if ( ! empty($galat)): ?><div class="alert alert-danger py-2 small"><?= html_escape($galat) ?></div><?php endif; ?>
   <?= form_open('auth/login') ?>

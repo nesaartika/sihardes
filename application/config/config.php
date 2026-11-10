@@ -537,6 +537,5 @@ $config['rewrite_short_tags'] = FALSE;
 */
 $config['proxy_ips'] = '';
 
-/* Nama aplikasi (tampil di judul, menu samping, login, beranda) */
+/* Nama aplikasi (tampil di judul, menu samping, login, beranda). SIHARDES = Si Harga Desa */
 $config['nama_app']     = 'SIHARDES';
-$config['nama_app_ket'] = 'Sistem Informasi Harga Perdesaan';
