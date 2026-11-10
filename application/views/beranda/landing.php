@@ -8,61 +8,57 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <style>
 :root{
-  --bg2:#e3ecfb;--card:#fff;--br:#dde4ef;--pri:#1d5fd0;--navy:#0e2748;
-  --naik:#14803c;--turun:#d6342c;--warn:#b45309;
+  --bg:#f3f6fb;--bg2:#e3ecfb;--card:#fff;--tx:#14233b;--mut:#5a6779;--br:#dde4ef;
+  --pri:#1d5fd0;--navy:#0e2748;--naik:#14803c;--turun:#d6342c;--warn:#b45309;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;min-height:100vh;display:flex;flex-direction:column;color:#fff;background:#071a36;
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;color:var(--tx);background:var(--bg);
   font:16px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
 a{text-decoration:none}
-:focus-visible{outline:3px solid #7cf5c6;outline-offset:2px}
+:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
 
-/* latar: gradasi + cahaya berpendar */
+/* latar terang bergaya aplikasi BPS: biru muda lembut + pola titik halus */
 .latar{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden;
-  background:linear-gradient(135deg,#071a36 0%,#0d2f66 45%,#124a9c 100%)}
+  background:radial-gradient(1000px 520px at 88% -8%,#d3e3fb,transparent 70%),radial-gradient(700px 420px at -5% 105%,#dff3ff,transparent 70%),var(--bg)}
 .latar::before{content:"";position:absolute;inset:0;pointer-events:none;
-  background-image:radial-gradient(rgba(255,255,255,.10) 1px,transparent 1px);background-size:26px 26px;
-  mask-image:linear-gradient(180deg,#000 0%,transparent 85%);-webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 85%)}
-.cahaya{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;pointer-events:none}
-.c1{width:420px;height:420px;background:#00b0ff;top:-120px;right:-80px;animation:geser 14s ease-in-out infinite}
-.c2{width:360px;height:360px;background:#00e676;bottom:-140px;left:-100px;opacity:.28;animation:geser 18s ease-in-out infinite reverse}
-.c3{width:260px;height:260px;background:#ff9100;top:38%;left:42%;opacity:.18;animation:geser 16s ease-in-out infinite}
-@keyframes geser{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-26px)}}
+  background-image:radial-gradient(rgba(29,95,208,.13) 1.2px,transparent 1.2px);background-size:26px 26px;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 80%);mask-image:linear-gradient(180deg,#000 0%,transparent 80%)}
+.cahaya{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;opacity:.5}
+.c1{width:360px;height:360px;background:#b7d4ff;top:-110px;right:-70px;animation:geser 16s ease-in-out infinite}
+.c2{width:300px;height:300px;background:#c9f2e0;bottom:-120px;left:-90px;opacity:.55;animation:geser 19s ease-in-out infinite reverse}
+.c3{display:none}
+@keyframes geser{0%,100%{transform:translate(0,0)}50%{transform:translate(26px,-22px)}}
 
 .lebar{width:100%;max-width:1160px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
-.atas-isi{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:22px;padding-bottom:22px}
-.merek{display:flex;align-items:center;gap:12px;color:#fff;line-height:1.25}
-.logo{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex:none;
-  background:linear-gradient(135deg,#00e5ff,#2979ff);box-shadow:0 8px 22px rgba(0,176,255,.45)}
-.logo svg{width:24px;height:24px;stroke:#fff}
-.merek b{display:block;font-size:18px;font-weight:800;letter-spacing:.04em}
-.merek small{display:block;font-size:12px;color:#b8cdf0}
+.atas-isi{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;padding-bottom:20px}
+.merek{display:flex;align-items:center;gap:12px;color:var(--tx);line-height:1.25}
+.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--navy);box-shadow:0 6px 16px rgba(14,39,72,.25)}
+.logo svg{width:22px;height:22px;stroke:#fff}
+.merek b{display:block;font-size:18px;font-weight:800;letter-spacing:.03em;color:var(--navy)}
+.merek small{display:block;font-size:12px;color:var(--mut)}
 
-.tbl{display:inline-flex;align-items:center;gap:10px;padding:13px 28px;border-radius:12px;font-weight:700;font-size:15px;line-height:1.2;
-  background:linear-gradient(135deg,#00e676,#00c2a8);color:#04261b;box-shadow:0 10px 26px rgba(0,230,118,.35);transition:transform .15s,box-shadow .15s}
-.tbl:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,230,118,.5);color:#04261b}
+.tbl{display:inline-flex;align-items:center;gap:10px;padding:13px 28px;border-radius:10px;font-weight:700;font-size:15px;line-height:1.2;
+  background:var(--pri);color:#fff;box-shadow:0 8px 20px rgba(29,95,208,.30);transition:transform .15s,box-shadow .15s,filter .15s}
+.tbl:hover{transform:translateY(-2px);filter:brightness(1.07);box-shadow:0 12px 24px rgba(29,95,208,.38);color:#fff}
 .tbl svg{width:18px;height:18px}
-.tbl-kaca{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35);box-shadow:none;backdrop-filter:blur(6px);padding:9px 22px}
-.tbl-kaca:hover{background:rgba(255,255,255,.22);color:#fff;box-shadow:none}
+.tbl-kecil{padding:9px 22px;box-shadow:none}
 
 .hero{flex:1;display:flex;align-items:center;position:relative;z-index:2}
-.hero-isi{width:100%;max-width:1160px;margin:0 auto;padding:20px 24px 70px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:48px;align-items:center}
-.pil{display:inline-flex;align-items:center;gap:9px;padding:7px 16px;border-radius:99px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);
-  font-size:13px;font-weight:600;color:#d8e6ff;margin-bottom:22px;backdrop-filter:blur(6px)}
-.pil i{width:9px;height:9px;border-radius:50%;background:#00e676;box-shadow:0 0 0 0 rgba(0,230,118,.7);animation:denyut 2s infinite}
-@keyframes denyut{70%{box-shadow:0 0 0 10px rgba(0,230,118,0)}100%{box-shadow:0 0 0 0 rgba(0,230,118,0)}}
-.hero h1{margin:0 0 18px;font-size:clamp(2.2rem,4.6vw,3.6rem);line-height:1.12;font-weight:800;letter-spacing:-.015em;color:#fff}
-.hero h1 span{background:linear-gradient(90deg,#00e5ff,#00e676 55%,#ffd600);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p.lead2{color:#c4d6f5;font-size:17.5px;margin:0 0 30px;max-width:500px}
+.hero-isi{width:100%;max-width:1160px;margin:0 auto;padding:20px 24px 64px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:48px;align-items:center}
+.pil{display:inline-flex;align-items:center;gap:9px;padding:7px 16px;border-radius:99px;background:#fff;border:1px solid var(--br);
+  font-size:13px;font-weight:600;color:var(--pri);margin-bottom:20px;box-shadow:0 2px 8px rgba(14,39,72,.06)}
+.pil i{width:9px;height:9px;border-radius:50%;background:#00c853;animation:denyut 2s infinite}
+@keyframes denyut{0%{box-shadow:0 0 0 0 rgba(0,200,83,.55)}70%{box-shadow:0 0 0 10px rgba(0,200,83,0)}100%{box-shadow:0 0 0 0 rgba(0,200,83,0)}}
+.hero h1{margin:0 0 16px;font-size:clamp(2.1rem,4.4vw,3.3rem);line-height:1.15;font-weight:800;letter-spacing:-.01em;color:var(--navy)}
+.hero h1 span{color:var(--pri);background:linear-gradient(90deg,#1d5fd0,#0aa5e8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p.lead2{color:var(--mut);font-size:17px;margin:0 0 28px;max-width:500px}
 .aksi{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
 
-/* ilustrasi */
 .ilus-bungkus{position:relative;justify-self:center;width:100%;max-width:540px}
-.ilus-bungkus::before{content:"";position:absolute;inset:6% 4%;border-radius:36px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);transform:rotate(3deg)}
+.ilus-bungkus::before{content:"";position:absolute;inset:7% 3%;border-radius:34px;background:linear-gradient(145deg,#ffffff,#e3ecfb);border:1px solid var(--br);transform:rotate(3deg);box-shadow:0 20px 40px rgba(14,39,72,.08)}
 .ilus{position:relative;width:100%;height:auto;overflow:visible;animation:melayang 7s ease-in-out infinite}
-@keyframes melayang{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-
+@keyframes melayang{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .ilus .i-bayang{fill:var(--navy);opacity:.10}
 .ilus .i-kartu2{fill:var(--bg2);stroke:var(--br);stroke-width:1.5}
 .ilus .i-kartu{fill:var(--card);stroke:var(--br);stroke-width:1.5;filter:drop-shadow(0 22px 30px rgba(14,39,72,.16))}
@@ -88,13 +84,14 @@ a{text-decoration:none}
 
 
 
-.kaki{background:#051429;color:#8fa6cc;font-size:14px;position:relative;z-index:2;border-top:1px solid rgba(255,255,255,.08)}
+
+.kaki{background:var(--navy);color:#a9b9d3;font-size:14px;position:relative;z-index:2}
 .kaki-isi{display:flex;justify-content:space-between;align-items:center;gap:12px 24px;flex-wrap:wrap;padding-top:20px;padding-bottom:20px}
-.kaki a{color:#dbe7ff;font-weight:600}
+.kaki a{color:#e6edf8;font-weight:600}
 .kaki a:hover{text-decoration:underline}
 
 @media (max-width:900px){
-  .hero-isi{grid-template-columns:1fr;gap:34px;padding-bottom:50px;text-align:left}
+  .hero-isi{grid-template-columns:1fr;gap:34px;padding-bottom:46px}
   .ilus-bungkus{max-width:440px}
 }
 @media (max-width:520px){
@@ -114,7 +111,7 @@ a{text-decoration:none}
         <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
         <span><b><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></b><small>BPS Provinsi Kalimantan Barat</small></span>
       </a>
-      <a class="tbl tbl-kaca" href="<?= site_url('auth/login') ?>">Login</a>
+      <a class="tbl tbl-kecil" href="<?= site_url('auth/login') ?>">Login</a>
     </div>
   </header>
 
