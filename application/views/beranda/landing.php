@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2048%2048%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20role%3D%22img%22%20aria-label%3D%22Logo%20SIHARDES%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22f%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%231d5fd0%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230aa5e8%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2248%22%20height%3D%2248%22%20rx%3D%2213%22%20fill%3D%22url%28%23f%29%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2227%22%20width%3D%225%22%20height%3D%2211%22%20rx%3D%222.5%22%20fill%3D%22%23fff%22%20opacity%3D%22.55%22/%3E%3Crect%20x%3D%2221.5%22%20y%3D%2221%22%20width%3D%225%22%20height%3D%2217%22%20rx%3D%222.5%22%20fill%3D%22%23fff%22%20opacity%3D%22.55%22/%3E%3Crect%20x%3D%2233%22%20y%3D%2215%22%20width%3D%225%22%20height%3D%2223%22%20rx%3D%222.5%22%20fill%3D%22%23fff%22%20opacity%3D%22.55%22/%3E%3Cpath%20d%3D%22M9%2025l9-8%208%205%2013-11%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%2239%22%20cy%3D%2211%22%20r%3D%223.2%22%20fill%3D%22%237cf5c6%22/%3E%3C/svg%3E">
 <title><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?> - BPS Provinsi Kalimantan Barat</title>
 <meta name="description" content="Fenomena perubahan harga perdesaan pada BPS Provinsi Kalimantan Barat.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -33,8 +34,8 @@ a{text-decoration:none}
 .lebar{width:100%;max-width:1160px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
 .atas-isi{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;padding-bottom:20px}
 .merek{display:flex;align-items:center;gap:12px;color:var(--tx);line-height:1.25}
-.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--navy);box-shadow:0 6px 16px rgba(14,39,72,.25)}
-.logo svg{width:22px;height:22px;stroke:#fff}
+.logo{width:46px;height:46px;flex:none;filter:drop-shadow(0 6px 12px rgba(29,95,208,.35))}
+.logo svg{width:46px;height:46px;display:block}
 .merek b{display:block;font-size:18px;font-weight:800;letter-spacing:.03em;color:var(--navy)}
 .merek small{display:block;font-size:12px;color:var(--mut)}
 
@@ -108,7 +109,7 @@ a{text-decoration:none}
   <header>
     <div class="lebar atas-isi">
       <a class="merek" href="<?= site_url('') ?>">
-        <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
+        <span class="logo" aria-hidden="true"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo SIHARDES"><defs><linearGradient id="lgL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d5fd0"/><stop offset="1" stop-color="#0aa5e8"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#lgL)"/><rect x="10" y="27" width="5" height="11" rx="2.5" fill="#fff" opacity=".55"/><rect x="21.5" y="21" width="5" height="17" rx="2.5" fill="#fff" opacity=".55"/><rect x="33" y="15" width="5" height="23" rx="2.5" fill="#fff" opacity=".55"/><path d="M9 25l9-8 8 5 13-11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="39" cy="11" r="3.2" fill="#7cf5c6"/></svg></span>
         <span><b><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></b><small>BPS Provinsi Kalimantan Barat</small></span>
       </a>
       <a class="tbl tbl-kecil" href="<?= site_url('auth/login') ?>">Login</a>
@@ -120,7 +121,7 @@ a{text-decoration:none}
       <div>
         <span class="pil"><i></i> Fenomena Perubahan Harga Perdesaan</span>
         <h1>Selamat Datang di <span><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></span></h1>
-        <p class="lead2">Pantau fenomena perubahan harga perdesaan di Kalimantan Barat bersama BPS Provinsi Kalimantan Barat.</p>
+        <p class="lead2">Pantau fenomena perubahan harga perdesaan di Kalimantan Barat bersama BPS provinsi dan BPS kabupaten/kota.</p>
         <div class="aksi">
           <a class="tbl" href="<?= site_url('auth/login') ?>">Mulai Sekarang <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
