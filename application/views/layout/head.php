@@ -21,6 +21,11 @@
 .bs .btn.btn-unduh:hover{background:#1750b3;border-color:#1750b3;color:#fff}
 .side-user{display:none}
 .aksi-halaman{display:flex;justify-content:flex-end;margin-bottom:12px}
+.unduh-bar{margin-left:auto}
+@media (max-width:767px){
+  .col-unduh .btn-unduh,.unduh-bar{width:100%;justify-content:center;margin-left:0;flex:1 0 100%;padding-top:9px;padding-bottom:9px}
+}
+
 /* HP/tablet: sidebar muncul dari samping lewat tombol garis tiga */
 .btn-menu{display:none;flex:none;width:42px;height:42px;padding:0;border:1px solid var(--br);border-radius:10px;background:var(--card);color:var(--tx);align-items:center;justify-content:center;cursor:pointer}
 .btn-menu svg{width:22px;height:22px}
@@ -131,8 +136,8 @@ document.addEventListener('DOMContentLoaded', function(){
   var box = document.getElementById('aksiHalaman'); if (!box) return;
   var form = document.querySelector('main form#ffilter, main form.bar'); if (!form) return;
   var tbl = box.firstElementChild;
-  if (form.classList.contains('row')) { var col = document.createElement('div'); col.className = 'col-auto ms-md-auto'; col.appendChild(tbl); form.appendChild(col); }
-  else { tbl.style.marginLeft = 'auto'; form.appendChild(tbl); }
+  if (form.classList.contains('row')) { var col = document.createElement('div'); col.className = 'col-12 col-md-auto ms-md-auto col-unduh'; col.appendChild(tbl); form.appendChild(col); }
+  else { tbl.classList.add('unduh-bar'); form.appendChild(tbl); }
   box.remove();
 });
 </script>
