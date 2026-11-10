@@ -10,6 +10,13 @@
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/app.css') ?>">
 <script>document.documentElement.setAttribute('data-bs-theme', window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
 <style>
+.brand{padding:16px 18px}
+.brand-baris{display:flex;align-items:center;gap:12px}
+.brand-logo{width:42px;height:42px;flex:none}
+.brand-logo svg{width:100%;height:100%;display:block;filter:drop-shadow(0 4px 10px rgba(0,176,255,.35))}
+.brand-teks{min-width:0}
+.brand .brand-teks b{display:block;font-size:18px;font-weight:800;letter-spacing:.06em;line-height:1.15;color:#fff}
+.brand .brand-teks small{display:block;margin-top:3px;font-size:11.5px;line-height:1.3;color:#b8c7e0}
 /* Penyesuaian Bootstrap 5 (berlaku di dalam elemen .bs; halaman lain tetap memakai app.css) */
 body{font-size:14px}
 .bs .btn{background:var(--bs-btn-bg);color:var(--bs-btn-color);border:var(--bs-btn-border-width) solid var(--bs-btn-border-color);padding:var(--bs-btn-padding-y) var(--bs-btn-padding-x);font-size:var(--bs-btn-font-size);font-weight:var(--bs-btn-font-weight);border-radius:var(--bs-btn-border-radius)}
@@ -66,7 +73,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
                'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
 <aside class="side">
-  <div class="brand"><div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span style="width:38px;height:38px;flex:none;display:block"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo SIHARDES"><defs><linearGradient id="lgS" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d5fd0"/><stop offset="1" stop-color="#0aa5e8"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#lgS)"/><rect x="10" y="27" width="5" height="11" rx="2.5" fill="#fff" opacity=".55"/><rect x="21.5" y="21" width="5" height="17" rx="2.5" fill="#fff" opacity=".55"/><rect x="33" y="15" width="5" height="23" rx="2.5" fill="#fff" opacity=".55"/><path d="M9 25l9-8 8 5 13-11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="39" cy="11" r="3.2" fill="#7cf5c6"/></svg></span><b style="margin:0"><?= html_escape(strtoupper($nama_app)) ?></b></div><span>BPS Provinsi Kalimantan Barat</span></div>
+  <div class="brand"><div class="brand-baris"><div class="brand-logo"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo SIHARDES"><defs><linearGradient id="lgS" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d5fd0"/><stop offset="1" stop-color="#0aa5e8"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#lgS)"/><rect x="10" y="27" width="5" height="11" rx="2.5" fill="#fff" opacity=".55"/><rect x="21.5" y="21" width="5" height="17" rx="2.5" fill="#fff" opacity=".55"/><rect x="33" y="15" width="5" height="23" rx="2.5" fill="#fff" opacity=".55"/><path d="M9 25l9-8 8 5 13-11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="39" cy="11" r="3.2" fill="#7cf5c6"/></svg></div><div class="brand-teks"><b><?= html_escape(strtoupper($nama_app)) ?></b><small>BPS Provinsi Kalimantan Barat</small></div></div></div>
   <nav class="menu-samping">
     <?php foreach ($menu_item as $k => $m): ?>
       <a class="<?= $menu === $k ? 'on' : '' ?>" href="<?= site_url($m[1]) . (in_array($k, array('unggah', 'aktivitas', 'pengguna')) ? '' : $q) ?>"><?= $ikon[$k] ?><?= $m[0] ?></a>
