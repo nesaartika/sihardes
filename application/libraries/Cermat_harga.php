@@ -512,7 +512,7 @@ class Cermat_harga
                 if ($k['arah'] === 'naik')  $naik[$dok][]  = array($k['nama'], round($k['prov_pct'], 2));
                 if ($k['arah'] === 'turun') $turun[$dok][] = array($k['nama'], round($k['prov_pct'], 2));
             }
-            foreach ($k['kab'] as $kab => $lst)
+            foreach ($k['kab'] as $kab => $lst)      // grafik konfirmasi: hanya komoditas yang dicentang (k['kab'] terisi)
             {
                 if ( ! isset($per_kab[$kab])) $per_kab[$kab] = array('HD' => 0, 'HKD' => 0);
                 $per_kab[$kab][$dok] += count($lst);

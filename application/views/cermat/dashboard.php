@@ -2,25 +2,15 @@
 $r = $ringkas;
 $persen_isi = $total_konfirmasi > 0 ? min(100, round($terisi / $total_konfirmasi * 100)) : 0;
 $kpi = array(
-  array('Komoditas Dikonfirmasi', number_format($r['jml_komoditas'], 0, ',', '.'), $dash['jml_kecamatan'] . ' kecamatan terpantau', ''),
-  array('Kabupaten Terlibat', count($progres_kab), 'yang diminta mengisi alasan', ''),
+  array('Komoditas', number_format($r['jml_komoditas'], 0, ',', '.'), $dash['jml_kecamatan'] . ' kecamatan terpantau', ''),
   array('Naik', $r['naik'], 'komoditas tingkat provinsi', 'text-success'),
   array('Turun', $r['turun'], 'komoditas tingkat provinsi', 'text-danger'),
   array('Stabil', $r['stabil'], 'komoditas tingkat provinsi', 'text-warning'),
-  array('Baris Konfirmasi', $total_konfirmasi, 'komoditas x kabupaten', ''),
-);
-?>
+  array('Perlu Konfirmasi', $r['perlu_konfirmasi'], $total_konfirmasi . ' baris kabupaten', ''),
+);?>
 <div class="bs">
-<?php if ($r['jml_komoditas'] === 0): ?>
-  <div class="card"><div class="card-body text-center py-5">
-    <b>Belum ada komoditas yang dicentang untuk dikonfirmasi.</b><br>
-    <span class="text-secondary">Dashboard hanya menampilkan komoditas yang dicentang di menu Semua Komoditas.</span><br>
-    <a class="btn btn-primary mt-3" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Buka Semua Komoditas</a>
-  </div></div>
-</div>
-<?php return; endif; ?>
 
-<div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-3">
+<div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-3 mb-3">
   <?php foreach ($kpi as $x): ?>
   <div class="col"><div class="card h-100"><div class="card-body">
     <div class="text-secondary text-uppercase fw-bold" style="font-size:12px"><?= $x[0] ?></div>
@@ -36,7 +26,7 @@ $kpi = array(
 </div>
 
 <div class="row g-3 mb-3">
-  <div class="col-12"><div class="card"><div class="card-body"><h2>Kecamatan Perlu Konfirmasi per Kabupaten</h2><div class="chart"><canvas id="cKab"></canvas></div></div></div></div>
+  <div class="col-12"><div class="card"><div class="card-body"><h2>Kecamatan Perlu Konfirmasi per Kabupaten</h2><?php if (empty($dash['per_kab'])): ?><div class="text-center text-secondary py-4">Belum ada komoditas yang dicentang. Centang dulu di menu <a href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Semua Komoditas</a>.</div><?php else: ?><div class="chart"><canvas id="cKab"></canvas></div><?php endif; ?></div></div></div>
 </div>
 
 <div class="row g-3 mb-3">
@@ -96,7 +86,7 @@ $kpi = array(
   donat('cArahHD', arah.HD); donat('cArahHKD', arah.HKD);
 
   var nama = Object.keys(kab);
-  new Chart(document.getElementById('cKab'), {type:'bar',
+  if (nama.length) new Chart(document.getElementById('cKab'), {type:'bar',
     data:{labels:nama, datasets:[
       {label:'HD',  data:nama.map(function(n){return kab[n].HD}),  backgroundColor:C.hd,  borderRadius:4},
       {label:'HKD', data:nama.map(function(n){return kab[n].HKD}), backgroundColor:C.hkd, borderRadius:4}]},

@@ -42,19 +42,11 @@ class Cermat extends MY_Controller
         if ( ! $this->buka_periode()) { redirect('cermat/unggah'); }
         if ( ! $this->punya_hasil() || $this->mode_sheet()) return $this->kosong('dashboard');
         $d = $this->data;
-        // Dashboard hanya memuat komoditas yang dicentang (diarahkan ke kabupaten) di menu Semua Komoditas
-        $h = $d['hasil'];
-        $h['komoditas'] = array_values(array_filter($h['komoditas'], function ($k) { return ! empty($k['kab']); }));
-        $n = array('naik' => 0, 'turun' => 0, 'stabil' => 0);
-        foreach ($h['komoditas'] as $k) if ((int) $k['jumlah'] > 0 && isset($n[$k['arah']])) $n[$k['arah']]++;
-        $ringkas = array('jml_komoditas' => count($h['komoditas']), 'naik' => $n['naik'], 'turun' => $n['turun'], 'stabil' => $n['stabil'],
-                         'perlu_konfirmasi' => count($h['komoditas']));
-        $d['hasil'] = $h;
         $this->render('cermat/dashboard', 'dashboard', array(
-            'ringkas' => $ringkas,
-            'dash'    => $this->cermat_harga->dashboard($h),
+            'ringkas' => $d['hasil']['ringkas'],
+            'dash'    => $this->cermat_harga->dashboard($d['hasil']),
             'terisi'  => $this->hitung_terisi($d),
-            'total_konfirmasi' => $this->hitung_baris_konfirmasi($h),
+            'total_konfirmasi' => $this->hitung_baris_konfirmasi($d['hasil']),
             'progres_kab' => $this->progres_kabupaten($d),
         ));
     }
