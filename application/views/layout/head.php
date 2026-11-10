@@ -97,7 +97,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
   <small>Pengumpulan Fenomena<br>Perubahan Harga Perdesaan</small>
 </aside>
 <script>
-(function(){
+document.addEventListener('DOMContentLoaded', function(){
   var sb = document.getElementById('sidebar'), ov = document.getElementById('sideOverlay'), bt = document.getElementById('btnMenu');
   if (!sb || !bt) return;
   function set(buka){ sb.classList.toggle('buka', buka); ov.classList.toggle('buka', buka); bt.setAttribute('aria-expanded', buka ? 'true' : 'false'); }
@@ -106,7 +106,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') set(false); });
   sb.addEventListener('click', function(e){ if (e.target.closest('a')) set(false); });
   window.addEventListener('resize', function(){ if (window.innerWidth > 900) set(false); });
-})();
+});
 </script>
 <div class="wrap">
   <header class="top bs">
