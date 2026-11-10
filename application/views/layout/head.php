@@ -17,7 +17,8 @@
 .side .brand-teks{min-width:0;flex:1}
 .side .brand-teks b{display:block;margin:0;font-size:19px;font-weight:700;letter-spacing:.05em;line-height:1.1;color:#fff}
 .side .brand-teks .brand-sub{margin:4px 0 0;padding:0;border:0;opacity:1;font-size:11.5px;line-height:1.3;color:#aebfdb}
-.btn-unduh{display:inline-flex;align-items:center;gap:6px}
+.bs .btn.btn-unduh{display:inline-flex;align-items:center;gap:7px;background:#1f9d55;border-color:#1f9d55;color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(31,157,85,.35)}
+.bs .btn.btn-unduh:hover{background:#17814a;border-color:#17814a;color:#fff}
 .side-user{display:none}
 /* HP/tablet: sidebar muncul dari samping lewat tombol garis tiga */
 .btn-menu{display:none;flex:none;width:42px;height:42px;padding:0;border:1px solid var(--br);border-radius:10px;background:var(--card);color:var(--tx);align-items:center;justify-content:center;cursor:pointer}
@@ -148,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function(){
       elseif ($menu === 'data' || $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); if ($sh === '' && ! $tanpa_hasil) $sh = 'Data'; $unduh = site_url('cermat/unduh_data/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh sheet ' . $sh . ' apa adanya' : 'Unduh file Excel asli (format sama dengan yang diunggah)'; }
       else                                     { $unduh = site_url('cermat/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }
       ?>
-      <?php if ($p && ! $akun_kab): ?><a class="btn btn-outline-primary btn-sm btn-unduh" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>" aria-label="<?= html_escape($unduh_ket) ?>"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="teks">Unduh Excel</span></a><?php endif; ?>
+      <?php if ($p && ! $akun_kab): ?><a class="btn btn-sm btn-unduh" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>" aria-label="<?= html_escape($unduh_ket) ?>"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h8M12 11v8"/></svg><span class="teks">Unduh Excel</span></a><?php endif; ?>
     <?php endif; ?>
   </header>
   <main>
