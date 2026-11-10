@@ -17,6 +17,20 @@
 .side .brand-teks{min-width:0;flex:1}
 .side .brand-teks b{display:block;margin:0;font-size:19px;font-weight:700;letter-spacing:.05em;line-height:1.1;color:#fff}
 .side .brand-teks .brand-sub{margin:4px 0 0;padding:0;border:0;opacity:1;font-size:11.5px;line-height:1.3;color:#aebfdb}
+/* HP/tablet: sidebar muncul dari samping lewat tombol garis tiga */
+.btn-menu{display:none;flex:none;width:42px;height:42px;padding:0;border:1px solid var(--br);border-radius:10px;background:var(--card);color:var(--tx);align-items:center;justify-content:center;cursor:pointer}
+.btn-menu svg{width:22px;height:22px}
+.side-overlay{display:none}
+@media (max-width:900px){
+  .btn-menu{display:inline-flex}
+  .side{position:fixed;inset:0 auto 0 0;width:270px;max-width:82vw;height:100%;overflow-y:auto;z-index:1050;transform:translateX(-105%);transition:transform .25s ease;box-shadow:none}
+  .side.buka{transform:translateX(0);box-shadow:8px 0 30px rgba(0,0,0,.35)}
+  .side-overlay{display:block;position:fixed;inset:0;background:rgba(7,20,41,.55);z-index:1040;opacity:0;visibility:hidden;transition:opacity .25s}
+  .side-overlay.buka{opacity:1;visibility:visible}
+  .top{padding:10px 14px;flex-wrap:wrap}
+  .top h1{font-size:17px;flex:1;min-width:0}
+  .wrap{margin-left:0}
+}
 /* Penyesuaian Bootstrap 5 (berlaku di dalam elemen .bs; halaman lain tetap memakai app.css) */
 body{font-size:14px}
 .bs .btn{background:var(--bs-btn-bg);color:var(--bs-btn-color);border:var(--bs-btn-border-width) solid var(--bs-btn-border-color);padding:var(--bs-btn-padding-y) var(--bs-btn-padding-x);font-size:var(--bs-btn-font-size);font-weight:var(--bs-btn-font-weight);border-radius:var(--bs-btn-border-radius)}
@@ -72,7 +86,8 @@ $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ?
 $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data', 'rh' => 'RH',
                'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
-<aside class="side">
+<div class="side-overlay" id="sideOverlay"></div>
+<aside class="side" id="sidebar">
   <div class="brand"><div class="brand-baris"><div class="brand-logo"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo SIHARDES"><defs><linearGradient id="lgS" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d5fd0"/><stop offset="1" stop-color="#0aa5e8"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#lgS)"/><rect x="10" y="27" width="5" height="11" rx="2.5" fill="#fff" opacity=".55"/><rect x="21.5" y="21" width="5" height="17" rx="2.5" fill="#fff" opacity=".55"/><rect x="33" y="15" width="5" height="23" rx="2.5" fill="#fff" opacity=".55"/><path d="M9 25l9-8 8 5 13-11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="39" cy="11" r="3.2" fill="#7cf5c6"/></svg></div><div class="brand-teks"><b><?= html_escape(strtoupper($nama_app)) ?></b><div class="brand-sub">BPS Provinsi Kalimantan Barat</div></div></div></div>
   <nav class="menu-samping">
     <?php foreach ($menu_item as $k => $m): ?>
@@ -81,8 +96,21 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
   </nav>
   <small>Pengumpulan Fenomena<br>Perubahan Harga Perdesaan</small>
 </aside>
+<script>
+(function(){
+  var sb = document.getElementById('sidebar'), ov = document.getElementById('sideOverlay'), bt = document.getElementById('btnMenu');
+  if (!sb || !bt) return;
+  function set(buka){ sb.classList.toggle('buka', buka); ov.classList.toggle('buka', buka); bt.setAttribute('aria-expanded', buka ? 'true' : 'false'); }
+  bt.addEventListener('click', function(){ set(!sb.classList.contains('buka')); });
+  ov.addEventListener('click', function(){ set(false); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') set(false); });
+  sb.addEventListener('click', function(e){ if (e.target.closest('a')) set(false); });
+  window.addEventListener('resize', function(){ if (window.innerWidth > 900) set(false); });
+})();
+</script>
 <div class="wrap">
   <header class="top bs">
+    <button type="button" class="btn-menu" id="btnMenu" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <h1><?= isset($judul_halaman) ? html_escape($judul_halaman) : $judul[$menu] ?></h1>
     <span class="hint" style="white-space:nowrap">
       <?= html_escape($nm_user) ?><?= ($akun_kab ? stripos($nm_user, Cermat_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? ' (' . html_escape($nama_peran) . ')' : '' ?> &middot;
