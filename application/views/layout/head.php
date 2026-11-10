@@ -3,8 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fenomena Harga - BPS Provinsi Kalimantan Barat</title>
+<?php $nama_app = config_item('nama_app') ?: 'SIHARDES'; $nama_app_ket = config_item('nama_app_ket') ?: 'Sistem Informasi Harga Perdesaan'; ?>
+<title><?= html_escape($nama_app) ?> - BPS Provinsi Kalimantan Barat</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/app.css') ?>">
+<script>document.documentElement.setAttribute('data-bs-theme', window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
+<style>
+/* Penyesuaian Bootstrap 5 (berlaku di dalam elemen .bs; halaman lain tetap memakai app.css) */
+body{font-size:14px}
+.bs .btn{background:var(--bs-btn-bg);color:var(--bs-btn-color);border:var(--bs-btn-border-width) solid var(--bs-btn-border-color);padding:var(--bs-btn-padding-y) var(--bs-btn-padding-x);font-size:var(--bs-btn-font-size);font-weight:var(--bs-btn-font-weight);border-radius:var(--bs-btn-border-radius)}
+.bs .btn:hover{background:var(--bs-btn-hover-bg);color:var(--bs-btn-hover-color);border-color:var(--bs-btn-hover-border-color)}
+.bs .btn:disabled{opacity:.65}
+.bs .card{padding:0;border:var(--bs-card-border-width) solid var(--bs-card-border-color);border-radius:var(--bs-card-border-radius);background:var(--bs-card-bg);box-shadow:0 1px 3px rgba(16,24,40,.08)}
+.bs .progress{height:10px;margin:0;background:var(--bs-progress-bg);border-radius:99px}
+.bs .progress .progress-bar{background:#00c853}
+.bs h2,.bs .h2x{font-size:15px;margin:0 0 12px;font-weight:700}
+.bs .form-control,.bs .form-select{background-color:var(--inp);color:var(--tx);border-color:var(--br)}
+.bs .form-control.alasan{background-color:rgba(250,204,21,.10)}
+.bs .form-select{width:auto;max-width:100%}
+.menu-samping{padding:12px 10px;flex:1;display:flex;flex-direction:column}
+.menu-samping a{display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:3px;border-radius:8px;color:#cfd9ea;font-weight:600;min-height:42px}
+.menu-samping a:hover{background:var(--side2);color:#fff}
+.menu-samping a.on{background:var(--pri);color:#fff}
+.menu-samping svg{width:18px;height:18px;flex:none}
+.bs.top .form-select.pilih-file{width:320px;max-width:34vw;text-overflow:ellipsis}
+</style>
 <script>window.CSRF = <?= json_encode(isset($csrf) ? array('n' => $csrf[0], 'v' => $csrf[1]) : null) ?>;</script>
 </head>
 <body>
@@ -24,7 +47,6 @@ $ikon = array(
 $menu_item = array(
  'dashboard' => array('Dashboard', 'cermat'),
  'unggah'    => array('Unggah Data', 'cermat/unggah'),
- 'data'      => array('Data', 'cermat/data_asli'),
  'rh'        => array('RH', 'cermat/hasil_rh'),
  'rekap'     => array('Rekap Konfirmasi', 'cermat/rekap'),
  'komoditas' => array('Semua Komoditas', 'cermat/komoditas'),
@@ -34,7 +56,7 @@ $menu_item = array(
 );
 $role = $this->session->userdata('role');
 $akun_kab = ($role === 'kabupaten');
-if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rh', 'rekap')));   // akun kabupaten: Data, RH, dan Rekap
+if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('rh', 'rekap')));   // akun kabupaten: RH dan Rekap
 // Menu samping SELALU sama untuk tiap peran (tidak berubah menurut periode/file yang dibuka atau diunggah).
 $nm_user = (string) $this->session->userdata('nama');
 $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
@@ -42,8 +64,8 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
                'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
 <aside class="side">
-  <div class="brand"><b>FENOMENA HARGA</b><span>BPS Provinsi Kalimantan Barat</span></div>
-  <nav class="nav">
+  <div class="brand"><b><?= html_escape(strtoupper($nama_app)) ?></b><span><?= html_escape($nama_app_ket) ?><br>BPS Provinsi Kalimantan Barat</span></div>
+  <nav class="menu-samping">
     <?php foreach ($menu_item as $k => $m): ?>
       <a class="<?= $menu === $k ? 'on' : '' ?>" href="<?= site_url($m[1]) . (in_array($k, array('unggah', 'aktivitas', 'pengguna')) ? '' : $q) ?>"><?= $ikon[$k] ?><?= $m[0] ?></a>
     <?php endforeach; ?>
@@ -51,7 +73,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
   <small>Pengumpulan Fenomena<br>Perubahan Harga Perdesaan</small>
 </aside>
 <div class="wrap">
-  <header class="top">
+  <header class="top bs">
     <h1><?= isset($judul_halaman) ? html_escape($judul_halaman) : $judul[$menu] ?></h1>
     <span class="hint" style="white-space:nowrap">
       <?= html_escape($nm_user) ?><?= ($akun_kab ? stripos($nm_user, Cermat_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? ' (' . html_escape($nama_peran) . ')' : '' ?> &middot;
@@ -59,7 +81,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
       <a href="<?= site_url('auth/logout') ?>">Keluar</a>
     </span>
     <?php if ( ! empty($daftar_periode)): ?>
-      <select class="pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
+      <select class="form-select form-select-sm pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
         <?php foreach ($daftar_periode as $pd): ?>
           <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 38, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
         <?php endforeach; ?>
@@ -74,10 +96,10 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
       elseif ($menu === 'data' || $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); if ($sh === '' && ! $tanpa_hasil) $sh = 'Data'; $unduh = site_url('cermat/unduh_data/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh sheet ' . $sh . ' apa adanya' : 'Unduh file Excel asli (format sama dengan yang diunggah)'; }
       else                                     { $unduh = site_url('cermat/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }
       ?>
-      <?php if ($p && ! $akun_kab): ?><a class="btn alt" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>">Unduh Excel</a><?php endif; ?>
+      <?php if ($p && ! $akun_kab): ?><a class="btn btn-outline-primary btn-sm" href="<?= $unduh ?>" title="<?= html_escape($unduh_ket) ?>">Unduh Excel</a><?php endif; ?>
     <?php endif; ?>
   </header>
   <main>
   <?php if ($pesan = $this->session->flashdata('pesan')): ?>
-    <div class="card" style="border-left:4px solid var(--ok);padding:10px 14px;margin-bottom:14px"><?= html_escape($pesan) ?></div>
+    <div class="alert alert-success py-2 mb-3"><?= html_escape($pesan) ?></div>
   <?php endif; ?>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ganti Kata Sandi - Fenomena Harga</title>
+<title>Ganti Kata Sandi - <?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></title>
 <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 <style>
   body{align-items:center;justify-content:center;min-height:100vh;background:var(--side)}

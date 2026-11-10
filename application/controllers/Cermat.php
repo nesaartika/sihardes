@@ -42,11 +42,19 @@ class Cermat extends MY_Controller
         if ( ! $this->buka_periode()) { redirect('cermat/unggah'); }
         if ( ! $this->punya_hasil() || $this->mode_sheet()) return $this->kosong('dashboard');
         $d = $this->data;
+        // Dashboard hanya memuat komoditas yang dicentang (diarahkan ke kabupaten) di menu Semua Komoditas
+        $h = $d['hasil'];
+        $h['komoditas'] = array_values(array_filter($h['komoditas'], function ($k) { return ! empty($k['kab']); }));
+        $n = array('naik' => 0, 'turun' => 0, 'stabil' => 0);
+        foreach ($h['komoditas'] as $k) if ((int) $k['jumlah'] > 0 && isset($n[$k['arah']])) $n[$k['arah']]++;
+        $ringkas = array('jml_komoditas' => count($h['komoditas']), 'naik' => $n['naik'], 'turun' => $n['turun'], 'stabil' => $n['stabil'],
+                         'perlu_konfirmasi' => count($h['komoditas']));
+        $d['hasil'] = $h;
         $this->render('cermat/dashboard', 'dashboard', array(
-            'ringkas' => $d['hasil']['ringkas'],
-            'dash'    => $this->cermat_harga->dashboard($d['hasil']),
+            'ringkas' => $ringkas,
+            'dash'    => $this->cermat_harga->dashboard($h),
             'terisi'  => $this->hitung_terisi($d),
-            'total_konfirmasi' => $this->hitung_baris_konfirmasi($d['hasil']),
+            'total_konfirmasi' => $this->hitung_baris_konfirmasi($h),
             'progres_kab' => $this->progres_kabupaten($d),
         ));
     }
@@ -68,7 +76,7 @@ class Cermat extends MY_Controller
         if ($this->mode_sheet() && $this->input->get('ringkasan') && ! $this->kab_user()) return $this->rekap_sheet();    // ringkasan per sheet (baca-saja)
         $this->lengkapi_otomatis();
         $ku = $this->kab_user();
-        $komoditas = $this->data['hasil']['komoditas'];
+        $komoditas = array_values(array_filter($this->data['hasil']['komoditas'], function ($k) { return ! empty($k['kab']); }));    // hanya yang dicentang
         if ($ku)   // akun kabupaten: hanya baris kabupatennya sendiri
         {
             $baru = array();
@@ -81,8 +89,8 @@ class Cermat extends MY_Controller
             $komoditas = $baru;
         }
         $kab = array();
-        foreach ($komoditas as $k) foreach (array_keys($k['kab']) as $b) $kab[$b] = Cermat_harga::nama_kab($b);
-        ksort($kab);
+        foreach ($komoditas as $k) foreach (array_keys($k['kab']) as $b) $kab[$b] = Cermat_harga::label_kab($b);
+        ksort($kab);      // urut menurut kode kabupaten
         $this->render('cermat/rekap', 'rekap', array(
             'komoditas'  => $komoditas,
             'alasan'     => $this->data['alasan'],
@@ -107,7 +115,7 @@ class Cermat extends MY_Controller
             {
                 if ( ! isset($info[$c['kab']])) $info[$c['kab']] = array(0, ! empty($this->data['penugasan'][$k['kode']][$c['kab']]));
                 if ($c['flag']) $info[$c['kab']][0]++;
-                $kab_semua[$c['kab']] = Cermat_harga::nama_kab($c['kab']);
+                $kab_semua[$c['kab']] = Cermat_harga::label_kab($c['kab']);
             }
             if ( ! empty($this->data['penugasan'][$k['kode']]))     // ditugaskan ke kabupaten yang tidak punya data komoditas ini (mis. komoditas kosong)
             {
@@ -665,17 +673,18 @@ class Cermat extends MY_Controller
             if ( ! isset($ada[$c])) $ada[$c] = array();
             if ($kab !== null)
             {
-                // komoditas kosong / kabupaten tanpa data tetap boleh diarahkan lewat kotak satuan (alasan diisi tanpa angka)
-                if (( ! $massal || ! $ada[$c])  && Cermat_harga::kab_dikenal($kab)) { $pasangan[] = array($c, $kab); continue; }     // komoditas kosong selalu boleh
-                // tombol massal per kabupaten hanya menugaskan komoditas yang kecamatannya berubah (oranye); kotak satuan boleh yang mana saja
-                if (isset($ada[$c][$kab]) && ( ! $massal || ! $nilai || $ada[$c][$kab] > 0)) $pasangan[] = array($c, $kab);
+                if ( ! Cermat_harga::kab_dikenal($kab)) continue;
+                if ( ! $nilai) { $pasangan[] = array($c, $kab); continue; }      // hapus centang: selalu bisa
+                // centang: kotak satuan boleh yang mana saja; centang semua hanya untuk komoditas yang punya data di kabupaten itu (atau komoditas kosong)
+                if ( ! $massal || isset($ada[$c][$kab]) || ! $ada[$c]) $pasangan[] = array($c, $kab);
                 continue;
             }
             if ($nilai)
             {
+                // sama untuk kotak satuan maupun centang semua: kabupaten yang kecamatannya berubah; bila tidak ada, semua kabupaten yang punya data
                 $target = array_keys(array_filter($ada[$c]));
-                if ( ! $target && ! $massal) $target = array_keys($ada[$c]);
-                if ( ! $target && ! $ada[$c]) $target = isset($semua_wil[$c]) ? $semua_wil[$c] : array_keys(Cermat_harga::$kabupaten);      // komoditas kosong (tanpa data kabupaten): diarahkan ke semua kabupaten / wilayah di sheet-nya
+                if ( ! $target) $target = array_keys($ada[$c]);
+                if ( ! $target) $target = isset($semua_wil[$c]) ? $semua_wil[$c] : array_keys(Cermat_harga::$kabupaten);      // komoditas kosong: semua kabupaten / wilayah di sheet-nya
                 foreach ($target as $kb) $pasangan[] = array($c, (int) $kb);
             }
             elseif (isset($this->data['penugasan'][$c]))
@@ -1057,7 +1066,7 @@ class Cermat extends MY_Controller
             ksort($baru);
             $k['kab'] = $baru;
             $k['dipilih'] = ! empty($baru);
-            $k['tampil'] = TRUE;                 // semua komoditas pada file tetap tampil; kolom kabupaten kosong bila tidak diarahkan
+            $k['tampil'] = ! empty($baru);       // Rekap Konfirmasi & unduhan hanya memuat komoditas yang dicentang
             if ( ! empty($baru)) $n++;           // yang dihitung "perlu konfirmasi" hanya yang diarahkan ke kabupaten
         }
         unset($k);
@@ -1081,18 +1090,19 @@ class Cermat extends MY_Controller
     /** Progres pengisian alasan per kabupaten: [nama => [total, terisi]] */
     private function progres_kabupaten($d)
     {
-        $out = array();
+        $tmp = array();
         foreach ($d['hasil']['komoditas'] as $k)
         {
             foreach ($k['kab'] as $kab => $lst)
             {
-                $nm = Cermat_harga::nama_kab($kab);
-                if ( ! isset($out[$nm])) $out[$nm] = array(0, 0);
-                $out[$nm][0]++;
-                if ( ! empty($d['alasan'][$k['kode'] . '|' . $kab])) $out[$nm][1]++;
+                if ( ! isset($tmp[$kab])) $tmp[$kab] = array(0, 0);
+                $tmp[$kab][0]++;
+                if ( ! empty($d['alasan'][$k['kode'] . '|' . $kab])) $tmp[$kab][1]++;
             }
         }
-        ksort($out);
+        ksort($tmp);      // urut menurut kode kabupaten
+        $out = array();
+        foreach ($tmp as $kab => $v) $out[Cermat_harga::label_kab($kab)] = $v;
         return $out;
     }
 

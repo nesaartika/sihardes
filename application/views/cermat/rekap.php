@@ -5,100 +5,109 @@ tr.terkunci textarea.alasan,tr.terkunci input.pengisi{background:rgba(20,128,60,
 td.oleh .aksi{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 td.oleh .aksi button{padding:4px 12px;font-size:12.5px;line-height:1.4;cursor:pointer}
 tr.terkunci .b-simpan,tr.terkunci .b-batal,tr:not(.terkunci) .b-edit,tr:not(.mengedit) .b-batal{display:none}
+.bs tr.kab-head th{padding:10px}
+.bs td.oleh .aksi .btn{padding:3px 10px;font-size:12.5px}
 </style>
 <?php
-$tampil = array_filter($komoditas, function ($k) { return ! empty($k['tampil']); });
+// Hanya komoditas yang dicentang (diarahkan ke kabupaten) yang tampil; dikelompokkan per kabupaten, urut menurut kode kabupaten
+$tampil = array_filter($komoditas, function ($k) { return ! empty($k['kab']); });
 $admin = empty($kunci_kab);
 $sheet = ! empty($periode['mode_sheet']);      // file bukan tabel harga: komoditas x wilayah dibentuk dari sheet
 $dok_daftar = array();
-foreach ($komoditas as $k) $dok_daftar[$k['dokumen']] = 1;
+foreach ($tampil as $k) $dok_daftar[$k['dokumen']] = 1;
 $dok_daftar = array_keys($dok_daftar);
-// hitung total / belum diisi, juga per kabupaten (untuk ringkasan admin)
-$total = 0; $belum = 0; $per_kab = array();
+$per = array(); $total = 0; $belum = 0;
 foreach ($tampil as $k)
 {
-    foreach ($k['kab'] as $kb => $_)
+    foreach ($k['kab'] as $kb => $daftar)
     {
-        $total++;
         $isi = isset($alasan[$k['kode'] . '|' . $kb]) && trim($alasan[$k['kode'] . '|' . $kb]) !== '';
-        if ( ! $isi) $belum++;
-        if ( ! isset($per_kab[$kb])) $per_kab[$kb] = array(0, 0);
-        $per_kab[$kb][0]++; if ($isi) $per_kab[$kb][1]++;
+        $total++; if ( ! $isi) $belum++;
+        $per[$kb][] = array($k, $daftar);
     }
 }
-ksort($per_kab);
+ksort($per);
 ?>
-<form class="bar" id="ffilter" onsubmit="return false">
-  <input type="text" id="q" placeholder="Cari komoditas / kode / kecamatan...">
-  <select id="fdok"><option value="">Semua dokumen</option><?php foreach ($dok_daftar as $dk): ?><option><?= html_escape($dk) ?></option><?php endforeach; ?></select>
-  <select id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select>
+<div class="bs">
+<form class="row g-2 align-items-center mb-3" id="ffilter" onsubmit="return false">
+  <div class="col-12 col-md-auto"><input type="text" class="form-control form-control-sm" id="q" placeholder="Cari komoditas / kode / kecamatan..." style="min-width:250px"></div>
+  <div class="col-auto"><select class="form-select form-select-sm" id="fdok"><option value="">Semua dokumen</option><?php foreach ($dok_daftar as $dk): ?><option><?= html_escape($dk) ?></option><?php endforeach; ?></select></div>
+  <div class="col-auto"><select class="form-select form-select-sm" id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select></div>
   <?php if ($admin): ?>
-  <select id="fkab"><option value="">Semua <?= $sheet ? 'wilayah' : 'kabupaten' ?></option>
-    <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select>
+  <div class="col-auto"><select class="form-select form-select-sm" id="fkab"><option value="">Semua <?= $sheet ? 'wilayah' : 'kabupaten' ?></option>
+    <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select></div>
   <?php else: ?>
   <input type="hidden" id="fkab" value="">
-  <span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span>
+  <div class="col-auto"><span class="chip"><?= html_escape(Cermat_harga::label_kab((int) $kunci_kab)) ?></span></div>
   <?php endif; ?>
-  <select id="fstatus"><option value="">Semua status alasan</option><option value="belum">Belum diisi</option><option value="sudah">Sudah diisi</option></select>
-  <button class="btn" type="submit">Terapkan</button>
-  <button class="btn alt" type="button" id="breset">Reset</button>
-  <?php if ($admin): ?><a class="btn alt" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
+  <div class="col-auto"><select class="form-select form-select-sm" id="fstatus"><option value="">Semua status alasan</option><option value="belum">Belum diisi</option><option value="sudah">Sudah diisi</option></select></div>
+  <div class="col-auto d-flex gap-2">
+    <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
+    <button class="btn btn-outline-secondary btn-sm" type="button" id="breset">Reset</button>
+    <?php if ($admin): ?><a class="btn btn-outline-primary btn-sm" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
+  </div>
 </form>
-<p class="hint" id="cnt"></p>
+
+<?php if ($tampil): ?>
+<div class="alert alert-warning py-2 d-flex flex-wrap align-items-center gap-2" id="bnr" data-total="<?= $total ?>" style="<?= $belum ? '' : 'display:none!important' ?>">
+  <span id="bnrTeks">Masih ada <?= $belum ?> alasan yang belum diisi dari <?= $total ?> yang diminta.</span>
+  <button type="button" class="btn btn-warning btn-sm" id="bLompat">Lompat ke yang belum diisi</button>
+</div>
+<?php endif; ?>
+<p class="text-secondary small mb-2" id="cnt"></p>
 
 <?php if ( ! $tampil): ?>
-<div class="card empty">
+<div class="card"><div class="card-body text-center py-5">
   <?php if ($admin): ?>
-    <b>Belum ada komoditas yang diarahkan untuk dikonfirmasi.</b><br>
-    Pilih komoditas dan kabupaten yang harus mengisi alasan di <a href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Semua Komoditas</a>; hasilnya langsung muncul di akun kabupaten terkait.
+    <b>Belum ada komoditas yang dicentang untuk dikonfirmasi.</b><br>
+    Centang komoditas dan kabupaten yang harus mengisi alasan di <a href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Semua Komoditas</a>; hasilnya langsung muncul di sini dan di akun kabupaten terkait.
   <?php else: ?>
     <b>Belum ada komoditas yang perlu Anda konfirmasi.</b><br>
     Admin provinsi belum mengarahkan komoditas untuk kabupaten Anda pada periode ini.
   <?php endif; ?>
-</div>
+</div></div>
 <?php else: ?>
 <div class="tw">
-<table id="tbl">
-  <thead><tr><th style="width:70px">Dokumen</th><th style="width:210px">Komoditas</th><th style="width:130px"><?= $sheet ? 'Arah / Perubahan' : 'Perubahan Harga Perdesaan Provinsi' ?></th><th><?= $sheet ? 'Wilayah' : 'Kabupaten' ?></th><th style="width:340px">Alasan</th><th style="width:190px">Diisi oleh (ketik nama)</th></tr></thead>
-  <?php foreach ($tampil as $k):
-      $rows = $k['kab'];
-      $jml = count($rows); $pertama = true;
-      $teks = strtolower($k['label']);
-      foreach ($k['kec_semua'] as $c) if ($c['flag']) $teks .= ' ' . strtolower($c['kec'] . ' ' . Cermat_harga::nama_kab($c['kab']));
+<table id="tbl" class="table table-sm align-middle mb-0">
+  <thead><tr><th style="width:70px">Dokumen</th><th style="width:210px">Komoditas</th><th style="width:140px"><?= $sheet ? 'Arah / Perubahan' : 'Perubahan Harga Perdesaan Provinsi' ?></th><th><?= $sheet ? 'Kecamatan / Rincian' : 'Kecamatan' ?></th><th style="width:340px">Alasan</th><th style="width:190px">Diisi oleh (ketik nama)</th></tr></thead>
+  <?php foreach ($per as $kb => $baris):
+      $n_isi = 0;
+      foreach ($baris as $b) { $kk = $b[0]['kode'] . '|' . $kb; if (isset($alasan[$kk]) && trim($alasan[$kk]) !== '') $n_isi++; }
   ?>
-  <tbody class="grp" data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-kab=",<?= implode(',', array_keys($k['kab'])) ?>," data-q="<?= html_escape($teks) ?>">
-    <?php if ( ! $rows): ?>
-    <tr class="tanpa-data">
+  <tbody class="grp" data-kab="<?= (int) $kb ?>">
+    <tr class="kab-head table-primary">
+      <th colspan="6" style="position:static;text-transform:none;font-size:14px;letter-spacing:0;color:inherit">
+        <?php if (Cermat_harga::kode_kab($kb) !== ''): ?><span class="badge text-bg-primary me-2"><?= Cermat_harga::kode_kab($kb) ?></span><?php endif; ?><?= html_escape(Cermat_harga::nama_kab($kb)) ?>
+        <span class="fw-normal text-secondary ms-2"><?= count($baris) ?> komoditas &middot; <span class="n-isi"><?= $n_isi ?></span> terisi</span>
+      </th>
+    </tr>
+    <?php foreach ($baris as $b):
+        $k = $b[0]; $daftar = $b[1];
+        $kunci = $k['kode'] . '|' . $kb; $isi = isset($alasan[$kunci]) ? $alasan[$kunci] : '';
+        $m = isset($meta[$kunci]) ? $meta[$kunci] : null; $terkunci = trim($isi) !== '';
+        $teks = strtolower($k['label'] . ' ' . $k['kode']);
+        foreach ($k['kec_semua'] as $c) if ($c['kab'] == $kb) $teks .= ' ' . strtolower($c['kec']);
+        $kec = array(); foreach ($daftar as $d) if (trim((string) $d['kec']) !== '') $kec[] = $d['kec'];
+    ?>
+    <tr class="dat <?= $terkunci ? 'terkunci' : '' ?>" data-status="<?= $terkunci ? 'sudah' : 'belum' ?>" data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-q="<?= html_escape($teks) ?>">
       <td><span class="badge <?= Cermat_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
       <td><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['label']) ?><?php else: ?><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
       <td><?php if ((int) $k['jumlah'] > 0): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Cermat_harga::fmt($k['prov_pct'], 2) ?></div><?php endif; ?></td>
-      <td></td><td></td><td></td>
-    </tr>
-    <?php endif; ?>
-    <?php foreach ($rows as $kab => $daftar):
-        $kunci = $k['kode'] . '|' . $kab; $isi = isset($alasan[$kunci]) ? $alasan[$kunci] : '';
-        $m = isset($meta[$kunci]) ? $meta[$kunci] : null; $terkunci = trim($isi) !== ''; ?>
-    <tr class="<?= $terkunci ? 'terkunci' : '' ?>" data-status="<?= $terkunci ? 'sudah' : 'belum' ?>">
-      <?php if ($pertama): ?>
-        <td rowspan="<?= $jml ?>"><span class="badge <?= Cermat_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
-        <td rowspan="<?= $jml ?>"><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['label']) ?><?php else: ?><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
-        <td rowspan="<?= $jml ?>"><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Cermat_harga::fmt($k['prov_pct'], 2) ?></div></td>
-      <?php $pertama = false; endif; ?>
       <td>
-        <?= html_escape(Cermat_harga::teks_kabupaten($kab, $daftar)) ?>
+        <?= $kec ? html_escape(implode(', ', $kec)) : '<span class="text-secondary">-</span>' ?>
         <div class="hint"><?= html_escape(Cermat_harga::teks_rinci($daftar)) ?></div>
       </td>
       <td>
-        <textarea class="alasan" rows="2" data-kode="<?= html_escape($k['kode']) ?>" data-kab="<?= (int) $kab ?>" placeholder="Tulis alasan..." <?= $terkunci ? 'readonly' : '' ?>><?= html_escape($isi) ?></textarea>
+        <textarea class="form-control form-control-sm alasan" rows="2" data-kode="<?= html_escape($k['kode']) ?>" data-kab="<?= (int) $kb ?>" placeholder="Tulis alasan..." <?= $terkunci ? 'readonly' : '' ?>><?= html_escape($isi) ?></textarea>
         <div class="stat <?= $terkunci ? 'ok' : 'kosong' ?>"><?= $terkunci ? '&#10003; Tersimpan' . ($m && $m['waktu'] !== '' ? ' &middot; ' . html_escape($m['waktu']) : '') : 'Belum diisi' ?></div>
       </td>
       <td class="oleh">
-        <input type="text" class="pengisi" maxlength="120" placeholder="Ketik nama pengisi" value="<?= html_escape($m ? $m['oleh'] : '') ?>" <?= $terkunci ? 'readonly' : '' ?>>
+        <input type="text" class="form-control form-control-sm pengisi" maxlength="120" placeholder="Ketik nama pengisi" value="<?= html_escape($m ? $m['oleh'] : '') ?>" <?= $terkunci ? 'readonly' : '' ?>>
         <div class="aksi">
-          <button type="button" class="btn b-simpan" data-aksi="simpan">Simpan</button>
-          <button type="button" class="btn alt b-edit" data-aksi="edit">Edit</button>
-          <button type="button" class="btn alt b-batal" data-aksi="batal">Batal</button>
-          <button type="button" class="btn red b-hapus" data-aksi="hapus" title="Kosongkan alasan dan nama pengisi">Hapus</button>
+          <button type="button" class="btn btn-primary btn-sm b-simpan" data-aksi="simpan">Simpan</button>
+          <button type="button" class="btn btn-outline-primary btn-sm b-edit" data-aksi="edit">Edit</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm b-batal" data-aksi="batal">Batal</button>
+          <button type="button" class="btn btn-danger btn-sm b-hapus" data-aksi="hapus" title="Kosongkan alasan dan nama pengisi">Hapus</button>
         </div>
       </td>
     </tr>
@@ -108,6 +117,7 @@ ksort($per_kab);
 </table>
 </div>
 <?php endif; ?>
+</div>
 <script>
 (function(){
   var URL = <?= json_encode(site_url('cermat/simpan_alasan?p=' . $p)) ?>;
@@ -117,43 +127,45 @@ ksort($per_kab);
       bnr = document.getElementById('bnr'), bnrTeks = document.getElementById('bnrTeks'), bLompat = document.getElementById('bLompat');
   var f = {q:'', dok:'', arah:'', kab:'', status:''};   // filter yang sedang diterapkan
 
+  // Hanya kabupaten yang difilter yang muncul; tiap kabupaten dibuka sebagai satu kelompok (judul + barisnya)
   function saring(){
-    var n = 0;
+    var nb = 0, nk = 0;
     grp.forEach(function(g){
-      var ok = (!f.q || g.dataset.q.indexOf(f.q) > -1) && (!f.dok || g.dataset.dok === f.dok) &&
-               (!f.arah || g.dataset.arah === f.arah) && (!f.kab || g.dataset.kab.indexOf(',' + f.kab + ',') > -1);
-      // baris per kabupaten: saring menurut kabupaten dan status alasan
-      var terlihat = 0;
-      [].forEach.call(g.querySelectorAll('tr'), function(tr){
-        var ta = tr.querySelector('textarea.alasan');
-        var tampil = ta ? ((!f.kab || ta.dataset.kab === f.kab) && (!f.status || tr.dataset.status === f.status)) : (!f.kab && !f.status);   // baris komoditas tanpa data: tanpa kabupaten/alasan
-        tr.style.display = tampil ? '' : 'none'; if (tampil) terlihat++;
+      var kabOk = !f.kab || g.dataset.kab === f.kab, lihat = 0;
+      [].forEach.call(g.querySelectorAll('tr.dat'), function(tr){
+        var ok = kabOk && (!f.q || tr.dataset.q.indexOf(f.q) > -1) && (!f.dok || tr.dataset.dok === f.dok) &&
+                 (!f.arah || tr.dataset.arah === f.arah) && (!f.status || tr.dataset.status === f.status);
+        tr.style.display = ok ? '' : 'none'; if (ok) lihat++;
       });
-      if (ok && !terlihat) ok = false;
-      g.style.display = ok ? '' : 'none'; if (ok) n++;
+      g.style.display = lihat ? '' : 'none';
+      if (lihat) { nb += lihat; nk++; }
     });
-    cnt.textContent = grp.length ? 'Menampilkan ' + n + ' dari ' + grp.length + ' komoditas' : '';
+    if (cnt) cnt.textContent = grp.length ? 'Menampilkan ' + nb + ' baris dari ' + nk + ' ' + <?= json_encode($sheet ? 'wilayah' : 'kabupaten') ?> : '';
   }
   document.getElementById('ffilter').addEventListener('submit', function(){
     f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, kab: fk.value, status: fs.value};
     saring();
   });
+  fk.addEventListener('change', function(){ document.getElementById('ffilter').dispatchEvent(new Event('submit')); });
   document.getElementById('breset').addEventListener('click', function(){
     q.value = ''; fd.value = ''; fa.value = ''; fk.value = ''; fs.value = '';
     f = {q:'', dok:'', arah:'', kab:'', status:''}; saring();
   });
   saring();
 
+  function ringkasKab(tr){   // perbarui "n terisi" pada judul kabupaten
+    var g = tr.closest('tbody'); if (!g) return;
+    var n = g.querySelectorAll('tr.dat[data-status="sudah"]').length, el = g.querySelector('.n-isi'); if (el) el.textContent = n;
+  }
   // peringatan alasan yang belum diisi
   function hitung(){
     if (!bnr) return;
-    var total = +bnr.dataset.total, belum = document.querySelectorAll('#tbl tr[data-status="belum"]').length;
-    bnr.style.display = belum === 0 ? 'none' : '';   // semua terisi = peringatan hilang
+    var total = +bnr.dataset.total, belum = document.querySelectorAll('#tbl tr.dat[data-status="belum"]').length;
+    bnr.style.setProperty('display', belum === 0 ? 'none' : '', belum === 0 ? 'important' : '');   // semua terisi = peringatan hilang
     bnrTeks.textContent = 'Masih ada ' + belum + ' alasan yang belum diisi dari ' + total + ' yang diminta.';
   }
   if (bLompat) bLompat.addEventListener('click', function(){
-    // buka filter bila menyembunyikan baris yang belum diisi, lalu lompat ke yang pertama
-    var tr = document.querySelector('#tbl tr[data-status="belum"]');
+    var tr = document.querySelector('#tbl tr.dat[data-status="belum"]');
     if (!tr) return;
     if (tr.style.display === 'none' || tr.closest('tbody').style.display === 'none') document.getElementById('breset').click();
     tr.scrollIntoView({behavior:'smooth', block:'center'});
@@ -175,7 +187,7 @@ ksort($per_kab);
   }
   if (tbl)
   {
-    [].forEach.call(tbl.querySelectorAll('tbody tr:not(.tanpa-data)'), function(tr){
+    [].forEach.call(tbl.querySelectorAll('tbody tr.dat'), function(tr){
       var x = bagian(tr), w = x.st.textContent.split('\u00b7')[1];
       tr._asli = {t: x.ta.value, o: x.pg.value, w: w ? w.trim() : ''};
     });
@@ -218,7 +230,7 @@ ksort($per_kab);
           x.ta.value = ''; x.pg.value = '';
           tr._asli = {t: '', o: '', w: ''};
           tr.dataset.status = 'belum';
-          kunci(tr, false); tr.classList.remove('mengedit'); tampil(tr); hitung();
+          kunci(tr, false); tr.classList.remove('mengedit'); tampil(tr); hitung(); ringkasKab(tr);
         });
         return;
       }
@@ -231,7 +243,7 @@ ksort($per_kab);
         x.ta.value = teks; x.pg.value = oleh;
         tr._asli = {t: teks, o: oleh, w: j.waktu || ''};
         tr.dataset.status = 'sudah';
-        kunci(tr, true); tampil(tr); hitung();
+        kunci(tr, true); tampil(tr); hitung(); ringkasKab(tr);
       });
     });
   }

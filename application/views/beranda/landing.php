@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fenomena Harga - BPS Provinsi Kalimantan Barat</title>
+<title><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?> - BPS Provinsi Kalimantan Barat</title>
 <meta name="description" content="Aplikasi pencermatan dan rekapitulasi perubahan harga perdesaan, BPS Provinsi Kalimantan Barat.">
 <style>
 :root{
@@ -94,7 +94,7 @@ main{flex:1;display:flex;align-items:center}
   <div class="lebar atas-isi">
     <a class="merek" href="<?= site_url('') ?>">
       <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
-      <span><b>Fenomena Harga</b><small>BPS Provinsi Kalimantan Barat</small></span>
+      <span><b><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></b><small>BPS Provinsi Kalimantan Barat</small></span>
     </a>
     <a class="tbl tbl-kecil" href="<?= site_url('auth/login') ?>">Login</a>
   </div>
@@ -103,7 +103,7 @@ main{flex:1;display:flex;align-items:center}
 <main id="isi" class="hero">
   <div class="hero-isi">
     <div>
-      <h1>Selamat Datang di Fenomena Harga</h1>
+      <h1>Selamat Datang di <?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></h1>
       <div class="aksi">
         <a class="tbl" href="<?= site_url($sudah_masuk ? 'cermat' : 'auth/login') ?>"><?= $sudah_masuk ? 'Buka dashboard' : 'Mulai Sekarang' ?></a>
       </div>

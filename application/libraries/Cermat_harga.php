@@ -514,12 +514,14 @@ class Cermat_harga
             }
             foreach ($k['kab'] as $kab => $lst)
             {
-                $nm = self::nama_kab($kab);
-                if ( ! isset($per_kab[$nm])) $per_kab[$nm] = array('HD' => 0, 'HKD' => 0);
-                $per_kab[$nm][$dok] += count($lst);
+                if ( ! isset($per_kab[$kab])) $per_kab[$kab] = array('HD' => 0, 'HKD' => 0);
+                $per_kab[$kab][$dok] += count($lst);
             }
         }
-        uasort($per_kab, function ($x, $y) { return ($y['HD'] + $y['HKD']) <=> ($x['HD'] + $x['HKD']); });
+        ksort($per_kab);      // urut menurut kode kabupaten
+        $dgn_label = array();
+        foreach ($per_kab as $kab => $v) $dgn_label[self::label_kab($kab)] = $v;
+        $per_kab = $dgn_label;
 
         $top = array();
         foreach (array('HD', 'HKD') as $dok)
@@ -545,6 +547,20 @@ class Cermat_harga
     {
         if (isset(self::$kabupaten[$kode])) return self::$kabupaten[$kode];
         return isset(self::$kab_extra[$kode]) ? self::$kab_extra[$kode] : 'Kab. ' . $kode;
+    }
+
+    /** Kode kabupaten/kota BPS Kalbar (61 + nomor 2 digit): 1 -> 6101, 71 -> 6171. Wilayah tambahan (nomor >= 100) tanpa kode. */
+    public static function kode_kab($kab)
+    {
+        $kab = (int) $kab;
+        return ($kab > 0 && $kab < 100) ? '61' . sprintf('%02d', $kab) : '';
+    }
+
+    /** Nama dengan kode, mis. "6101 - Sambas" */
+    public static function label_kab($kab)
+    {
+        $k = self::kode_kab($kab);
+        return ($k !== '' ? $k . ' - ' : '') . self::nama_kab($kab);
     }
 
     /** Nomor wilayah yang sah untuk penugasan: kabupaten Kalbar atau wilayah tambahan dari file berformat lain */
