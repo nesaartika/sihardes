@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?> - BPS Provinsi Kalimantan Barat</title>
-<meta name="description" content="Aplikasi pencermatan perubahan harga perdesaan, BPS Provinsi Kalimantan Barat.">
+<meta name="description" content="Fenomena perubahan harga perdesaan pada BPS Provinsi Kalimantan Barat.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <style>
 :root{
@@ -118,9 +118,9 @@ a{text-decoration:none}
   <main class="hero" id="isi">
     <div class="hero-isi">
       <div>
-        <span class="pil"><i></i> Pencermatan Harga Perdesaan Kalimantan Barat</span>
+        <span class="pil"><i></i> Fenomena Perubahan Harga Perdesaan</span>
         <h1>Selamat Datang di <span><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></span></h1>
-        <p class="lead2">Aplikasi pencermatan perubahan harga perdesaan di Provinsi Kalimantan Barat, untuk petugas BPS provinsi dan petugas BPS kabupaten/kota.</p>
+        <p class="lead2">Pantau fenomena perubahan harga perdesaan di Kalimantan Barat bersama BPS Provinsi Kalimantan Barat.</p>
         <div class="aksi">
           <a class="tbl" href="<?= site_url('auth/login') ?>">Mulai Sekarang <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
