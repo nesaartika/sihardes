@@ -21,6 +21,9 @@ body{min-height:100vh;margin:0;color:var(--tx);font:15px/1.6 "Segoe UI",system-u
 .input-group .form-control{border-radius:10px 0 0 10px}
 .btn-masuk{background:var(--pri);border:0;color:#fff;font-weight:700;padding:.8rem;border-radius:10px;box-shadow:0 8px 20px rgba(29,95,208,.28)}
 .btn-masuk:hover{background:#1750b3;color:#fff}
+/* sembunyikan ikon mata bawaan browser (Edge) agar tidak dobel dengan ikon sendiri */
+input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
+input[type=password]::-webkit-credentials-auto-fill-button{visibility:hidden;pointer-events:none;position:absolute;right:0}
 .kaki{margin-top:20px;text-align:center;font-size:13px}
 .kaki a{color:var(--pri);font-weight:600;text-decoration:none}
 </style>
