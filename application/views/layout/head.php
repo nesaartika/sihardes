@@ -75,6 +75,29 @@ body{font-size:14px}
 .menu-samping a.on{background:var(--pri);color:#fff}
 .menu-samping svg{width:18px;height:18px;flex:none}
 .bs.top .form-select.pilih-file{width:320px;max-width:34vw;text-overflow:ellipsis}
+/* Menu profil (pojok kanan atas) */
+.menu-profil{position:relative;flex:none}
+.btn-profil{display:inline-flex;align-items:center;gap:9px;padding:4px 10px 4px 4px;border:1px solid var(--br);border-radius:99px;background:var(--card);color:var(--tx);cursor:pointer;font:inherit}
+.btn-profil:hover,.btn-profil[aria-expanded=true]{background:var(--pri2);border-color:var(--pri)}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1d5fd0,#0aa5e8);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.avatar svg{width:18px;height:18px}
+.avatar.besar{width:40px;height:40px}.avatar.besar svg{width:22px;height:22px}
+.profil-teks{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;max-width:170px;text-align:left}
+.profil-teks b{font-size:13px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profil-teks small{font-size:11px;color:var(--mut);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-profil .caret{width:14px;height:14px;color:var(--mut);transition:transform .15s}
+.btn-profil[aria-expanded=true] .caret{transform:rotate(180deg)}
+.dd-profil{display:none;position:absolute;right:0;top:calc(100% + 8px);min-width:230px;background:var(--card);border:1px solid var(--br);border-radius:12px;box-shadow:0 10px 30px rgba(16,24,40,.18);padding:6px;z-index:60}
+.dd-profil.buka{display:block}
+.dd-kepala{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--br);margin-bottom:6px}
+.dd-kepala b{display:block;font-size:13.5px;word-break:break-word}
+.dd-kepala small{display:block;color:var(--mut);font-size:12px}
+.dd-profil a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--tx);font-weight:600}
+.dd-profil a svg{width:18px;height:18px;flex:none;color:var(--mut)}
+.dd-profil a:hover{background:var(--pri2);color:var(--pri)}
+.dd-profil a:hover svg{color:var(--pri)}
+.dd-profil a.keluar:hover{background:rgba(220,38,38,.10);color:#dc2626}
+.dd-profil a.keluar:hover svg{color:#dc2626}
 </style>
 <script>window.CSRF = <?= json_encode(isset($csrf) ? array('n' => $csrf[0], 'v' => $csrf[1]) : null) ?>;</script>
 </head>
@@ -139,6 +162,16 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 <script>
+document.addEventListener('DOMContentLoaded', function(){
+  var bt = document.getElementById('btnProfil'), dd = document.getElementById('ddProfil'), box = document.getElementById('menuProfil');
+  if (!bt || !dd) return;
+  function set(b){ dd.classList.toggle('buka', b); bt.setAttribute('aria-expanded', b ? 'true' : 'false'); }
+  bt.addEventListener('click', function(e){ e.stopPropagation(); set(!dd.classList.contains('buka')); });
+  document.addEventListener('click', function(e){ if (!box.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') set(false); });
+});
+</script>
+<script>
 /* Tombol Unduh Excel disatukan dengan baris filter halaman (bila ada) supaya rapi */
 document.addEventListener('DOMContentLoaded', function(){
   var box = document.getElementById('aksiHalaman'); if (!box) return;
@@ -153,11 +186,6 @@ document.addEventListener('DOMContentLoaded', function(){
   <header class="top bs">
     <button type="button" class="btn-menu" id="btnMenu" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <h1><?= isset($judul_halaman) ? html_escape($judul_halaman) : $judul[$menu] ?></h1>
-    <span class="hint info-user" style="white-space:nowrap">
-      <?= html_escape($nm_user) ?><?= ($akun_kab ? stripos($nm_user, Cermat_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? ' (' . html_escape($nama_peran) . ')' : '' ?> &middot;
-      <?php if ( ! $akun_kab): ?><a href="<?= site_url('auth/ganti_sandi') ?>">Ganti sandi</a> &middot;<?php endif; ?>
-      <a href="<?= site_url('auth/logout') ?>">Keluar</a>
-    </span>
     <?php if ( ! empty($daftar_periode)): ?>
       <select class="form-select form-select-sm pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
         <?php foreach ($daftar_periode as $pd): ?>
@@ -175,6 +203,24 @@ document.addEventListener('DOMContentLoaded', function(){
       else                                     { $unduh = site_url('cermat/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }
       ?>
     <?php endif; ?>
+    <?php
+    $ket_user = ($akun_kab ? stripos($nm_user, Cermat_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? $nama_peran : ($akun_kab ? '' : 'Admin');
+    $inisial = mb_strtoupper(mb_substr(trim($nm_user) !== '' ? trim($nm_user) : 'U', 0, 1));
+    ?>
+    <div class="menu-profil info-user" id="menuProfil">
+      <button type="button" class="btn-profil" id="btnProfil" aria-haspopup="true" aria-expanded="false" title="<?= html_escape($nm_user) ?>">
+        <span class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></svg></span>
+        <span class="profil-teks"><b><?= html_escape($nm_user) ?></b><?php if ($ket_user !== ''): ?><small><?= html_escape($ket_user) ?></small><?php endif; ?></span>
+        <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="dd-profil" id="ddProfil" role="menu">
+        <div class="dd-kepala"><span class="avatar besar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></svg></span><div><b><?= html_escape($nm_user) ?></b><?php if ($ket_user !== ''): ?><small><?= html_escape($ket_user) ?></small><?php endif; ?></div></div>
+        <?php if ( ! $akun_kab): ?>
+        <a role="menuitem" href="<?= site_url('auth/ganti_sandi') ?>"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Ganti sandi</a>
+        <?php endif; ?>
+        <a role="menuitem" class="keluar" href="<?= site_url('auth/logout') ?>"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Keluar</a>
+      </div>
+    </div>
   </header>
   <main>
   <?php if ( ! empty($unduh) && $p && ! $akun_kab && in_array($menu, array('data', 'rh', 'rekap'))): ?>
