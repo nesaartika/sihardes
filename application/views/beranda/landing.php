@@ -46,19 +46,19 @@ a{text-decoration:none}
 .tbl-kecil{padding:9px 22px;box-shadow:none}
 
 .hero{flex:1;display:flex;align-items:center;position:relative;z-index:2}
-.hero-isi{width:100%;max-width:1240px;margin:0 auto;padding:24px 24px 48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center}
+.hero-isi{width:100%;max-width:1240px;margin:0 auto;padding:12px 24px 28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center}
 .pil{display:inline-flex;align-items:center;gap:9px;padding:7px 16px;border-radius:99px;background:#fff;border:1px solid var(--br);
   font-size:13px;font-weight:600;color:var(--pri);margin-bottom:20px;box-shadow:0 2px 8px rgba(14,39,72,.06)}
 .pil i{width:9px;height:9px;border-radius:50%;background:#00c853;animation:denyut 2s infinite}
 @keyframes denyut{0%{box-shadow:0 0 0 0 rgba(0,200,83,.55)}70%{box-shadow:0 0 0 10px rgba(0,200,83,0)}100%{box-shadow:0 0 0 0 rgba(0,200,83,0)}}
-.hero h1{margin:0 0 16px;font-size:clamp(2.1rem,4.4vw,3.3rem);line-height:1.15;font-weight:800;letter-spacing:-.01em;color:var(--navy)}
+.hero h1{margin:0 0 16px;font-size:clamp(2rem,min(4.4vw,8.2vh),3.3rem);line-height:1.15;font-weight:800;letter-spacing:-.01em;color:var(--navy)}
 .hero h1 span{color:var(--pri);background:linear-gradient(90deg,#1d5fd0,#0aa5e8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hero p.lead2{color:var(--mut);font-size:18px;margin:0 0 30px;max-width:560px;text-wrap:balance}
 .aksi{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
 
 .ilus-bungkus{position:relative;justify-self:end;width:100%;max-width:560px}
 .ilus-bungkus::before{display:none;content:"";position:absolute;inset:7% 3%;border-radius:34px;background:linear-gradient(145deg,#ffffff,#e3ecfb);border:1px solid var(--br);transform:rotate(3deg);box-shadow:0 20px 40px rgba(14,39,72,.08)}
-.ilus{position:relative;width:100%;height:auto;overflow:visible;animation:melayang 7s ease-in-out infinite}
+.ilus{position:relative;display:block;margin-left:auto;width:100%;height:auto;max-height:calc(100vh - 290px);min-height:240px;overflow:visible;animation:melayang 7s ease-in-out infinite}
 @keyframes melayang{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .ilus .i-bayang{fill:var(--navy);opacity:.10}
 .ilus .i-kartu2{fill:var(--bg2);stroke:var(--br);stroke-width:1.5}
@@ -107,6 +107,15 @@ a{text-decoration:none}
   .hero-isi{padding-left:20px;padding-right:20px}
   .merek small{display:none}
   .tbl-kecil{padding:8px 18px}
+}
+/* layar pendek / browser di-zoom: ilustrasi dan jarak mengecil agar footer tetap terlihat tanpa menggulir */
+@media (min-width:901px) and (max-height:820px){
+  .atas-isi{padding-top:12px;padding-bottom:12px}
+  .pil{margin-bottom:14px}
+  .hero h1{margin-bottom:12px}
+  .hero p.lead2{font-size:17px;margin-bottom:22px}
+  .ilus{max-height:calc(100vh - 230px)}
+  .kaki-isi{padding-top:14px;padding-bottom:14px}
 }
 @media (prefers-reduced-motion:reduce){.cahaya,.ilus,.pil i{animation:none}}
 </style>
