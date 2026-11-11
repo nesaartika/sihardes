@@ -21,7 +21,7 @@ a{text-decoration:none}
 
 /* latar terang bergaya aplikasi BPS: biru muda lembut + pola titik halus */
 .latar{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden;
-  background:radial-gradient(1000px 520px at 88% -8%,#d3e3fb,transparent 70%),radial-gradient(700px 420px at -5% 105%,#dff3ff,transparent 70%),var(--bg)}
+  background:linear-gradient(90deg,rgba(243,246,251,.97) 0%,rgba(243,246,251,.90) 42%,rgba(230,239,252,.55) 100%),url('<?= base_url('assets/img/gedung-bps.jpg') ?>') center 38%/cover no-repeat,radial-gradient(1000px 520px at 88% -8%,#d3e3fb,transparent 70%),radial-gradient(700px 420px at -5% 105%,#dff3ff,transparent 70%),var(--bg)}
 .latar::before{content:"";position:absolute;inset:0;pointer-events:none;
   background-image:radial-gradient(rgba(29,95,208,.13) 1.2px,transparent 1.2px);background-size:26px 26px;
   -webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 80%);mask-image:linear-gradient(180deg,#000 0%,transparent 80%)}
@@ -92,6 +92,7 @@ a{text-decoration:none}
 .kaki a:hover{text-decoration:underline}
 
 @media (max-width:900px){
+  .latar{background-position:center top}
   .hero-isi{grid-template-columns:1fr;gap:34px;padding-bottom:46px}
   .ilus-bungkus{max-width:440px}
 }

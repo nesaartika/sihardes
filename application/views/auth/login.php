@@ -9,7 +9,7 @@
 <style>
 :root{--tx:#14233b;--mut:#5a6779;--br:#dde4ef;--pri:#1d5fd0;--navy:#0e2748}
 body{min-height:100vh;margin:0;color:var(--tx);font:15px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
-  background:radial-gradient(900px 480px at 90% -10%,#d3e3fb,transparent 70%),radial-gradient(700px 420px at -5% 110%,#d7f3e8,transparent 70%),#f3f6fb}
+  background:linear-gradient(rgba(243,246,251,.80),rgba(232,240,252,.86)),url('<?= base_url('assets/img/gedung-bps.jpg') ?>') center 40%/cover no-repeat fixed,radial-gradient(900px 480px at 90% -10%,#d3e3fb,transparent 70%),radial-gradient(700px 420px at -5% 110%,#d7f3e8,transparent 70%),#f3f6fb}
 .kotak{width:100%;max-width:400px;background:#fff;border:1px solid var(--br);border-radius:18px;padding:32px 28px;box-shadow:0 16px 40px rgba(14,39,72,.10)}
 .merek{text-align:center;margin-bottom:22px}
 .merek svg{width:64px;height:64px;display:block;margin:0 auto 10px;filter:drop-shadow(0 8px 14px rgba(29,95,208,.35))}
