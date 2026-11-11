@@ -10,7 +10,7 @@
 
 <div class="card" style="margin-bottom:16px">
   <h2>Tambah akun</h2>
-  <?= form_open('cermat/pengguna_tambah', array('class' => 'bar', 'style' => 'margin:0')) ?>
+  <?= form_open('sihardes/pengguna_tambah', array('class' => 'bar', 'style' => 'margin:0')) ?>
     <input type="text" name="email" placeholder="email<?= $domain !== '' ? '@' . html_escape($domain) : '' ?>" required style="min-width:260px">
     <input type="text" name="nama" placeholder="Nama pemilik akun" required>
     <select name="role" id="role">
@@ -32,23 +32,23 @@
       <td><?= html_escape($a['username']) ?><?= $saya ? ' <span class="pill">Anda</span>' : '' ?></td>
       <td><?= html_escape($a['nama']) ?></td>
       <td><span class="badge <?= $a['role'] === 'admin' ? 'hd' : 'hkd' ?>"><?= html_escape(isset($peran[$a['role']]) ? $peran[$a['role']] : $a['role']) ?></span></td>
-      <td><?= $a['kab'] ? html_escape(Cermat_harga::nama_kab((int) $a['kab'])) : '-' ?></td>
+      <td><?= $a['kab'] ? html_escape(Sihardes_harga::nama_kab((int) $a['kab'])) : '-' ?></td>
       <td><?= $a['aktif'] ? '<span class="badge sudah">Aktif</span>' : '<span class="badge bahaya">Nonaktif</span>' ?>
           <?= ($a['wajib_ganti'] && $a['role'] === 'admin') ? '<div class="hint">belum ganti sandi</div>' : '' ?></td>
       <td class="hint"><?= $a['terakhir_login'] ? date('d-m-Y H:i', strtotime($a['terakhir_login'])) : 'belum pernah' ?></td>
       <td style="white-space:nowrap">
-        <?= form_open('cermat/pengguna_sandi/' . $a['id'], array('style' => 'display:inline')) ?>
+        <?= form_open('sihardes/pengguna_sandi/' . $a['id'], array('style' => 'display:inline')) ?>
           <input type="text" name="sandi" placeholder="Sandi baru" autocomplete="off" style="width:120px;padding:6px 8px;border:1px solid var(--br);border-radius:8px;background:var(--inp);color:var(--tx)">
           <button class="btn alt" type="submit" title="Tetapkan kata sandi ini untuk akun">Atur sandi</button>
         <?= form_close() ?>
-        <a class="btn alt" href="<?= site_url('cermat/pengguna_edit/' . $a['id']) ?>">Edit</a>
+        <a class="btn alt" href="<?= site_url('sihardes/pengguna_edit/' . $a['id']) ?>">Edit</a>
         <?php if ( ! $saya): ?>
         <?php if ( ! $a['aktif']): ?>
-        <?= form_open('cermat/pengguna_aktif/' . $a['id'], array('style' => 'display:inline')) ?>
+        <?= form_open('sihardes/pengguna_aktif/' . $a['id'], array('style' => 'display:inline')) ?>
           <button class="btn alt" type="submit">Aktifkan</button>
         <?= form_close() ?>
         <?php endif; ?>
-        <?= form_open('cermat/pengguna_hapus/' . $a['id'], array('style' => 'display:inline', 'onsubmit' => "return confirm('Hapus akun " . html_escape($a['username']) . "? Tindakan ini tidak bisa dibatalkan.')")) ?>
+        <?= form_open('sihardes/pengguna_hapus/' . $a['id'], array('style' => 'display:inline', 'onsubmit' => "return confirm('Hapus akun " . html_escape($a['username']) . "? Tindakan ini tidak bisa dibatalkan.')")) ?>
           <button class="btn red" type="submit">Hapus</button>
         <?= form_close() ?>
         <?php endif; ?>

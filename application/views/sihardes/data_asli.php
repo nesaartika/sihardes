@@ -8,37 +8,37 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
 ?>
 <?php if (empty($tabs)): ?>
   <div class="card empty">Data periode ini belum tersimpan di aplikasi.<br>
-    Unggah ulang file Excel-nya lewat <a href="<?= site_url('cermat/unggah') ?>">Unggah Data</a>.</div>
+    Unggah ulang file Excel-nya lewat <a href="<?= site_url('sihardes/unggah') ?>">Unggah Data</a>.</div>
 <?php else: ?>
 
 <?php if (count($tabs) > 1): ?>
 <div class="tabs">
   <?php foreach ($tabs as $t): ?>
-    <a class="<?= $t === $sheet ? 'on' : '' ?>" href="<?= site_url('cermat/data_asli?p=' . $p . '&sheet=' . rawurlencode($t)) ?>"><?= html_escape($t) ?></a>
+    <a class="<?= $t === $sheet ? 'on' : '' ?>" href="<?= site_url('sihardes/data_asli?p=' . $p . '&sheet=' . rawurlencode($t)) ?>"><?= html_escape($t) ?></a>
   <?php endforeach; ?>
 </div>
 <?php endif; ?>
 
-<form method="get" action="<?= site_url('cermat/data_asli') ?>" class="bar">
+<form method="get" action="<?= site_url('sihardes/data_asli') ?>" class="bar">
   <input type="hidden" name="p" value="<?= html_escape($p) ?>">
   <input type="hidden" name="sheet" value="<?= html_escape($sheet) ?>">
   <input type="text" name="q" value="<?= html_escape($q) ?>" placeholder="Cari di semua kolom...">
   <?php if ($mode === 'data' && empty($kunci_kab) && ! empty($kab_nilai)): ?>
   <select name="kab"><option value="">Semua Kabupaten</option>
-    <?php foreach ($kab_nilai as $v): ?><option value="<?= html_escape($v) ?>" <?= (string) $f['kab'] === (string) $v ? 'selected' : '' ?>><?= html_escape(Cermat_harga::label_kab((int) $v)) ?></option><?php endforeach; ?></select>
+    <?php foreach ($kab_nilai as $v): ?><option value="<?= html_escape($v) ?>" <?= (string) $f['kab'] === (string) $v ? 'selected' : '' ?>><?= html_escape(Sihardes_harga::label_kab((int) $v)) ?></option><?php endforeach; ?></select>
   <?php elseif ($mode === 'data' && ! empty($kunci_kab)): ?>
-  <span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span>
+  <span class="chip"><?= html_escape(Sihardes_harga::nama_kab((int) $kunci_kab)) ?></span>
   <?php endif; ?>
   <select name="per" title="Baris per halaman">
     <?php foreach (array(25, 50, 100) as $n): ?><option value="<?= $n ?>" <?= $per === $n ? 'selected' : '' ?>><?= $n ?> baris</option><?php endforeach; ?></select>
   <button class="btn" type="submit">Terapkan</button>
-  <a class="btn alt" href="<?= site_url('cermat/data_asli?p=' . $p . '&sheet=' . rawurlencode($sheet)) ?>">Reset</a>
+  <a class="btn alt" href="<?= site_url('sihardes/data_asli?p=' . $p . '&sheet=' . rawurlencode($sheet)) ?>">Reset</a>
 </form>
 
 <p class="hint"><?= $total ? 'Menampilkan ' . number_format($awal, 0, ',', '.') . '-' . number_format($akhir, 0, ',', '.') . ' dari ' . number_format($total, 0, ',', '.') . ' baris' : 'Tidak ada baris yang cocok.' ?></p>
 
 <?php if ($mode === 'data' && empty($ada)): ?>
-  <div class="card empty">Data sheet Data periode ini belum tersimpan.<br>Unggah ulang file Excel-nya lewat <a href="<?= site_url('cermat/unggah') ?>">Unggah Data</a>.</div>
+  <div class="card empty">Data sheet Data periode ini belum tersimpan.<br>Unggah ulang file Excel-nya lewat <a href="<?= site_url('sihardes/unggah') ?>">Unggah Data</a>.</div>
 
 <?php elseif ($mode === 'data'): ?>
 <div class="tw"><table>
@@ -47,7 +47,7 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
   </tr></thead>
   <tbody>
   <?php foreach ($baris as $r): ?>
-    <tr><?php foreach ($r as $i => $v): if (strcasecmp(trim((string) $kolom[$i]), 'Column1') === 0) continue; ?><td<?= ($v !== null && is_numeric($v)) ? ' style="text-align:right"' : '' ?>><?= html_escape((strcasecmp(trim((string) $kolom[$i]), 'Kabupaten') === 0 && is_numeric($v) && Cermat_harga::kode_kab((int) $v) !== '') ? Cermat_harga::kode_kab((int) $v) : (string) $v) ?></td><?php endforeach; ?></tr>
+    <tr><?php foreach ($r as $i => $v): if (strcasecmp(trim((string) $kolom[$i]), 'Column1') === 0) continue; ?><td<?= ($v !== null && is_numeric($v)) ? ' style="text-align:right"' : '' ?>><?= html_escape((strcasecmp(trim((string) $kolom[$i]), 'Kabupaten') === 0 && is_numeric($v) && Sihardes_harga::kode_kab((int) $v) !== '') ? Sihardes_harga::kode_kab((int) $v) : (string) $v) ?></td><?php endforeach; ?></tr>
   <?php endforeach; ?>
   </tbody>
 </table></div>
@@ -55,7 +55,7 @@ $url = function ($ubah = array()) use ($p, $sheet, $q, $per, $f) {
 <?php else: /* sheet lain: tampil seperti grid Excel */ ?>
 <div class="tw"><table>
   <thead><tr><th style="text-transform:none;width:50px">#</th>
-    <?php for ($i = 0; $i < $kolom_jml; $i++): ?><th style="text-transform:none;letter-spacing:0;font-size:13px"><?= Cermat_harga::huruf_kolom($i) ?></th><?php endfor; ?>
+    <?php for ($i = 0; $i < $kolom_jml; $i++): ?><th style="text-transform:none;letter-spacing:0;font-size:13px"><?= Sihardes_harga::huruf_kolom($i) ?></th><?php endfor; ?>
   </tr></thead>
   <tbody>
   <?php foreach ($baris as $b): ?>

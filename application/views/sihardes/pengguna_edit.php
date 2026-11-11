@@ -1,7 +1,7 @@
 <div class="card f" style="max-width:640px">
   <h2>Edit akun</h2>
   <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
-  <?= form_open('cermat/pengguna_edit/' . $u['id']) ?>
+  <?= form_open('sihardes/pengguna_edit/' . $u['id']) ?>
     <label for="email">Email / nama pengguna</label>
     <input type="text" name="email" id="email" value="<?= html_escape($f['email']) ?>" required style="width:100%">
     <label for="nama">Nama</label>
@@ -18,7 +18,7 @@
         <?php foreach ($kab_daftar as $kd => $nm): ?><option value="<?= $kd ?>" <?= (int) $f['kab'] === (int) $kd ? 'selected' : '' ?>><?= html_escape($nm) ?></option><?php endforeach; ?></select>
     </div>
     <p class="hint">Kata sandi tidak berubah di sini. Untuk membuat kata sandi baru, pakai tombol Reset sandi di daftar akun.<?= $domain !== '' ? ' Email harus berdomain @' . html_escape($domain) . '.' : '' ?></p>
-    <p><button class="btn" type="submit">Simpan</button> <a class="btn alt" href="<?= site_url('cermat/pengguna') ?>">Batal</a></p>
+    <p><button class="btn" type="submit">Simpan</button> <a class="btn alt" href="<?= site_url('sihardes/pengguna') ?>">Batal</a></p>
   <?= form_close() ?>
 </div>
 <script>

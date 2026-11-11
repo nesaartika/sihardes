@@ -58,7 +58,7 @@ class Pengguna_model extends CI_Model
         $u = $this->db->get_where('pengguna', array('username' => $username, 'aktif' => 1))->row_array();
         if ( ! $u && $username !== '' && strpos($username, '@') === false)
         {
-            $this->config->load('cermat', FALSE, TRUE);
+            $this->config->load('sihardes', FALSE, TRUE);
             $domain = strtolower(trim((string) $this->config->item('domain_email')));
             if ($domain !== '') $u = $this->db->get_where('pengguna', array('username' => $username . '@' . $domain, 'aktif' => 1))->row_array();
         }

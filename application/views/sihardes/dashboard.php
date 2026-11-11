@@ -26,7 +26,7 @@ $kpi = array(
 </div>
 
 <div class="row g-3 mb-3">
-  <div class="col-12"><div class="card"><div class="card-body"><h2>Kecamatan Perlu Konfirmasi per Kabupaten</h2><?php if (empty($dash['per_kab'])): ?><div class="text-center text-secondary py-4">Belum ada komoditas yang dicentang. Centang dulu di menu <a href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Semua Komoditas</a>.</div><?php else: ?><div class="chart"><canvas id="cKab"></canvas></div><?php endif; ?></div></div></div>
+  <div class="col-12"><div class="card"><div class="card-body"><h2>Kecamatan Perlu Konfirmasi per Kabupaten</h2><?php if (empty($dash['per_kab'])): ?><div class="text-center text-secondary py-4">Belum ada komoditas yang dicentang. Centang dulu di menu <a href="<?= site_url('sihardes/komoditas?p=' . $p) ?>">Semua Komoditas</a>.</div><?php else: ?><div class="chart"><canvas id="cKab"></canvas></div><?php endif; ?></div></div></div>
 </div>
 
 <div class="row g-3 mb-3">
@@ -45,7 +45,7 @@ $kpi = array(
     <div class="fs-3 fw-bold"><?= $terisi ?> <span class="text-secondary fs-6 fw-normal">dari <?= $total_konfirmasi ?> baris</span></div>
     <div class="progress my-2"><div class="progress-bar" style="width:<?= $persen_isi ?>%"></div></div>
     <div class="text-secondary small mb-3"><?= $persen_isi ?>% selesai</div>
-    <a class="btn btn-primary btn-sm" href="<?= site_url('cermat/rekap?p=' . $p) ?>">Isi di Rekap Konfirmasi</a>
+    <a class="btn btn-primary btn-sm" href="<?= site_url('sihardes/rekap?p=' . $p) ?>">Isi di Rekap Konfirmasi</a>
   </div></div></div>
   <div class="col-lg-7"><div class="card h-100"><div class="card-body">
     <h2>Progres Alasan per Kabupaten</h2>

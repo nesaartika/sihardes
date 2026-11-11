@@ -1,6 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
-if ( ! class_exists('Cermat_harga')) require_once APPPATH . 'libraries/Cermat_harga.php';
+if ( ! class_exists('Sihardes_harga')) require_once APPPATH . 'libraries/Sihardes_harga.php';
 
 /**
  * Sheet_rekap
@@ -20,7 +20,7 @@ if ( ! class_exists('Cermat_harga')) require_once APPPATH . 'libraries/Cermat_ha
  */
 class Sheet_rekap
 {
-    /** Batas selisih dianggap stabil (sama dengan ambang_stabil di Cermat_harga) */
+    /** Batas selisih dianggap stabil (sama dengan ambang_stabil di Sihardes_harga) */
     const AMBANG_STABIL = 0.005;
 
     // ------------------------------------------------------------------
@@ -78,7 +78,7 @@ class Sheet_rekap
     public static function fmt($x, $pct = false)
     {
         if ($x === null) return '';
-        if ($pct) return Cermat_harga::fmt($x, 2);
+        if ($pct) return Sihardes_harga::fmt($x, 2);
         $d = (abs($x - round($x)) < 0.0000001) ? 0 : 2;
         return number_format($x, $d, ',', '.');
     }
@@ -189,7 +189,7 @@ class Sheet_rekap
 
         // matriks: banyak kolom wilayah (nama kabupaten / Kalbar / Provinsi) atau banyak kolom berisi NAIK-TURUN-STABIL
         $reg = array('kalbar' => 1, 'kalimantan barat' => 1, 'provinsi' => 1, 'prov' => 1, 'prov.' => 1);
-        foreach (Cermat_harga::$kabupaten as $k => $nm)
+        foreach (Sihardes_harga::$kabupaten as $k => $nm)
         {
             $l = strtolower($nm);
             foreach (array($l, 'kab. ' . $l, 'kab ' . $l, 'kabupaten ' . $l, 'kota ' . $l) as $v) $reg[$v] = 1;
@@ -660,7 +660,7 @@ class Sheet_rekap
         $id_wil = array(); $wilayah = array(); $n = 100;
         foreach ($nama_wil as $w)
         {
-            $kb = Cermat_harga::kab_dari_nama($w);
+            $kb = Sihardes_harga::kab_dari_nama($w);
             if ($kb === 0) { while (isset($wilayah[$n])) $n++; $kb = $n++; $wilayah[$kb] = $w; }
             $id_wil[$w] = $kb;
         }
@@ -708,7 +708,7 @@ class Sheet_rekap
             'hasil' => array(
                 'ringkas' => array(
                     'jml_baris' => count($baris), 'jml_komoditas' => count($komoditas), 'naik' => $naik, 'turun' => $turun, 'stabil' => $stabil,
-                    'perlu_konfirmasi' => 0, 'tidak_valid' => 0, 'opsi' => Cermat_harga::$opsi_default,
+                    'perlu_konfirmasi' => 0, 'tidak_valid' => 0, 'opsi' => Sihardes_harga::$opsi_default,
                 ),
                 'komoditas' => $komoditas,
             ),

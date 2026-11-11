@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * Halaman depan (landing page). Terbuka tanpa login.
- * Dashboard aplikasi ada di /cermat.
+ * Dashboard aplikasi ada di /sihardes.
  */
 class Beranda extends MY_Controller
 {

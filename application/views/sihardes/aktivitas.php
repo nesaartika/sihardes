@@ -8,7 +8,7 @@ $label = array('login' => 'Masuk', 'login_gagal' => 'Gagal masuk', 'logout' => '
   <select id="faksi"><option value="">Semua aktivitas</option>
     <?php foreach ($label as $k => $v): ?><option value="<?= $k ?>"><?= $v ?></option><?php endforeach; ?></select>
   <span class="hint" id="cnt"></span>
-  <?= form_open('cermat/aktivitas_reset', array('style' => 'display:inline;margin-left:auto', 'onsubmit' => "return confirm('Hapus semua log aktivitas? Tindakan ini tidak bisa dibatalkan.')")) ?>
+  <?= form_open('sihardes/aktivitas_reset', array('style' => 'display:inline;margin-left:auto', 'onsubmit' => "return confirm('Hapus semua log aktivitas? Tindakan ini tidak bisa dibatalkan.')")) ?>
     <button class="btn red" type="submit">Reset log</button>
   <?= form_close() ?>
 </div>

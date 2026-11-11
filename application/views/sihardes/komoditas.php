@@ -20,11 +20,11 @@ foreach ($komoditas as $k)
   <b class="ms-2">2. Komoditas:</b>
   <span class="chip" id="chipDipilih">Dikonfirmasi: <?= $dipilih ?> komoditas</span>
   <?php if ( ! $sheet): ?>
-  <?= form_open('cermat/lengkapi_komoditas?p=' . $p, array('style' => 'display:inline;margin:0')) ?>
+  <?= form_open('sihardes/lengkapi_komoditas?p=' . $p, array('style' => 'display:inline;margin:0')) ?>
     <button class="btn btn-outline-primary btn-sm" type="submit" title="Masukkan komoditas di sheet RH yang belum ada pada periode ini (nilainya kosong)">Lengkapi komoditas kosong</button>
   <?= form_close() ?>
   <?php else: ?>
-  <a class="btn btn-outline-primary btn-sm" href="<?= site_url('cermat/rekap?ringkasan=1&p=' . $p) ?>" title="Ringkasan naik / turun per sheet (baca-saja)">Ringkasan per sheet</a>
+  <a class="btn btn-outline-primary btn-sm" href="<?= site_url('sihardes/rekap?ringkasan=1&p=' . $p) ?>" title="Ringkasan naik / turun per sheet (baca-saja)">Ringkasan per sheet</a>
   <?php endif; ?>
 </div>
 <form class="row g-2 align-items-center mb-2" id="ffilter" onsubmit="return false">
@@ -48,12 +48,12 @@ foreach ($komoditas as $k)
   <?php foreach ($komoditas as $k): ?>
     <tr data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-kode="<?= html_escape($k['kode']) ?>" data-q="<?= html_escape(strtolower($k['nama'] . ' ' . $k['kode'])) ?>">
       <td style="text-align:center"><input type="checkbox" class="form-check-input pilih" style="width:18px;height:18px"></td>
-      <td><span class="badge <?= Cermat_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
+      <td><span class="badge <?= Sihardes_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
       <td><?= html_escape(isset($k['kode_asli']) ? $k['kode_asli'] : $k['kode']) ?></td>
-      <td><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['nama']) ?><?php else: ?><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?> <span class="hint">(<?= html_escape($k['satuan']) ?>)</span><?php endif; ?></td>
+      <td><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['nama']) ?><?php else: ?><a href="<?= site_url('sihardes/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['nama']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?> <span class="hint">(<?= html_escape($k['satuan']) ?>)</span><?php endif; ?></td>
       <?php $tanpa = (int) $k['jumlah'] === 0; ?>
       <td><?php if ( ! $tanpa): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><?php endif; ?></td>
-      <td class="<?= $tanpa ? '' : $k['arah'] ?>"><?= $tanpa ? '' : (isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Cermat_harga::fmt($k['prov_pct'], 2)) ?></td>
+      <td class="<?= $tanpa ? '' : $k['arah'] ?>"><?= $tanpa ? '' : (isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Sihardes_harga::fmt($k['prov_pct'], 2)) ?></td>
       <td class="siapa"></td>
     </tr>
   <?php endforeach; ?>
@@ -62,8 +62,8 @@ foreach ($komoditas as $k)
 </div>
 <script>
 (function(){
-  var URL = <?= json_encode(site_url('cermat/pilih_komoditas?p=' . $p)) ?>;
-  var INFO = <?= json_encode($info, JSON_FORCE_OBJECT) ?>, NAMA = <?= json_encode(array_map(function ($kd) { return Cermat_harga::nama_kab($kd); }, array_combine(array_keys($daftar_kab), array_keys($daftar_kab)))) ?>;
+  var URL = <?= json_encode(site_url('sihardes/pilih_komoditas?p=' . $p)) ?>;
+  var INFO = <?= json_encode($info, JSON_FORCE_OBJECT) ?>, NAMA = <?= json_encode(array_map(function ($kd) { return Sihardes_harga::nama_kab($kd); }, array_combine(array_keys($daftar_kab), array_keys($daftar_kab)))) ?>;
   var tbl = document.getElementById('tbl'), rows = [].slice.call(tbl.querySelectorAll('tbody tr')),
       q = document.getElementById('q'), fd = document.getElementById('fdok'), fa = document.getElementById('farah'),
       fk = document.getElementById('fkab'), fs = document.getElementById('fsemua'),

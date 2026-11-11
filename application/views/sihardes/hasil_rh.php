@@ -22,13 +22,13 @@ if ($kanan)
     foreach ($bulan as $b) $kepala[] = array($b, '');
 }
 ?>
-<form method="get" action="<?= site_url('cermat/hasil_rh') ?>" class="bar">
+<form method="get" action="<?= site_url('sihardes/hasil_rh') ?>" class="bar">
   <input type="hidden" name="p" value="<?= html_escape($p) ?>">
   <input type="text" name="q" value="<?= html_escape($q) ?>" placeholder="Cari kode / nama komoditas...">
   <select name="per" title="Baris per halaman">
     <?php foreach (array(25, 50, 100) as $n): ?><option value="<?= $n ?>" <?= $per === $n ? 'selected' : '' ?>><?= $n ?> baris</option><?php endforeach; ?></select>
   <button class="btn" type="submit">Terapkan</button>
-  <a class="btn alt" href="<?= site_url('cermat/hasil_rh?p=' . $p) ?>">Reset</a>
+  <a class="btn alt" href="<?= site_url('sihardes/hasil_rh?p=' . $p) ?>">Reset</a>
 </form>
 
 <p class="hint"><?= $total ? 'Menampilkan ' . number_format($awal, 0, ',', '.') . '-' . number_format($akhir, 0, ',', '.') . ' dari ' . number_format($total, 0, ',', '.') . ' komoditas' : 'Tidak ada komoditas yang cocok.' ?></p>

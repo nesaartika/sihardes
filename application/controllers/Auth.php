@@ -43,7 +43,7 @@ class Auth extends MY_Controller
                     ));
                     $this->pengguna->catat_login($u['id']);
                     $this->catatan->catat('login', 'Berhasil masuk', $u['username']);
-                    redirect($u['wajib_ganti'] ? 'auth/ganti_sandi' : ($u['role'] === 'kabupaten' ? 'cermat/rekap' : 'cermat'));
+                    redirect($u['wajib_ganti'] ? 'auth/ganti_sandi' : ($u['role'] === 'kabupaten' ? 'sihardes/rekap' : 'sihardes'));
                 }
 
                 $this->catatan->catat('login_gagal', 'Percobaan masuk gagal', mb_substr(trim((string) $this->input->post('username')), 0, 50));
@@ -75,7 +75,7 @@ class Auth extends MY_Controller
     {
         if ( ! $this->session->userdata('user_id')) redirect('auth/login');
         // akun kabupaten tidak mengubah sandi sendiri: hubungi admin provinsi
-        if ($this->session->userdata('role') === 'kabupaten') redirect('cermat/rekap');
+        if ($this->session->userdata('role') === 'kabupaten') redirect('sihardes/rekap');
         $galat = null;
         $wajib = (bool) $this->session->userdata('wajib_ganti');
 
@@ -96,7 +96,7 @@ class Auth extends MY_Controller
                 $this->catatan->catat('ganti_sandi', 'Kata sandi diganti');
                 $this->session->set_userdata('wajib_ganti', 0);
                 $this->session->set_flashdata('pesan', 'Kata sandi berhasil diganti.');
-                redirect('cermat');
+                redirect('sihardes');
             }
         }
         $this->load->view('auth/ganti_sandi', array('galat' => $galat, 'wajib' => $wajib));

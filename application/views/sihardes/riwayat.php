@@ -1,5 +1,5 @@
 <?php if (empty($daftar)): ?>
-  <div class="card empty">Belum ada periode. <a href="<?= site_url('cermat/unggah') ?>">Unggah data pertama</a>.</div>
+  <div class="card empty">Belum ada periode. <a href="<?= site_url('sihardes/unggah') ?>">Unggah data pertama</a>.</div>
 <?php else: ?>
 <div class="tw"><table>
   <thead><tr><th>Periode</th><th>File Asal</th><th>Dibuat</th><th></th></tr></thead>
@@ -10,9 +10,9 @@
       <td><?= html_escape($d['file_asal']) ?></td>
       <td style="white-space:nowrap"><?= $d['dibuat'] ?></td>
       <td style="white-space:nowrap">
-        <a class="btn alt" href="<?= site_url('cermat/data_asli?p=' . $d['id']) ?>">Buka</a>
-        <a class="btn alt" href="<?= site_url('cermat/unduh/' . $d['id']) ?>">Excel</a>
-        <?= form_open('cermat/hapus/' . $d['id'], array('style' => 'display:inline', 'class' => 'hapus',
+        <a class="btn alt" href="<?= site_url('sihardes/data_asli?p=' . $d['id']) ?>">Buka</a>
+        <a class="btn alt" href="<?= site_url('sihardes/unduh/' . $d['id']) ?>">Excel</a>
+        <?= form_open('sihardes/hapus/' . $d['id'], array('style' => 'display:inline', 'class' => 'hapus',
               'data-nama' => html_escape($d['nama']), 'data-file' => html_escape($d['file_asal']))) ?>
           <button class="btn red" type="submit">Hapus</button>
         <?= form_close() ?>

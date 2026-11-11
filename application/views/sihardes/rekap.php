@@ -38,12 +38,12 @@ ksort($per);
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?></select></div>
   <?php else: ?>
   <input type="hidden" id="fkab" value="">
-  <div class="col-auto"><span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span></div>
+  <div class="col-auto"><span class="chip"><?= html_escape(Sihardes_harga::nama_kab((int) $kunci_kab)) ?></span></div>
   <?php endif; ?>
   <div class="col-auto d-flex gap-2">
     <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
     <button class="btn btn-outline-secondary btn-sm" type="button" id="breset">Reset</button>
-    <?php if ($admin): ?><a class="btn btn-outline-primary btn-sm" href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
+    <?php if ($admin): ?><a class="btn btn-outline-primary btn-sm" href="<?= site_url('sihardes/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
   </div>
 </form>
 
@@ -53,7 +53,7 @@ ksort($per);
 <div class="card"><div class="card-body text-center py-5">
   <?php if ($admin): ?>
     <b>Belum ada komoditas yang dicentang untuk dikonfirmasi.</b><br>
-    Centang komoditas dan kabupaten yang harus mengisi alasan di <a href="<?= site_url('cermat/komoditas?p=' . $p) ?>">Semua Komoditas</a>; hasilnya langsung muncul di sini dan di akun kabupaten terkait.
+    Centang komoditas dan kabupaten yang harus mengisi alasan di <a href="<?= site_url('sihardes/komoditas?p=' . $p) ?>">Semua Komoditas</a>; hasilnya langsung muncul di sini dan di akun kabupaten terkait.
   <?php else: ?>
     <b>Belum ada komoditas yang perlu Anda konfirmasi.</b><br>
     Admin provinsi belum mengarahkan komoditas untuk kabupaten Anda pada periode ini.
@@ -70,7 +70,7 @@ ksort($per);
   <tbody class="grp" data-kab="<?= (int) $kb ?>">
     <tr class="kab-head table-primary">
       <th colspan="6" style="position:static;text-transform:none;font-size:14px;letter-spacing:0;color:inherit">
-        <?= html_escape(Cermat_harga::nama_kab($kb)) ?>
+        <?= html_escape(Sihardes_harga::nama_kab($kb)) ?>
         <span class="fw-normal text-secondary ms-2"><?= count($baris) ?> komoditas &middot; <span class="n-isi"><?= $n_isi ?></span> terisi</span>
       </th>
     </tr>
@@ -83,12 +83,12 @@ ksort($per);
         $kec = array(); foreach ($daftar as $d) if (trim((string) $d['kec']) !== '') $kec[] = $d['kec'];
     ?>
     <tr class="dat <?= $terkunci ? 'terkunci' : '' ?>" data-status="<?= $terkunci ? 'sudah' : 'belum' ?>" data-dok="<?= $k['dokumen'] ?>" data-arah="<?= (int) $k['jumlah'] === 0 ? 'tanpa' : $k['arah'] ?>" data-q="<?= html_escape($teks) ?>">
-      <td><span class="badge <?= Cermat_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
-      <td><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['label']) ?><?php else: ?><a href="<?= site_url('cermat/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
-      <td><?php if ((int) $k['jumlah'] > 0): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Cermat_harga::fmt($k['prov_pct'], 2) ?></div><?php endif; ?></td>
+      <td><span class="badge <?= Sihardes_harga::kelas_dok($k['dokumen']) ?>"><?= $k['dokumen'] ?></span></td>
+      <td><?php if ( ! empty($k['dari_sheet'])): ?><?= html_escape($k['label']) ?><?php else: ?><a href="<?= site_url('sihardes/detail/' . $k['kode'] . '?p=' . $p) ?>"><?= html_escape($k['label']) ?></a><?php endif; ?><?php if ( ! empty($k['satuan'])): ?><div class="hint">Satuan: <?= html_escape($k['satuan']) ?></div><?php endif; ?></td>
+      <td><?php if ((int) $k['jumlah'] > 0): ?><span class="badge <?= $k['arah'] ?>"><?= $k['arah'] ?></span><div class="hint"><?= isset($k['nilai_teks']) ? html_escape($k['nilai_teks']) : Sihardes_harga::fmt($k['prov_pct'], 2) ?></div><?php endif; ?></td>
       <td>
         <?= $kec ? html_escape(implode(', ', $kec)) : '<span class="text-secondary">-</span>' ?>
-        <div class="hint"><?= html_escape(Cermat_harga::teks_rinci($daftar)) ?></div>
+        <div class="hint"><?= html_escape(Sihardes_harga::teks_rinci($daftar)) ?></div>
       </td>
       <td>
         <textarea class="form-control form-control-sm alasan" rows="2" data-kode="<?= html_escape($k['kode']) ?>" data-kab="<?= (int) $kb ?>" placeholder="Tulis alasan..." <?= $terkunci ? 'readonly' : '' ?>><?= html_escape($isi) ?></textarea>
@@ -113,7 +113,7 @@ ksort($per);
 </div>
 <script>
 (function(){
-  var URL = <?= json_encode(site_url('cermat/simpan_alasan?p=' . $p)) ?>;
+  var URL = <?= json_encode(site_url('sihardes/simpan_alasan?p=' . $p)) ?>;
   var grp = [].slice.call(document.querySelectorAll('#tbl tbody.grp'));
   var q = document.getElementById('q'), fd = document.getElementById('fdok'), fa = document.getElementById('farah'),
       fk = document.getElementById('fkab'), cnt = document.getElementById('cnt'),

@@ -313,7 +313,7 @@ class Periode_model extends CI_Model
             'jml_baris' => (int) $p['jml_baris'], 'jml_komoditas' => (int) $p['jml_komoditas'],
             'naik' => (int) $p['naik'], 'turun' => (int) $p['turun'], 'stabil' => (int) $p['stabil'],
             'perlu_konfirmasi' => (int) $p['perlu_konfirmasi'], 'tidak_valid' => (int) $p['tidak_valid'],
-            'opsi' => array_merge(Cermat_harga::$opsi_default, array('ambang_kec' => (float) $p['ambang_kec'])),
+            'opsi' => array_merge(Sihardes_harga::$opsi_default, array('ambang_kec' => (float) $p['ambang_kec'])),
         );
 
         $kom = $this->db->order_by('urut')->get_where('komoditas', array('periode_id' => $id))->result_array();
@@ -395,7 +395,7 @@ class Periode_model extends CI_Model
         return $out;
     }
 
-    /** Menyimpan isi sheet Data apa adanya (lihat Cermat_harga::baca_mentah). */
+    /** Menyimpan isi sheet Data apa adanya (lihat Sihardes_harga::baca_mentah). */
     public function simpan_mentah($periode_id, array $mentah)
     {
         $this->db->trans_start();

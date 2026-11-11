@@ -1,11 +1,11 @@
 <?php
-$bulan = Cermat_harga::$nama_bulan;
+$bulan = Sihardes_harga::$nama_bulan;
 $tahun_ini = (int) date('Y');
 ?>
 <div class="card f" style="max-width:640px">
   <h2>Unggah Data</h2>
   <?php if ( ! empty($galat)): ?><div class="err"><?= html_escape($galat) ?></div><?php endif; ?>
-  <?= form_open_multipart('cermat/proses') ?>
+  <?= form_open_multipart('sihardes/proses') ?>
     <label for="berkas">File Excel Data (.xlsx)</label>
     <input type="file" name="berkas" id="berkas" accept=".xlsx" required>
     <p class="hint" id="info">Pilih file, lalu bulan dan tahun akan terisi otomatis dari nama file. Periode yang sama boleh diunggah lebih dari sekali; data lama tidak dihapus (lihat Riwayat Periode).</p>
@@ -28,8 +28,8 @@ $tahun_ini = (int) date('Y');
 </div>
 <script>
 (function(){
-  // Aturan baca sama dengan Cermat_harga::baca_periode() di server
-  var ALIAS = <?= json_encode(Cermat_harga::$alias_bulan) ?>, NAMA = <?= json_encode(array_values($bulan)) ?>;
+  // Aturan baca sama dengan Sihardes_harga::baca_periode() di server
+  var ALIAS = <?= json_encode(Sihardes_harga::$alias_bulan) ?>, NAMA = <?= json_encode(array_values($bulan)) ?>;
   var peta = {}, alt = [];
   Object.keys(ALIAS).forEach(function(no){ ALIAS[no].forEach(function(a){ peta[a] = +no; alt.push(a); }); });
   alt.sort(function(x, y){ return y.length - x.length; });

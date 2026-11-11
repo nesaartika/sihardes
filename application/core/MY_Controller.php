@@ -12,7 +12,7 @@ class MY_Controller extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        if (is_cli()) return;            // perintah terminal (cermat.php) tidak memakai sesi
+        if (is_cli()) return;            // perintah terminal (sihardes.php) tidak memakai sesi
 
         $this->mulai_sesi();
         if ($this->wajib_login) $this->periksa_login();

@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 /**
- * Pengaturan aplikasi CERMAT.
+ * Pengaturan aplikasi SIHARDES.
  * domain_email       : akun yang dibuat admin harus memakai email dengan domain ini (kosongkan untuk menerima semua domain).
  * simpan_semua_sheet : FALSE (bawaan) = untuk file tabel harga hanya sheet Data dan RH yang disimpan; menu Data hanya berisi Data.
  *                      TRUE = semua sheet ikut disimpan (lebih lambat; menu Data tetap hanya menampilkan Data).

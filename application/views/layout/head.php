@@ -124,22 +124,22 @@ $ikon = array(
  'riwayat'   => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
 );
 $menu_item = array(
- 'dashboard' => array('Dashboard', 'cermat'),
- 'unggah'    => array('Unggah Data', 'cermat/unggah'),
- 'data'      => array('Data', 'cermat/data_asli'),
- 'rh'        => array('RH', 'cermat/hasil_rh'),
- 'rekap'     => array('Rekap Konfirmasi', 'cermat/rekap'),
- 'komoditas' => array('Semua Komoditas', 'cermat/komoditas'),
- 'riwayat'   => array('Riwayat Periode', 'cermat/riwayat'),
- 'aktivitas' => array('Log Aktivitas', 'cermat/aktivitas'),
- 'pengguna'  => array('Kelola Pengguna', 'cermat/pengguna'),
+ 'dashboard' => array('Dashboard', 'sihardes'),
+ 'unggah'    => array('Unggah Data', 'sihardes/unggah'),
+ 'data'      => array('Data', 'sihardes/data_asli'),
+ 'rh'        => array('RH', 'sihardes/hasil_rh'),
+ 'rekap'     => array('Rekap Konfirmasi', 'sihardes/rekap'),
+ 'komoditas' => array('Semua Komoditas', 'sihardes/komoditas'),
+ 'riwayat'   => array('Riwayat Periode', 'sihardes/riwayat'),
+ 'aktivitas' => array('Log Aktivitas', 'sihardes/aktivitas'),
+ 'pengguna'  => array('Kelola Pengguna', 'sihardes/pengguna'),
 );
 $role = $this->session->userdata('role');
 $akun_kab = ($role === 'kabupaten');
 if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('data', 'rh', 'rekap')));   // akun kabupaten: Data, RH, dan Rekap
 // Menu samping SELALU sama untuk tiap peran (tidak berubah menurut periode/file yang dibuka atau diunggah).
 $nm_user = (string) $this->session->userdata('nama');
-$nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Cermat_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
+$nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Sihardes_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
 $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data', 'rh' => 'RH',
                'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
@@ -204,15 +204,15 @@ document.addEventListener('DOMContentLoaded', function(){
       // tombol unduh mengikuti halaman: RH -> format sheet RH; Data / file bukan tabel harga -> file asli yang diunggah; selain itu -> Rekap Konfirmasi
       $mode_sheet = ! empty($periode['mode_sheet']);      // file bukan tabel harga, tetap dikonfirmasi lewat Komoditas & Rekap
       $tanpa_hasil = empty($periode['hasil']['komoditas']) || $mode_sheet;
-      if ($menu === 'rh')                      { $unduh = site_url('cermat/unduh_rh/' . $p);  $unduh_ket = 'Unduh RH (format sheet RH)'; }
-      elseif ($menu === 'rekap' && $mode_sheet && ! $this->input->get('ringkasan')) { $unduh = site_url('cermat/unduh/' . $p); $unduh_ket = 'Unduh Rekap Konfirmasi'; }
-      elseif ($menu === 'rekap' && $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); $unduh = site_url('cermat/unduh_rekap/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh rekap sheet ' . $sh : 'Unduh rekap semua sheet'; }
-      elseif ($menu === 'data' || $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); if ($sh === '' && ! $tanpa_hasil) $sh = 'Data'; $unduh = site_url('cermat/unduh_data/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh sheet ' . $sh . ' apa adanya' : 'Unduh file Excel asli (format sama dengan yang diunggah)'; }
-      else                                     { $unduh = site_url('cermat/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }
+      if ($menu === 'rh')                      { $unduh = site_url('sihardes/unduh_rh/' . $p);  $unduh_ket = 'Unduh RH (format sheet RH)'; }
+      elseif ($menu === 'rekap' && $mode_sheet && ! $this->input->get('ringkasan')) { $unduh = site_url('sihardes/unduh/' . $p); $unduh_ket = 'Unduh Rekap Konfirmasi'; }
+      elseif ($menu === 'rekap' && $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); $unduh = site_url('sihardes/unduh_rekap/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh rekap sheet ' . $sh : 'Unduh rekap semua sheet'; }
+      elseif ($menu === 'data' || $tanpa_hasil) { $sh = (string) $this->input->get('sheet'); if ($sh === '' && ! $tanpa_hasil) $sh = 'Data'; $unduh = site_url('sihardes/unduh_data/' . $p) . ($sh !== '' ? '?sheet=' . rawurlencode($sh) : ''); $unduh_ket = $sh !== '' ? 'Unduh sheet ' . $sh . ' apa adanya' : 'Unduh file Excel asli (format sama dengan yang diunggah)'; }
+      else                                     { $unduh = site_url('sihardes/unduh/' . $p);     $unduh_ket = 'Unduh Rekap Konfirmasi'; }
       ?>
     <?php endif; ?>
     <?php
-    $ket_user = ($akun_kab ? stripos($nm_user, Cermat_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? $nama_peran : ($akun_kab ? '' : 'Admin');
+    $ket_user = ($akun_kab ? stripos($nm_user, Sihardes_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? $nama_peran : ($akun_kab ? '' : 'Admin');
     $inisial = mb_strtoupper(mb_substr(trim($nm_user) !== '' ? trim($nm_user) : 'U', 0, 1));
     ?>
     <div class="menu-profil" id="menuProfil">

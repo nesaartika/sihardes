@@ -2,7 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Cermat_harga
+ * Sihardes_harga
  * ------------------------------------------------------------------
  * Pengumpulan fenomena perubahan harga perdesaan
  * BPS Provinsi Kalimantan Barat.
@@ -14,7 +14,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   3. tulis_xlsx()  : menulis rekap dengan format seperti spreadsheet
  *                      "Perubahan Sementara Harga Perdesaan"
  */
-class Cermat_harga
+class Sihardes_harga
 {
     /** Kode kabupaten/kota BPS Provinsi Kalimantan Barat (61xx) */
     public static $kabupaten = array(
