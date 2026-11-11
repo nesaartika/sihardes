@@ -122,7 +122,7 @@ a{text-decoration:none}
       <div>
         <span class="pil"><i></i> Fenomena Perubahan Harga Perdesaan</span>
         <h1>Selamat Datang di <span><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></span></h1>
-        <p class="lead2">Pantau fenomena perubahan harga perdesaan di Kalimantan Barat bersama BPS provinsi dan BPS kabupaten/kota.</p>
+        <p class="lead2">Pantau fenomena perubahan harga perdesaan di Kalimantan Barat</p>
         <div class="aksi">
           <a class="tbl" href="<?= site_url('auth/login') ?>">Mulai Sekarang <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
