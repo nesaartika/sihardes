@@ -5,15 +5,13 @@
 .kaki-app nav{display:flex;gap:16px;flex-wrap:wrap}
 .kaki-app a{font-weight:600}
 @media (max-width:900px){
-  .kaki-app{flex-direction:column;justify-content:center;text-align:center;gap:10px;padding:14px 16px 18px;font-size:11.5px;line-height:1.5}
-  .kaki-app nav{justify-content:center;gap:10px;width:100%}
-  .kaki-app nav a{flex:1 1 0;max-width:170px;padding:7px 10px;border:1px solid var(--br);border-radius:8px;font-size:12px;text-align:center;white-space:nowrap}
+  .kaki-app{flex-direction:column;justify-content:center;text-align:center;gap:4px;padding:12px 16px;font-size:11.5px;line-height:1.5}
+  .kaki-app nav{justify-content:center}
 }
 </style>
   <footer class="kaki-app">
     <span>Badan Pusat Statistik Provinsi Kalimantan Barat <?= date('Y') ?></span>
     <nav aria-label="Tautan footer">
-      <a href="<?= site_url('') ?>">Halaman Awal</a>
       <a href="https://kalbar.bps.go.id" rel="noopener" target="_blank">kalbar.bps.go.id</a>
     </nav>
   </footer>
