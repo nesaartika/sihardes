@@ -1,4 +1,6 @@
 <?php
+// Zona waktu aplikasi: WIB (Kalimantan Barat). Semua jam yang tampil dan tersimpan mengikuti zona ini.
+date_default_timezone_set('Asia/Pontianak');
 /**
  * CodeIgniter
  *
