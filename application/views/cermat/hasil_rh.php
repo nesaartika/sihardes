@@ -29,7 +29,6 @@ if ($kanan)
     <?php foreach (array(25, 50, 100) as $n): ?><option value="<?= $n ?>" <?= $per === $n ? 'selected' : '' ?>><?= $n ?> baris</option><?php endforeach; ?></select>
   <button class="btn" type="submit">Terapkan</button>
   <a class="btn alt" href="<?= site_url('cermat/hasil_rh?p=' . $p) ?>">Reset</a>
-  <?php if ( ! $kab): ?><a class="btn alt" href="<?= site_url('cermat/unduh_rh/' . $p) ?>">Unduh RH (Excel)</a><?php endif; ?>
 </form>
 
 <p class="hint"><?= $total ? 'Menampilkan ' . number_format($awal, 0, ',', '.') . '-' . number_format($akhir, 0, ',', '.') . ' dari ' . number_format($total, 0, ',', '.') . ' komoditas' : 'Tidak ada komoditas yang cocok.' ?></p>

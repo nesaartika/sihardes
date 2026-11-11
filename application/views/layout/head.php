@@ -22,15 +22,16 @@
 .side-user{display:none}
 .aksi-halaman{display:flex;justify-content:flex-end;margin-bottom:12px}
 .unduh-bar{margin-left:auto}
-@media (max-width:767px){
-  .col-unduh .btn-unduh,.unduh-bar{width:100%;justify-content:center;margin-left:0;flex:1 0 100%;padding-top:9px;padding-bottom:9px}
-  /* halaman Data & RH di HP: filter tersusun rapi 2 kolom */
-  main form.bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
-  main form.bar input[type=text]{grid-column:1/-1;width:100%;min-width:0}
-  main form.bar select{width:100%;min-width:0}
-  main form.bar .chip{grid-column:1/-1;justify-self:start}
-  main form.bar .btn{width:100%;justify-content:center;text-align:center;margin:0;padding:10px 12px;display:inline-flex;align-items:center}
-  main form.bar .unduh-bar{grid-column:1/-1;margin:0}
+/* HP: baris filter rapi (kolom cari penuh, pilihan 2 kolom, tombol kecil berderet) */
+@media (max-width:900px){
+  main form.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  main form.bar input[type=text]{flex:1 1 100%;width:100%;min-width:0}
+  main form.bar select{flex:1 1 calc(50% - 4px);width:auto;min-width:0}
+  main form.bar .chip{flex:1 1 100%;justify-self:start}
+  main form.bar .btn,.f .btn{flex:0 0 auto;width:auto;padding:7px 14px;font-size:13.5px;line-height:1.3;margin:0;display:inline-flex;align-items:center;justify-content:center}
+  .bs .btn.btn-unduh,main form.bar .unduh-bar,.col-unduh .btn-unduh{width:38px;height:36px;padding:0;justify-content:center;flex:0 0 auto;margin:0}
+  .btn-unduh .teks{display:none}
+  td .btn{padding:5px 11px;font-size:13px}
 }
 
 /* HP/tablet: sidebar muncul dari samping lewat tombol garis tiga */
@@ -143,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function(){
   var box = document.getElementById('aksiHalaman'); if (!box) return;
   var form = document.querySelector('main form#ffilter, main form.bar'); if (!form) return;
   var tbl = box.firstElementChild;
-  if (form.classList.contains('row')) { var col = document.createElement('div'); col.className = 'col-12 col-md-auto ms-md-auto col-unduh'; col.appendChild(tbl); form.appendChild(col); }
+  if (form.classList.contains('row')) { var col = document.createElement('div'); col.className = 'col-auto ms-md-auto col-unduh'; col.appendChild(tbl); form.appendChild(col); }
   else { tbl.classList.add('unduh-bar'); form.appendChild(tbl); }
   box.remove();
 });

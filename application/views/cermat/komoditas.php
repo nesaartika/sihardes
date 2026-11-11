@@ -31,7 +31,6 @@ foreach ($komoditas as $k)
   <div class="col-12 col-md-auto"><input type="text" class="form-control form-control-sm" id="q" placeholder="Cari nama / kode komoditas..." style="min-width:250px"></div>
   <div class="col-auto"><select class="form-select form-select-sm" id="fdok"><option value="">Semua dokumen</option><?php foreach ($dok_daftar as $dk): ?><option><?= html_escape($dk) ?></option><?php endforeach; ?></select></div>
   <div class="col-auto"><select class="form-select form-select-sm" id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select></div>
-  <div class="col-auto"><select class="form-select form-select-sm" id="fpilih"><option value="">Semua status</option><option value="1">Sudah dicentang</option><option value="0">Belum dicentang</option></select></div>
   <div class="col-auto"><div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="fsemua" checked><label class="form-check-label" for="fsemua">Tampilkan juga yang tidak berubah &amp; yang kosong (tanpa data)</label></div></div>
   <div class="col-auto d-flex gap-2">
     <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
@@ -67,7 +66,7 @@ foreach ($komoditas as $k)
   var INFO = <?= json_encode($info, JSON_FORCE_OBJECT) ?>, NAMA = <?= json_encode(array_map(function ($kd) { return Cermat_harga::nama_kab($kd); }, array_combine(array_keys($daftar_kab), array_keys($daftar_kab)))) ?>;
   var tbl = document.getElementById('tbl'), rows = [].slice.call(tbl.querySelectorAll('tbody tr')),
       q = document.getElementById('q'), fd = document.getElementById('fdok'), fa = document.getElementById('farah'),
-      fp = document.getElementById('fpilih'), fk = document.getElementById('fkab'), fs = document.getElementById('fsemua'),
+      fk = document.getElementById('fkab'), fs = document.getElementById('fsemua'),
       cnt = document.getElementById('cnt'), semua = document.getElementById('semua');
   var f = {q:'', dok:'', arah:'', pilih:'', semua:true};   // bawaan: semua komoditas di file tampil
   var sibuk = false;                                         // cegah klik beruntun saat permintaan masih berjalan
@@ -112,11 +111,12 @@ foreach ($komoditas as $k)
     semua.disabled = v.length === 0;
   }
   function segar(){ rows.forEach(gambar); saring(); }
-  function terapkan(){ f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, pilih: fp.value, semua: fs.checked}; segar(); }
+  function terapkan(){ f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, pilih: '', semua: fs.checked}; segar(); }
   document.getElementById('ffilter').addEventListener('submit', terapkan);
   fk.addEventListener('change', terapkan);
   document.getElementById('breset').addEventListener('click', function(){
-    q.value = ''; fd.value = ''; fa.value = ''; fp.value = ''; fs.checked = true; terapkan();
+    document.getElementById('ffilter').reset();      // semua isian filter kembali ke awal
+    fk.value = ''; terapkan();
   });
 
   function kunciUI(ya){ sibuk = ya; document.body.style.cursor = ya ? 'progress' : ''; semua.disabled = ya; [].forEach.call(tbl.querySelectorAll('input.pilih'), function(c){ c.disabled = ya; }); }

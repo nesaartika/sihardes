@@ -21,7 +21,7 @@ a{text-decoration:none}
 
 /* latar terang bergaya aplikasi BPS: biru muda lembut + pola titik halus */
 .latar{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden;
-  background:linear-gradient(90deg,rgba(243,246,251,.97) 0%,rgba(243,246,251,.90) 42%,rgba(230,239,252,.55) 100%),url('<?= base_url('assets/img/gedung-bps.jpg') ?>') center 38%/cover no-repeat,radial-gradient(1000px 520px at 88% -8%,#d3e3fb,transparent 70%),radial-gradient(700px 420px at -5% 105%,#dff3ff,transparent 70%),var(--bg)}
+  background:linear-gradient(90deg,rgba(243,246,251,.96) 0%,rgba(243,246,251,.86) 40%,rgba(230,239,252,.30) 100%),url('<?= base_url('assets/img/gedung-bps.jpg') ?>') center 38%/cover no-repeat,radial-gradient(1000px 520px at 88% -8%,#d3e3fb,transparent 70%),radial-gradient(700px 420px at -5% 105%,#dff3ff,transparent 70%),var(--bg)}
 .latar::before{content:"";position:absolute;inset:0;pointer-events:none;
   background-image:radial-gradient(rgba(29,95,208,.13) 1.2px,transparent 1.2px);background-size:26px 26px;
   -webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 80%);mask-image:linear-gradient(180deg,#000 0%,transparent 80%)}
@@ -92,13 +92,21 @@ a{text-decoration:none}
 .kaki a:hover{text-decoration:underline}
 
 @media (max-width:900px){
-  .latar{background-position:center top}
-  .hero-isi{grid-template-columns:1fr;gap:34px;padding-bottom:46px}
-  .ilus-bungkus{max-width:440px}
+  /* HP: foto gedung tampil jelas sebagai banner di atas, memudar ke latar halaman */
+  .latar{background:linear-gradient(180deg,rgba(243,246,251,0) 0,rgba(243,246,251,.15) 150px,rgba(243,246,251,.92) 300px,#f3f6fb 370px),
+    url('<?= base_url('assets/img/gedung-bps.jpg') ?>') center top/auto 370px no-repeat,#f3f6fb;background-size:100% 100%,cover,auto;background-size:100% 100%,100% 370px,auto;background-position:0 0,center top,0 0}
+  .latar::before{display:none}
+  .lebar.atas-isi{width:auto;margin:14px 16px 0;padding:10px 14px;background:rgba(255,255,255,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:16px;box-shadow:0 6px 20px rgba(14,39,72,.14)}
+  .hero{align-items:flex-start}
+  .hero-isi{grid-template-columns:1fr;gap:26px;padding:170px 24px 40px}
+  .hero h1{font-size:2.1rem}
+  .hero p.lead2{font-size:16px;margin-bottom:22px}
+  .ilus-bungkus{max-width:300px}
 }
 @media (max-width:520px){
-  .lebar,.hero-isi{padding-left:18px;padding-right:18px}
+  .hero-isi{padding-left:20px;padding-right:20px}
   .merek small{display:none}
+  .tbl-kecil{padding:8px 18px}
 }
 @media (prefers-reduced-motion:reduce){.cahaya,.ilus,.pil i{animation:none}}
 </style>
@@ -122,7 +130,7 @@ a{text-decoration:none}
       <div>
         <span class="pil"><i></i> Fenomena Perubahan Harga Perdesaan</span>
         <h1>Selamat Datang di <span><?= html_escape(config_item('nama_app') ?: 'SIHARDES') ?></span></h1>
-        <p class="lead2">Pantau fenomena perubahan harga perdesaan di Kalimantan Barat</p>
+        <p class="lead2">Pantau fenomena perubahan harga perdesaan di Kalimantan Barat bersama BPS provinsi dan BPS kabupaten/kota.</p>
         <div class="aksi">
           <a class="tbl" href="<?= site_url('auth/login') ?>">Mulai Sekarang <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>

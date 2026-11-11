@@ -40,7 +40,6 @@ ksort($per);
   <input type="hidden" id="fkab" value="">
   <div class="col-auto"><span class="chip"><?= html_escape(Cermat_harga::nama_kab((int) $kunci_kab)) ?></span></div>
   <?php endif; ?>
-  <div class="col-auto"><select class="form-select form-select-sm" id="fstatus"><option value="">Semua status alasan</option><option value="belum">Belum diisi</option><option value="sudah">Sudah diisi</option></select></div>
   <div class="col-auto d-flex gap-2">
     <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
     <button class="btn btn-outline-secondary btn-sm" type="button" id="breset">Reset</button>
@@ -48,12 +47,6 @@ ksort($per);
   </div>
 </form>
 
-<?php if ($tampil): ?>
-<div class="alert alert-warning py-2 d-flex flex-wrap align-items-center gap-2" id="bnr" data-total="<?= $total ?>" style="<?= $belum ? '' : 'display:none!important' ?>">
-  <span id="bnrTeks">Masih ada <?= $belum ?> alasan yang belum diisi dari <?= $total ?> yang diminta.</span>
-  <button type="button" class="btn btn-warning btn-sm" id="bLompat">Lompat ke yang belum diisi</button>
-</div>
-<?php endif; ?>
 <p class="text-secondary small mb-2" id="cnt"></p>
 
 <?php if ( ! $tampil): ?>
@@ -123,7 +116,7 @@ ksort($per);
   var URL = <?= json_encode(site_url('cermat/simpan_alasan?p=' . $p)) ?>;
   var grp = [].slice.call(document.querySelectorAll('#tbl tbody.grp'));
   var q = document.getElementById('q'), fd = document.getElementById('fdok'), fa = document.getElementById('farah'),
-      fk = document.getElementById('fkab'), fs = document.getElementById('fstatus'), cnt = document.getElementById('cnt'),
+      fk = document.getElementById('fkab'), cnt = document.getElementById('cnt'),
       bnr = document.getElementById('bnr'), bnrTeks = document.getElementById('bnrTeks'), bLompat = document.getElementById('bLompat');
   var f = {q:'', dok:'', arah:'', kab:'', status:''};   // filter yang sedang diterapkan
 
@@ -143,12 +136,12 @@ ksort($per);
     if (cnt) cnt.textContent = grp.length ? 'Menampilkan ' + nb + ' baris dari ' + nk + ' ' + <?= json_encode($sheet ? 'wilayah' : 'kabupaten') ?> : '';
   }
   document.getElementById('ffilter').addEventListener('submit', function(){
-    f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, kab: fk.value, status: fs.value};
+    f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, kab: fk.value, status: ''};
     saring();
   });
   fk.addEventListener('change', function(){ document.getElementById('ffilter').dispatchEvent(new Event('submit')); });
   document.getElementById('breset').addEventListener('click', function(){
-    q.value = ''; fd.value = ''; fa.value = ''; fk.value = ''; fs.value = '';
+    document.getElementById('ffilter').reset();      // semua isian filter kembali ke awal
     f = {q:'', dok:'', arah:'', kab:'', status:''}; saring();
   });
   saring();
