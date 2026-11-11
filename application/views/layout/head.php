@@ -50,9 +50,13 @@
   .top h1{order:2;flex:1;min-width:0;margin:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .top .btn-unduh{order:3;width:42px;height:42px;padding:0;justify-content:center;flex:none}
   .top .btn-unduh .teks{display:none}
-  .top .pilih-file{order:4;flex:1 0 100%;width:100%;max-width:100%}
+  .top .pilih-file{order:5;flex:1 0 100%;width:100%;max-width:100%}
+  .top .menu-profil{order:4}
+  .btn-profil{padding:3px;gap:0;border-radius:50%}
+  .btn-profil .profil-teks,.btn-profil .caret{display:none}
+  .dd-profil{min-width:210px;max-width:calc(100vw - 28px)}
   .top .info-user{display:none}
-  .side-user{display:block;padding:12px 18px;border-top:1px solid rgba(255,255,255,.10);color:#cfd9ea;font-size:13px}
+  .side-user{display:none;padding:12px 18px;border-top:1px solid rgba(255,255,255,.10);color:#cfd9ea;font-size:13px}
   .side-user b{display:block;color:#fff;margin-bottom:4px;word-break:break-word}
   .side-user a{color:#9cc4ff;margin-right:14px;font-weight:600}
   .wrap{margin-left:0}
@@ -74,16 +78,16 @@ body{font-size:14px}
 .menu-samping a:hover{background:var(--side2);color:#fff}
 .menu-samping a.on{background:var(--pri);color:#fff}
 .menu-samping svg{width:18px;height:18px;flex:none}
-.bs.top .form-select.pilih-file{width:320px;max-width:34vw;text-overflow:ellipsis}
+.bs.top .form-select.pilih-file{width:240px;max-width:26vw;text-overflow:ellipsis;font-size:12.5px;padding-top:4px;padding-bottom:4px;border-radius:8px}
 /* Menu profil (pojok kanan atas) */
 .menu-profil{position:relative;flex:none}
-.btn-profil{display:inline-flex;align-items:center;gap:9px;padding:4px 10px 4px 4px;border:1px solid var(--br);border-radius:99px;background:var(--card);color:var(--tx);cursor:pointer;font:inherit}
+.btn-profil{display:inline-flex;align-items:center;gap:7px;padding:3px 8px 3px 3px;border:1px solid var(--br);border-radius:99px;background:var(--card);color:var(--tx);cursor:pointer;font:inherit}
 .btn-profil:hover,.btn-profil[aria-expanded=true]{background:var(--pri2);border-color:var(--pri)}
-.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1d5fd0,#0aa5e8);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none}
-.avatar svg{width:18px;height:18px}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1d5fd0,#0aa5e8);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.avatar svg{width:16px;height:16px}
 .avatar.besar{width:40px;height:40px}.avatar.besar svg{width:22px;height:22px}
-.profil-teks{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;max-width:170px;text-align:left}
-.profil-teks b{font-size:13px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profil-teks{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;max-width:140px;text-align:left}
+.profil-teks b{font-size:12.5px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .profil-teks small{font-size:11px;color:var(--mut);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-profil .caret{width:14px;height:14px;color:var(--mut);transition:transform .15s}
 .btn-profil[aria-expanded=true] .caret{transform:rotate(180deg)}
@@ -189,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <?php if ( ! empty($daftar_periode)): ?>
       <select class="form-select form-select-sm pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
         <?php foreach ($daftar_periode as $pd): ?>
-          <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 38, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
+          <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 22, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
         <?php endforeach; ?>
       </select>
       <?php
@@ -207,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function(){
     $ket_user = ($akun_kab ? stripos($nm_user, Cermat_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? $nama_peran : ($akun_kab ? '' : 'Admin');
     $inisial = mb_strtoupper(mb_substr(trim($nm_user) !== '' ? trim($nm_user) : 'U', 0, 1));
     ?>
-    <div class="menu-profil info-user" id="menuProfil">
+    <div class="menu-profil" id="menuProfil">
       <button type="button" class="btn-profil" id="btnProfil" aria-haspopup="true" aria-expanded="false" title="<?= html_escape($nm_user) ?>">
         <span class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></svg></span>
         <span class="profil-teks"><b><?= html_escape($nm_user) ?></b><?php if ($ket_user !== ''): ?><small><?= html_escape($ket_user) ?></small><?php endif; ?></span>
