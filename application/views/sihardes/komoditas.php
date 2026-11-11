@@ -13,7 +13,7 @@ foreach ($komoditas as $k)
 <div class="bs">
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
   <b>1. <?= $sheet ? 'Wilayah' : 'Kabupaten' ?>:</b>
-  <select id="fkab" class="form-select form-select-sm fw-bold" style="min-width:230px">
+  <select id="fkab" autocomplete="off" class="form-select form-select-sm fw-bold" style="min-width:230px">
     <option value="">Semua <?= $sheet ? 'wilayah' : 'kabupaten' ?></option>
     <?php foreach ($daftar_kab as $kd => $nm): ?><option value="<?= $kd ?>"><?= html_escape($nm) ?></option><?php endforeach; ?>
   </select>
@@ -27,7 +27,7 @@ foreach ($komoditas as $k)
   <a class="btn btn-outline-primary btn-sm" href="<?= site_url('sihardes/rekap?ringkasan=1&p=' . $p) ?>" title="Ringkasan naik / turun per sheet (baca-saja)">Ringkasan per sheet</a>
   <?php endif; ?>
 </div>
-<form class="row g-2 align-items-center mb-2" id="ffilter" onsubmit="return false">
+<form class="row g-2 align-items-center mb-2" id="ffilter" autocomplete="off" onsubmit="return false">
   <div class="col-12 col-md-auto"><input type="text" class="form-control form-control-sm" id="q" placeholder="Cari nama / kode komoditas..." style="min-width:250px"></div>
   <div class="col-auto"><select class="form-select form-select-sm" id="fdok"><option value="">Semua dokumen</option><?php foreach ($dok_daftar as $dk): ?><option><?= html_escape($dk) ?></option><?php endforeach; ?></select></div>
   <div class="col-auto"><select class="form-select form-select-sm" id="farah"><option value="">Semua arah</option><option value="naik">Naik</option><option value="turun">Turun</option><option value="stabil">Stabil</option><option value="tanpa">Kosong (tanpa data)</option></select></div>
@@ -110,13 +110,13 @@ foreach ($komoditas as $k)
     semua.indeterminate = c > 0 && c < v.length;
     semua.disabled = v.length === 0;
   }
-  function segar(){ rows.forEach(gambar); saring(); }
+  function segar(){ if (!sibuk) rows.forEach(gambar); saring(); }
   function terapkan(){ f = {q: q.value.trim().toLowerCase(), dok: fd.value, arah: fa.value, pilih: '', semua: fs.checked}; segar(); }
   document.getElementById('ffilter').addEventListener('submit', terapkan);
   fk.addEventListener('change', terapkan);
   document.getElementById('breset').addEventListener('click', function(){
-    document.getElementById('ffilter').reset();      // semua isian filter kembali ke awal
-    fk.value = ''; terapkan();
+    q.value = ''; fd.value = ''; fa.value = ''; fk.value = ''; fs.checked = true;   // semua isian filter kembali ke awal
+    terapkan();
   });
 
   function kunciUI(ya){ sibuk = ya; document.body.style.cursor = ya ? 'progress' : ''; semua.disabled = ya; [].forEach.call(tbl.querySelectorAll('input.pilih'), function(c){ c.disabled = ya; }); }
@@ -127,7 +127,9 @@ foreach ($komoditas as $k)
     if (opsi.massal) fm.append('massal', '1');
     if (window.CSRF) fm.append(window.CSRF.n, window.CSRF.v);
     kunciUI(true);
-    fetch(URL, {method:'POST', body:fm}).then(function(r){
+    var ac = window.AbortController ? new AbortController() : null, tm = setTimeout(function(){ if (ac) ac.abort(); }, 60000);
+    fetch(URL, {method:'POST', body:fm, signal: ac ? ac.signal : undefined}).then(function(r){
+      clearTimeout(tm);
       if (r.status === 401) { alert('Sesi habis. Silakan login lagi.'); location.reload(); throw 0; }
       return r.json();
     }).then(function(j){
@@ -140,7 +142,7 @@ foreach ($komoditas as $k)
       });
       kunciUI(false); segar();
     }).catch(function(e){
-      kunciUI(false);
+      clearTimeout(tm); kunciUI(false);
       if (e === 0) return;
       alert('Perubahan belum tersimpan. Muat ulang halaman lalu coba lagi.'); location.reload();
     });
