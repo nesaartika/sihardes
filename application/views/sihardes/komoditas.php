@@ -118,7 +118,6 @@ foreach ($komoditas as $k)
   document.getElementById('breset').addEventListener('click', function(){
     if (sibuk) return;
     var ada = rows.some(function(r){ return r.dataset.pilih === '1'; });   // masih ada komoditas yang tercentang?
-    if (ada && !confirm('Reset akan mengosongkan semua filter DAN semua centang komoditas. Alasan yang sudah diisi tidak dihapus. Lanjutkan?')) return;
     q.value = ''; fd.value = ''; fa.value = ''; fk.value = ''; fs.checked = true;   // semua isian filter kembali ke awal
     if (ada) { kunciUI(true); document.getElementById('freset').submit(); return; }   // kosongkan centang di server, halaman dimuat ulang
     terapkan();
@@ -160,7 +159,6 @@ foreach ($komoditas as $k)
   });
   function massal(nilai){
     var t = terlihat(); if (!t.length) { alert('Tidak ada komoditas yang tampil.'); segar(); return; }
-    if (t.length > 20 && !confirm((nilai ? 'Centang ' : 'Hapus centang ') + t.length + ' komoditas yang sedang tampil?')) { segar(); return; }
     kirim(t.map(function(r){ return r.dataset.kode; }), nilai, {kab: fk.value, massal: true});
   }
   segar();
