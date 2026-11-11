@@ -102,6 +102,10 @@ body{font-size:14px}
 .dd-profil a:hover svg{color:var(--pri)}
 .dd-profil a.keluar:hover{background:rgba(220,38,38,.10);color:#dc2626}
 .dd-profil a.keluar:hover svg{color:#dc2626}
+@media (max-width:900px){
+  .bs.top .form-select.pilih-file{order:5;flex:1 0 100%;width:100%;max-width:100%;font-size:13.5px;padding-top:6px;padding-bottom:6px}
+  .top .menu-profil{order:4;margin-left:auto}
+}
 </style>
 <script>window.CSRF = <?= json_encode(isset($csrf) ? array('n' => $csrf[0], 'v' => $csrf[1]) : null) ?>;</script>
 </head>
