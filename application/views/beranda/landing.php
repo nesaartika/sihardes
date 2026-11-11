@@ -101,7 +101,10 @@ a{text-decoration:none}
   .hero-isi{grid-template-columns:1fr;gap:26px;padding:170px 24px 40px}
   .hero h1{font-size:2.1rem}
   .hero p.lead2{font-size:16px;margin-bottom:22px}
-  .ilus-bungkus{max-width:300px}
+  .ilus-bungkus{max-width:300px;justify-self:center}
+  .hero-isi{padding-bottom:24px}
+  .kaki{font-size:12.5px}
+  .kaki-isi{flex-direction:column;justify-content:center;text-align:center;gap:4px;padding-top:14px;padding-bottom:16px;line-height:1.5}
 }
 @media (max-width:520px){
   .hero-isi{padding-left:20px;padding-right:20px}
