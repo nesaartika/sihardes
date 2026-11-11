@@ -26,9 +26,7 @@ foreach ($komoditas as $k)
   <?php else: ?>
   <a class="btn btn-outline-primary btn-sm" href="<?= site_url('sihardes/rekap?ringkasan=1&p=' . $p) ?>" title="Ringkasan naik / turun per sheet (baca-saja)">Ringkasan per sheet</a>
   <?php endif; ?>
-  <?= form_open('sihardes/reset_penugasan?p=' . $p, array('style' => 'display:inline;margin:0', 'onsubmit' => "return confirm('Kosongkan SEMUA centang komoditas pada periode ini? Alasan yang sudah diisi tidak dihapus.');")) ?>
-    <button class="btn btn-outline-danger btn-sm" type="submit" title="Hapus semua centang komoditas yang dikonfirmasi (alasan yang sudah diisi tidak dihapus)">Kosongkan semua centang</button>
-  <?= form_close() ?>
+  <?= form_open('sihardes/reset_penugasan?p=' . $p, array('id' => 'freset', 'style' => 'display:none')) ?><?= form_close() ?>
 </div>
 <form class="row g-2 align-items-center mb-2" id="ffilter" autocomplete="off" onsubmit="return false">
   <div class="col-12 col-md-auto"><input type="text" class="form-control form-control-sm" id="q" placeholder="Cari nama / kode komoditas..." style="min-width:250px"></div>
@@ -37,7 +35,7 @@ foreach ($komoditas as $k)
   <div class="col-auto"><div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="fsemua" checked><label class="form-check-label" for="fsemua">Tampilkan juga yang tidak berubah &amp; yang kosong (tanpa data)</label></div></div>
   <div class="col-auto d-flex gap-2">
     <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
-    <button class="btn btn-outline-secondary btn-sm" type="button" id="breset">Reset</button>
+    <button class="btn btn-outline-secondary btn-sm" type="button" id="breset" title="Kosongkan semua filter dan semua centang komoditas">Reset</button>
   </div>
 </form>
 <p class="text-secondary small mb-2" id="cnt"></p>
@@ -118,7 +116,11 @@ foreach ($komoditas as $k)
   document.getElementById('ffilter').addEventListener('submit', terapkan);
   fk.addEventListener('change', terapkan);
   document.getElementById('breset').addEventListener('click', function(){
+    if (sibuk) return;
+    var ada = rows.some(function(r){ return r.dataset.pilih === '1'; });   // masih ada komoditas yang tercentang?
+    if (ada && !confirm('Reset akan mengosongkan semua filter DAN semua centang komoditas. Alasan yang sudah diisi tidak dihapus. Lanjutkan?')) return;
     q.value = ''; fd.value = ''; fa.value = ''; fk.value = ''; fs.checked = true;   // semua isian filter kembali ke awal
+    if (ada) { kunciUI(true); document.getElementById('freset').submit(); return; }   // kosongkan centang di server, halaman dimuat ulang
     terapkan();
   });
 
