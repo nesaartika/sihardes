@@ -26,6 +26,9 @@ foreach ($komoditas as $k)
   <?php else: ?>
   <a class="btn btn-outline-primary btn-sm" href="<?= site_url('sihardes/rekap?ringkasan=1&p=' . $p) ?>" title="Ringkasan naik / turun per sheet (baca-saja)">Ringkasan per sheet</a>
   <?php endif; ?>
+  <?= form_open('sihardes/reset_penugasan?p=' . $p, array('style' => 'display:inline;margin:0', 'onsubmit' => "return confirm('Kosongkan SEMUA centang komoditas pada periode ini? Alasan yang sudah diisi tidak dihapus.');")) ?>
+    <button class="btn btn-outline-danger btn-sm" type="submit" title="Hapus semua centang komoditas yang dikonfirmasi (alasan yang sudah diisi tidak dihapus)">Kosongkan semua centang</button>
+  <?= form_close() ?>
 </div>
 <form class="row g-2 align-items-center mb-2" id="ffilter" autocomplete="off" onsubmit="return false">
   <div class="col-12 col-md-auto"><input type="text" class="form-control form-control-sm" id="q" placeholder="Cari nama / kode komoditas..." style="min-width:250px"></div>
@@ -155,6 +158,7 @@ foreach ($komoditas as $k)
   });
   function massal(nilai){
     var t = terlihat(); if (!t.length) { alert('Tidak ada komoditas yang tampil.'); segar(); return; }
+    if (t.length > 20 && !confirm((nilai ? 'Centang ' : 'Hapus centang ') + t.length + ' komoditas yang sedang tampil?')) { segar(); return; }
     kirim(t.map(function(r){ return r.dataset.kode; }), nilai, {kab: fk.value, massal: true});
   }
   segar();
