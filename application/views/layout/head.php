@@ -86,7 +86,7 @@ body{font-size:14px}
 .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1d5fd0,#0aa5e8);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none}
 .avatar svg{width:16px;height:16px}
 .avatar.besar{width:40px;height:40px}.avatar.besar svg{width:22px;height:22px}
-.profil-teks{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;max-width:140px;text-align:left}
+.profil-teks{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;max-width:230px;text-align:left}
 .profil-teks b{font-size:12.5px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .profil-teks small{font-size:11px;color:var(--mut);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-profil .caret{width:14px;height:14px;color:var(--mut);transition:transform .15s}
@@ -140,6 +140,8 @@ if ($akun_kab) $menu_item = array_intersect_key($menu_item, array_flip(array('da
 // Menu samping SELALU sama untuk tiap peran (tidak berubah menurut periode/file yang dibuka atau diunggah).
 $nm_user = (string) $this->session->userdata('nama');
 $nama_peran = $akun_kab ? 'BPS ' . ((int) $this->session->userdata('kab') < 70 ? 'Kab. ' : '') . Sihardes_harga::nama_kab((int) $this->session->userdata('kab')) : 'Admin';
+$wil_u = $akun_kab ? ((int) $this->session->userdata('kab') < 70 ? 'Kabupaten ' : '') . Sihardes_harga::nama_kab((int) $this->session->userdata('kab')) : '';
+$nm_tampil = $akun_kab ? 'BPS ' . $wil_u : 'BPS Provinsi Kalimantan Barat';     // tampilan seragam; nama akun asli tetap ada di Kelola Pengguna
 $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 'komoditas' => 'Komoditas', 'data' => 'Data', 'rh' => 'RH',
                'unggah' => 'Unggah Data', 'riwayat' => 'Riwayat Periode', 'aktivitas' => 'Log Aktivitas', 'pengguna' => 'Kelola Pengguna');
 ?>
@@ -152,7 +154,7 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
     <?php endforeach; ?>
   </nav>
   <div class="side-user">
-    <b><?= html_escape($nm_user) ?></b>
+    <b><?= html_escape($nm_tampil) ?></b>
     <div><?php if ( ! $akun_kab): ?><a href="<?= site_url('auth/ganti_sandi') ?>">Ganti sandi</a><?php endif; ?><a href="<?= site_url('auth/logout') ?>">Keluar</a></div>
   </div>
   <small>Pengumpulan Fenomena<br>Perubahan Harga Perdesaan</small>
@@ -212,17 +214,17 @@ document.addEventListener('DOMContentLoaded', function(){
       ?>
     <?php endif; ?>
     <?php
-    $ket_user = ($akun_kab ? stripos($nm_user, Sihardes_harga::nama_kab((int) $this->session->userdata('kab'))) === false : strcasecmp($nm_user, 'Admin') !== 0) ? $nama_peran : ($akun_kab ? '' : 'Admin');
-    $inisial = mb_strtoupper(mb_substr(trim($nm_user) !== '' ? trim($nm_user) : 'U', 0, 1));
+    $ket_user = $akun_kab ? 'Kabupaten' : 'Admin';
+    $inisial = mb_strtoupper(mb_substr($nm_tampil, 0, 1));
     ?>
     <div class="menu-profil" id="menuProfil">
-      <button type="button" class="btn-profil" id="btnProfil" aria-haspopup="true" aria-expanded="false" title="<?= html_escape($nm_user) ?>">
+      <button type="button" class="btn-profil" id="btnProfil" aria-haspopup="true" aria-expanded="false" title="<?= html_escape($nm_tampil) ?>">
         <span class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></svg></span>
-        <span class="profil-teks"><b><?= html_escape($nm_user) ?></b><?php if ($ket_user !== ''): ?><small><?= html_escape($ket_user) ?></small><?php endif; ?></span>
+        <span class="profil-teks"><b><?= html_escape($nm_tampil) ?></b><?php if ($ket_user !== ''): ?><small><?= html_escape($ket_user) ?></small><?php endif; ?></span>
         <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="dd-profil" id="ddProfil" role="menu">
-        <div class="dd-kepala"><span class="avatar besar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></svg></span><div><b><?= html_escape($nm_user) ?></b><?php if ($ket_user !== ''): ?><small><?= html_escape($ket_user) ?></small><?php endif; ?></div></div>
+        <div class="dd-kepala"><span class="avatar besar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></svg></span><div><b><?= html_escape($nm_tampil) ?></b><?php if ($ket_user !== ''): ?><small><?= html_escape($ket_user) ?></small><?php endif; ?></div></div>
         <?php if ( ! $akun_kab): ?>
         <a role="menuitem" href="<?= site_url('auth/ganti_sandi') ?>"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Ganti sandi</a>
         <?php endif; ?>
