@@ -2,16 +2,13 @@
   <div class="card empty">Belum ada periode. <a href="<?= site_url('cermat/unggah') ?>">Unggah data pertama</a>.</div>
 <?php else: ?>
 <div class="tw"><table>
-  <thead><tr><th>Periode</th><th>File Asal</th><th>Dibuat</th><th>Komoditas</th><th>Perlu Konfirmasi</th><th>Alasan Terisi</th><th></th></tr></thead>
+  <thead><tr><th>Periode</th><th>File Asal</th><th>Dibuat</th><th></th></tr></thead>
   <tbody>
-  <?php foreach ($daftar as $d): $r = $d['ringkas']; ?>
+  <?php foreach ($daftar as $d): ?>
     <tr>
       <td><b><?= html_escape($d['nama']) ?></b> <span class="hint"><?= html_escape($d['jenis']) ?></span> <?= $d['id'] === $p ? '<span class="pill">aktif</span>' : '' ?></td>
       <td><?= html_escape($d['file_asal']) ?></td>
-      <td><?= $d['dibuat'] ?></td>
-      <td><?= $r['jml_komoditas'] ?> <span class="hint">(<?= $r['naik'] ?>&uarr; <?= $r['turun'] ?>&darr; <?= $r['stabil'] ?>=)</span></td>
-      <td><?= $r['perlu_konfirmasi'] ?></td>
-      <td><?= $d['terisi'] ?></td>
+      <td style="white-space:nowrap"><?= $d['dibuat'] ?></td>
       <td style="white-space:nowrap">
         <a class="btn alt" href="<?= site_url('cermat/data_asli?p=' . $d['id']) ?>">Buka</a>
         <a class="btn alt" href="<?= site_url('cermat/unduh/' . $d['id']) ?>">Excel</a>
