@@ -136,14 +136,14 @@ class Cermat extends MY_Controller
     }
 
     /** Melengkapi periode yang sedang dibuka dengan komoditas kosong dari sheet RH file aslinya (tanpa unggah ulang, alasan tidak hilang). */
-    /** Kembalikan pilihan komoditas ke bawaan awal (komoditas yang berubah diarahkan ke kabupaten terkait). Alasan yang sudah diisi tidak dihapus. */
+    /** Kosongkan semua pilihan komoditas (tidak ada yang dicentang). Alasan yang sudah diisi tidak dihapus. */
     public function reset_penugasan()
     {
         if ($this->input->method() !== 'post' || ! $this->buka_periode() || $this->kab_user()) redirect('cermat/komoditas');
         $id = $this->aktif;
         $this->periode->reset_penugasan($id);
-        $this->catatan->catat('reset_penugasan', $this->data['nama'] . ' - pilihan komoditas dikembalikan ke bawaan awal');
-        $this->session->set_flashdata('pesan', 'Pilihan komoditas dikembalikan ke bawaan awal: komoditas yang berubah kembali diarahkan ke kabupaten terkait.');
+        $this->catatan->catat('reset_penugasan', $this->data['nama'] . ' - pilihan komoditas dikosongkan');
+        $this->session->set_flashdata('pesan', 'Pilihan komoditas dikosongkan: belum ada komoditas yang dicentang.');
         redirect('cermat/komoditas?p=' . $id);
     }
 

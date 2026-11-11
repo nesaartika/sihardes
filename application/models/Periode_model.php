@@ -636,17 +636,14 @@ class Periode_model extends CI_Model
     // ------------------------------------------------------------------
 
     /**
-     * Penugasan periode: [kode => [kab => 1]]. Pertama kali dibuka, dibuat otomatis dari kecamatan yang perlu
-     * dikonfirmasi (perilaku lama: semua komoditas yang berubah ditanyakan ke kabupaten terkait); setelah itu admin yang mengatur.
+     * Penugasan periode: [kode => [kab => 1]]. Setelah unggah, penugasan KOSONG: tidak ada komoditas yang dicentang / diminta
+     * konfirmasi sampai admin provinsi memilihnya sendiri di menu Semua Komoditas.
      */
     public function penugasan($periode_id)
     {
         $p = $this->db->select('penugasan_siap')->get_where('periode', array('id' => $periode_id))->row_array();
         if ($p && ! (int) $p['penugasan_siap'])
         {
-            $this->db->query('INSERT IGNORE INTO penugasan (periode_id, kode, kab)
-                              SELECT DISTINCT c.periode_id, c.kode, k.kab FROM kecamatan k JOIN komoditas c ON c.id = k.komoditas_id
-                               WHERE c.periode_id = ? AND k.flag = 1 AND c.dipilih = 1', array($periode_id));
             $this->db->update('periode', array('penugasan_siap' => 1), array('id' => $periode_id));
             $this->hitung_dipilih($periode_id);
         }
@@ -678,12 +675,11 @@ class Periode_model extends CI_Model
         return $this->hitung_dipilih($periode_id);
     }
 
-    /** Hapus semua penugasan; pembacaan berikutnya mengisi ulang bawaan awal (komoditas yang berubah -> kabupaten terkait). */
+    /** Hapus semua penugasan: kembali kosong (tidak ada komoditas yang dicentang). */
     public function reset_penugasan($periode_id)
     {
         $this->db->delete('penugasan', array('periode_id' => $periode_id));
-        $this->db->update('periode', array('penugasan_siap' => 0), array('id' => $periode_id));
-        $this->penugasan($periode_id);      // isi ulang sekarang
+        $this->db->update('periode', array('penugasan_siap' => 1), array('id' => $periode_id));
         return $this->hitung_dipilih($periode_id);
     }
 
