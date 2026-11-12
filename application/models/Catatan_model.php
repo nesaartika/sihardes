@@ -1,58 +1,63 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/** Log aktivitas: siapa melakukan apa, dan kapan (tabel log_aktivitas). */
+/**
+ * Log aktivitas pengguna.
+ * CATATAN: bila di komputer kamu sudah ada Catatan_model.php asli, JANGAN ditimpa dengan file ini.
+ * Cukup ganti fungsi kosongkan() di file asli dengan versi di bawah (sesuaikan nama tabel).
+ */
 class Catatan_model extends CI_Model
 {
+    const TABEL = 'log_aktivitas';   // sesuaikan bila nama tabel log kamu berbeda
+
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('periode_model');     // memastikan database sudah siap
+        $this->load->model('periode_model');   // memastikan koneksi database terbuka
 
-        if ( ! $this->db->table_exists('log_aktivitas'))
+        if ( ! $this->db->table_exists(self::TABEL))
         {
-            $this->db->query("CREATE TABLE IF NOT EXISTS `log_aktivitas` (
+            $this->db->query('CREATE TABLE IF NOT EXISTS `' . self::TABEL . '` (
                 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
                 `waktu` DATETIME NOT NULL,
-                `username` VARCHAR(50) NOT NULL,
-                `aksi` VARCHAR(30) NOT NULL,
-                `keterangan` VARCHAR(255) NOT NULL DEFAULT '',
-                `ip` VARCHAR(45) NOT NULL DEFAULT '',
+                `username` VARCHAR(50) DEFAULT NULL,
+                `aksi` VARCHAR(40) NOT NULL,
+                `keterangan` TEXT,
+                `ip` VARCHAR(45) DEFAULT NULL,
                 PRIMARY KEY (`id`),
-                KEY `idx_waktu` (`waktu`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                KEY `waktu` (`waktu`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         }
     }
 
-    /**
-     * @param string      $aksi       login | login_gagal | logout | ganti_sandi | unggah | isi_alasan | unduh | hapus_periode
-     * @param string      $keterangan teks singkat
-     * @param string|null $username   bila kosong diambil dari sesi login (atau "terminal" untuk CLI)
-     */
     public function catat($aksi, $keterangan = '', $username = null)
     {
         if ($username === null)
         {
-            $ci = get_instance();
-            $username = is_cli() ? 'terminal' : (isset($ci->session) && $ci->session->userdata('username') ? $ci->session->userdata('username') : '-');
+            $username = isset($this->session) ? (string) $this->session->userdata('username') : '';
         }
-        $this->db->insert('log_aktivitas', array(
-            'waktu' => date('Y-m-d H:i:s'),
-            'username' => mb_substr($username, 0, 50),
-            'aksi' => $aksi,
-            'keterangan' => mb_substr($keterangan, 0, 255),
-            'ip' => is_cli() ? 'cli' : $this->input->ip_address(),
+        $this->db->insert(self::TABEL, array(
+            'waktu' => date('Y-m-d H:i:s'), 'username' => $username, 'aksi' => $aksi,
+            'keterangan' => $keterangan, 'ip' => $this->input->ip_address(),
         ));
     }
 
-    /** Mengosongkan seluruh log aktivitas. */
-    public function kosongkan()
+    public function terbaru($n = 500)
     {
-        $this->db->truncate('log_aktivitas');
+        return $this->db->order_by('id', 'DESC')->limit((int) $n)->get(self::TABEL)->result_array();
     }
 
-    public function terbaru($batas = 500)
+    /** $hari = 0: hapus semua; $hari > 0: hapus hanya yang lebih lama dari sekian hari. Mengembalikan jumlah baris terhapus. */
+    public function kosongkan($hari = 0)
     {
-        return $this->db->order_by('id', 'DESC')->limit((int) $batas)->get('log_aktivitas')->result_array();
+        $hari = (int) $hari;
+        if ($hari > 0)
+        {
+            $this->db->where('waktu <', date('Y-m-d H:i:s', strtotime('-' . $hari . ' days')))->delete(self::TABEL);
+            return (int) $this->db->affected_rows();
+        }
+        $n = (int) $this->db->count_all(self::TABEL);
+        $this->db->truncate(self::TABEL);
+        return $n;
     }
 }

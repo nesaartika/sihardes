@@ -535,8 +535,12 @@ class Sihardes extends MY_Controller
     {
         if ($this->input->method() === 'post')
         {
-            $this->catatan->kosongkan();
-            $this->catatan->catat('reset_log', 'Log aktivitas dikosongkan');
+            $hari = (int) $this->input->post('hari');       // 0 = semua log; 30/90 = hanya yang lebih lama dari sekian hari
+            if ( ! in_array($hari, array(0, 30, 90), true)) $hari = 0;
+            $jml = $this->catatan->kosongkan($hari);
+            $this->catatan->catat('reset_log', $hari > 0
+                ? 'Log lebih dari ' . $hari . ' hari dihapus (' . $jml . ' baris)'
+                : 'Log aktivitas dikosongkan (' . $jml . ' baris)');
         }
         redirect('sihardes/aktivitas');
     }
@@ -1116,9 +1120,30 @@ class Sihardes extends MY_Controller
         $data['periode'] = $this->data;
         $data['daftar_periode'] = $this->periode->daftar();
         $data['csrf'] = array($this->security->get_csrf_token_name(), $this->security->get_csrf_hash());
+        $data['notif_rekap'] = $this->hitung_belum_isi();      // notifikasi: jumlah alasan yang belum diisi
         $this->load->view('layout/head', $data);
         $this->load->view($view, $data);
         $this->load->view('layout/foot', $data);
+    }
+
+    /** Notifikasi: jumlah baris (komoditas x kabupaten) yang alasannya belum diisi. Akun kabupaten hanya menghitung miliknya sendiri. */
+    private function hitung_belum_isi()
+    {
+        $d = $this->data;
+        if (empty($d['hasil']['komoditas']) || ! is_array($d['hasil']['komoditas'])) return 0;
+        $alasan = isset($d['alasan']) && is_array($d['alasan']) ? $d['alasan'] : array();
+        $ku = $this->kab_user();
+        $n = 0;
+        foreach ($d['hasil']['komoditas'] as $k)
+        {
+            if (empty($k['kab'])) continue;
+            foreach ($k['kab'] as $kb => $_)
+            {
+                if ($ku && (int) $kb !== $ku) continue;
+                if (empty($alasan[$k['kode'] . '|' . $kb])) $n++;
+            }
+        }
+        return $n;
     }
 
     private function galat($pesan)
