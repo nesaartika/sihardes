@@ -71,7 +71,6 @@ ksort($per);
     <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
     <button class="btn btn-outline-secondary btn-sm" type="button" id="breset">Reset</button>
     <?php if ($admin || ! $periode_terkunci): ?><button class="btn btn-success btn-sm" type="button" id="bsemua" title="Simpan semua alasan yang sudah ditulis">Simpan semua</button><?php endif; ?>
-    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="window.print()" title="Cetak atau simpan sebagai PDF (sesuai filter yang sedang tampil)">Cetak / PDF</button>
     <?php if ($admin): ?><a class="btn btn-outline-primary btn-sm" href="<?= site_url('sihardes/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
   </div>
 </form>
