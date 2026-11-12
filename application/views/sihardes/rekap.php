@@ -9,12 +9,10 @@ tr.terkunci .b-simpan,tr.terkunci .b-batal,tr:not(.terkunci) .b-edit,tr:not(.men
 .bs td.oleh .aksi .btn{padding:3px 10px;font-size:12.5px}
 .cetak-teks,.cetak-judul{display:none}
 .hint.lalu{margin-top:4px;font-size:12px}
-.cepat{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.cepat .chipb{border:0.5px solid var(--bd,#ccc);background:transparent;color:inherit;border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer}
-tr.terkunci .cepat,.pkunci .cepat,.pkunci .b-edit,.pkunci .b-hapus,.pkunci .b-simpan{display:none!important}
+.pkunci .b-edit,.pkunci .b-hapus,.pkunci .b-simpan{display:none!important}
 @page{size:A4 landscape;margin:12mm}
 @media print{
-  .side,header.top,#ffilter,#cnt,#bnr,.btn-menu,td.oleh .aksi,.cepat,.stat,.hint.lalu,.aviso-kunci{display:none!important}
+  .side,header.top,#ffilter,#cnt,#bnr,.btn-menu,td.oleh .aksi,.stat,.hint.lalu,.aviso-kunci{display:none!important}
   main{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important}
   textarea.alasan{display:none!important}
   .cetak-teks{display:block;white-space:pre-wrap}
@@ -25,7 +23,6 @@ tr.terkunci .cepat,.pkunci .cepat,.pkunci .b-edit,.pkunci .b-hapus,.pkunci .b-si
 }
 </style>
 <?php
-$alasan_bawaan = array('Pengaruh cuaca / curah hujan', 'Musim panen', 'Musim tanam', 'Gagal panen / serangan hama', 'Pasokan dari luar daerah berkurang', 'Pasokan melimpah', 'Kenaikan ongkos angkut / BBM', 'Menjelang hari besar keagamaan', 'Permintaan meningkat', 'Mengikuti tren harga nasional');
 $periode_terkunci = ! empty($periode_terkunci);
 $alasan_lalu = isset($alasan_lalu) && is_array($alasan_lalu) ? $alasan_lalu : array();
 ?>
@@ -265,28 +262,6 @@ ksort($per);
         tr.dataset.status = 'sudah';
         kunci(tr, true); tampil(tr); hitung(); ringkasKab(tr);
       });
-    });
-
-    // alasan bawaan + alasan periode lalu (muncul saat kolom alasan difokuskan)
-    var BAWAAN = <?= json_encode($alasan_bawaan, JSON_UNESCAPED_UNICODE) ?>;
-    tbl.addEventListener('focusin', function(e){
-      var ta = e.target; if (!ta.classList || !ta.classList.contains('alasan') || ta.readOnly) return;
-      var tr = ta.closest('tr'); if (tr.querySelector('.cepat')) return;
-      var c = document.createElement('div'); c.className = 'cepat';
-      var daftar = BAWAAN.map(function(t){ return {l: t, t: t, ganti: false}; });
-      if (ta.dataset.lalu) daftar.unshift({l: 'Pakai alasan periode lalu', t: ta.dataset.lalu, ganti: true});
-      daftar.forEach(function(d){
-        var b = document.createElement('button'); b.type = 'button'; b.className = 'chipb'; b.textContent = d.l;
-        b.dataset.t = d.t; b.dataset.ganti = d.ganti ? '1' : ''; c.appendChild(b);
-      });
-      ta.insertAdjacentElement('afterend', c);
-    });
-    tbl.addEventListener('click', function(e){
-      var b = e.target.closest('.chipb'); if (!b) return;
-      var x = bagian(b.closest('tr')); if (x.ta.readOnly) return;
-      var sekarang = x.ta.value.trim();
-      x.ta.value = (b.dataset.ganti === '1' || sekarang === '') ? b.dataset.t : sekarang.replace(/[\s;,.]+$/, '') + '; ' + b.dataset.t;
-      x.ta.dispatchEvent(new Event('input', {bubbles: true})); x.ta.focus();
     });
 
     // peringatan bila ada isian yang belum disimpan
