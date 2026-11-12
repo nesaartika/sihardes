@@ -196,9 +196,9 @@ document.addEventListener('DOMContentLoaded', function(){
     <button type="button" class="btn-menu" id="btnMenu" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <h1><?= isset($judul_halaman) ? html_escape($judul_halaman) : $judul[$menu] ?></h1>
     <?php if ( ! empty($daftar_periode)): ?>
-      <select class="form-select form-select-sm pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
+      <select class="form-select form-select-sm pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="<?= html_escape(isset($periode['file_asal']) ? 'File: ' . $periode['file_asal'] . '. ' : '') ?>Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
         <?php foreach ($daftar_periode as $pd): ?>
-          <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 22, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
+          <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?> title="<?= html_escape($pd['file_asal']) ?>"><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= $pd['dibuat'] ?> &middot; <?= (int) $pd['terisi'] ?> alasan terisi</option>
         <?php endforeach; ?>
       </select>
       <?php
