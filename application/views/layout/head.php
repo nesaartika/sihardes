@@ -147,7 +147,6 @@ $judul = array('dashboard' => 'Dashboard', 'rekap' => 'Rekap Konfirmasi Harga', 
 <aside class="side" id="sidebar">
   <div class="brand"><div class="brand-baris"><div class="brand-logo"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo SIHARDES"><defs><linearGradient id="lgS" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d5fd0"/><stop offset="1" stop-color="#0aa5e8"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#lgS)"/><rect x="10" y="27" width="5" height="11" rx="2.5" fill="#fff" opacity=".55"/><rect x="21.5" y="21" width="5" height="17" rx="2.5" fill="#fff" opacity=".55"/><rect x="33" y="15" width="5" height="23" rx="2.5" fill="#fff" opacity=".55"/><path d="M9 25l9-8 8 5 13-11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="39" cy="11" r="3.2" fill="#7cf5c6"/></svg></div><div class="brand-teks"><b><?= html_escape(strtoupper($nama_app)) ?></b><div class="brand-sub">BPS Provinsi Kalimantan Barat</div></div></div></div>
   <nav class="menu-samping">
-    <!-- notif_rekap=<?= isset($notif_rekap) ? (int) $notif_rekap : 'TIDAK-ADA' ?> -->
     <?php foreach ($menu_item as $k => $m): ?>
       <a class="<?= $menu === $k ? 'on' : '' ?>" href="<?= site_url($m[1]) . (in_array($k, array('unggah', 'aktivitas', 'pengguna')) ? '' : $q) ?>"><?= $ikon[$k] ?><?= $m[0] ?><?php if ($k === 'rekap' && ! empty($notif_rekap)): ?> <span style="margin-left:auto;background:#e11d48;color:#fff;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700"><?= (int) $notif_rekap ?></span><?php endif; ?></a>
     <?php endforeach; ?>
@@ -196,9 +195,9 @@ document.addEventListener('DOMContentLoaded', function(){
     <button type="button" class="btn-menu" id="btnMenu" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <h1><?= isset($judul_halaman) ? html_escape($judul_halaman) : $judul[$menu] ?></h1>
     <?php if ( ! empty($daftar_periode)): ?>
-      <select class="form-select form-select-sm pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="<?= html_escape(isset($periode['file_asal']) ? 'File: ' . $periode['file_asal'] . '. ' : '') ?>Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
+      <select class="form-select form-select-sm pilih-file" onchange="location.href=location.pathname+'?pilih=1&p='+this.value" title="Pilih file / periode yang dibuka. Pilihan ini hanya berubah bila Anda memilihnya sendiri.">
         <?php foreach ($daftar_periode as $pd): ?>
-          <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?> title="<?= html_escape($pd['file_asal']) ?>"><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= $pd['dibuat'] ?> &middot; <?= (int) $pd['terisi'] ?> alasan terisi</option>
+          <option value="<?= $pd['id'] ?>" <?= $pd['id'] === $p ? 'selected' : '' ?>><?= html_escape($pd['nama']) ?><?= ($pd['jenis'] !== 'Harga Perdesaan') ? ' (' . html_escape($pd['jenis']) . ')' : '' ?> &middot; <?= html_escape(mb_strimwidth($pd['file_asal'], 0, 22, '...')) ?> &middot; <?= $pd['dibuat'] ?></option>
         <?php endforeach; ?>
       </select>
       <?php
