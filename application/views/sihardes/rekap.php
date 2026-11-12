@@ -70,7 +70,6 @@ ksort($per);
   <div class="col-auto d-flex gap-2">
     <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
     <button class="btn btn-outline-secondary btn-sm" type="button" id="breset">Reset</button>
-    <?php if ($admin || ! $periode_terkunci): ?><button class="btn btn-success btn-sm" type="button" id="bsemua" title="Simpan semua alasan yang sudah ditulis">Simpan semua</button><?php endif; ?>
     <?php if ($admin): ?><a class="btn btn-outline-primary btn-sm" href="<?= site_url('sihardes/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
   </div>
 </form>
@@ -290,23 +289,6 @@ ksort($per);
       var sekarang = x.ta.value.trim();
       x.ta.value = (b.dataset.ganti === '1' || sekarang === '') ? b.dataset.t : sekarang.replace(/[\s;,.]+$/, '') + '; ' + b.dataset.t;
       x.ta.dispatchEvent(new Event('input', {bubbles: true})); x.ta.focus();
-    });
-
-    // simpan semua (satu per satu supaya aman)
-    var bsemua = document.getElementById('bsemua');
-    if (bsemua) bsemua.addEventListener('click', function(){
-      var antre = [];
-      [].forEach.call(tbl.querySelectorAll('tr.dat'), function(tr){
-        if (tr.classList.contains('terkunci')) return;
-        var x = bagian(tr); if (x.ta.value.trim() === '' || x.pg.value.trim() === '') return;
-        var b = tr.querySelector('.b-simpan'); if (b) antre.push(b);
-      });
-      if (!antre.length) { alert('Tidak ada alasan baru yang perlu disimpan.'); return; }
-      (function lanjut(){
-        var b = antre.shift(); if (!b) return;
-        b.click();
-        var t = setInterval(function(){ if (!b.disabled) { clearInterval(t); lanjut(); } }, 150);
-      })();
     });
 
     // peringatan bila ada isian yang belum disimpan
