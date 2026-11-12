@@ -157,6 +157,11 @@ class Periode_model extends CI_Model
         {
             $this->db->query('ALTER TABLE periode ADD COLUMN komoditas_lengkap TINYINT(1) NOT NULL DEFAULT 0');
         }
+        // Revisi: admin dapat mengunci periode sehingga kabupaten tidak bisa lagi mengubah alasan
+        if ( ! $this->db->field_exists('terkunci', 'periode'))
+        {
+            $this->db->query('ALTER TABLE periode ADD COLUMN terkunci TINYINT(1) NOT NULL DEFAULT 0');
+        }
         // Database versi lama: periode yang sama sempat dibatasi unik -> longgarkan agar beberapa file per periode dapat disimpan
         if ($this->db->query("SHOW INDEX FROM periode WHERE Key_name = 'uq_bulan_tahun'")->num_rows() > 0)
         {
@@ -776,6 +781,35 @@ class Periode_model extends CI_Model
                               ON DUPLICATE KEY UPDATE teks = VALUES(teks), oleh = VALUES(oleh), diubah = CURRENT_TIMESTAMP', array($periode_id, $kode, (int) $kab, $teks, mb_substr((string) $oleh, 0, 120)));
         }
         return (int) $this->db->where('periode_id', $periode_id)->where('teks <>', '')->count_all_results('alasan');
+    }
+
+    public function terkunci($id)
+    {
+        if ( ! $this->id_valid($id)) return false;
+        $r = $this->db->select('terkunci')->get_where('periode', array('id' => $id))->row_array();
+        return $r && (int) $r['terkunci'] === 1;
+    }
+
+    public function set_kunci($id, $ya)
+    {
+        if ($this->id_valid($id)) $this->db->update('periode', array('terkunci' => $ya ? 1 : 0), array('id' => $id));
+    }
+
+    /** Alasan periode sebelumnya (bulan terdekat sebelum periode ini) sebagai rujukan: [kode|kab => teks]. */
+    public function alasan_lalu($id)
+    {
+        if ( ! $this->id_valid($id)) return array();
+        $p = $this->db->select('tahun, bulan')->get_where('periode', array('id' => $id))->row_array();
+        if ( ! $p) return array();
+        $s = $this->db->query('SELECT id FROM periode WHERE tahun < ? OR (tahun = ? AND bulan < ?) ORDER BY tahun DESC, bulan DESC, id DESC LIMIT 1',
+                              array((int) $p['tahun'], (int) $p['tahun'], (int) $p['bulan']))->row_array();
+        if ( ! $s) return array();
+        $out = array();
+        foreach ($this->db->query('SELECT kode, kab, teks FROM alasan WHERE periode_id = ? AND CHAR_LENGTH(teks) > 0', array($s['id']))->result_array() as $r)
+        {
+            $out[$r['kode'] . '|' . (int) $r['kab']] = $r['teks'];
+        }
+        return $out;
     }
 
     public function hapus($id)

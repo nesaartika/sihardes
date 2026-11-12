@@ -6,12 +6,15 @@
   <tbody>
   <?php foreach ($daftar as $d): ?>
     <tr>
-      <td><b><?= html_escape($d['nama']) ?></b> <span class="hint"><?= html_escape($d['jenis']) ?></span> <?= $d['id'] === $p ? '<span class="pill">aktif</span>' : '' ?></td>
+      <td><b><?= html_escape($d['nama']) ?></b> <span class="hint"><?= html_escape($d['jenis']) ?></span> <?= $d['id'] === $p ? '<span class="pill">aktif</span>' : '' ?><?= $this->periode->terkunci($d['id']) ? ' <span class="pill" style="background:#fde8e8;color:#b42318">terkunci</span>' : '' ?></td>
       <td><?= html_escape($d['file_asal']) ?></td>
       <td style="white-space:nowrap"><?= $d['dibuat'] ?></td>
       <td style="white-space:nowrap">
         <a class="btn alt" href="<?= site_url('sihardes/data_asli?p=' . $d['id']) ?>">Buka</a>
         <a class="btn alt" href="<?= site_url('sihardes/unduh_data/' . $d['id']) ?>" title="Unduh file Excel asli yang diunggah (<?= html_escape($d['file_asal']) ?>)">Excel</a>
+        <?= form_open('sihardes/kunci/' . $d['id'], array('style' => 'display:inline')) ?>
+          <button class="btn alt" type="submit" title="Periode terkunci: akun kabupaten tidak bisa mengubah alasan"><?= $this->periode->terkunci($d['id']) ? 'Buka kunci' : 'Kunci' ?></button>
+        <?= form_close() ?>
         <?= form_open('sihardes/hapus/' . $d['id'], array('style' => 'display:inline', 'class' => 'hapus',
               'data-nama' => html_escape($d['nama']), 'data-file' => html_escape($d['file_asal']))) ?>
           <button class="btn red" type="submit">Hapus</button>
@@ -29,12 +32,15 @@
   .mdl-box{background:var(--card);color:var(--tx);border-radius:12px;padding:22px;width:92%;max-width:420px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
   .mdl-box h3{margin:0 0 8px;font-size:17px}
   .mdl-box p{margin:0 0 18px;color:var(--mut)}
+  #mdlHapus:disabled{opacity:.4;cursor:not-allowed}
   .mdl-aksi{display:flex;justify-content:flex-end;gap:10px}
 </style>
 <div class="mdl" id="mdl" hidden>
   <div class="mdl-box" role="dialog" aria-modal="true" aria-labelledby="mdlJudul">
     <h3 id="mdlJudul">Hapus periode?</h3>
-    <p id="mdlIsi"></p>
+    <p id="mdlIsi" style="margin-bottom:10px"></p>
+    <p style="margin:0 0 8px">Ketik nama periode <b id="mdlNama"></b> untuk melanjutkan.</p>
+    <input type="text" id="mdlKetik" autocomplete="off" style="width:100%;margin-bottom:18px;padding:8px 10px;border:1px solid var(--mut,#999);border-radius:8px;background:transparent;color:inherit">
     <div class="mdl-aksi">
       <button type="button" class="btn alt" id="mdlBatal">Batal</button>
       <button type="button" class="btn red" id="mdlHapus">Hapus</button>
@@ -50,12 +56,17 @@
       e.preventDefault();
       form = f;
       isi.textContent = 'Periode "' + f.dataset.nama + '" (file: ' + f.dataset.file + ') beserta seluruh data dan alasannya akan dihapus dan tidak bisa dikembalikan.';
+      document.getElementById('mdlNama').textContent = f.dataset.nama;
+      var kt = document.getElementById('mdlKetik'); kt.value = ''; document.getElementById('mdlHapus').disabled = true;
       mdl.hidden = false;
-      document.getElementById('mdlBatal').focus();
+      kt.focus();
     });
   });
+  document.getElementById('mdlKetik').addEventListener('input', function(){
+    document.getElementById('mdlHapus').disabled = this.value.trim().toLowerCase() !== (form ? form.dataset.nama : '').trim().toLowerCase();
+  });
   document.getElementById('mdlBatal').addEventListener('click', tutup);
-  document.getElementById('mdlHapus').addEventListener('click', function(){ if (form) form.submit(); });
+  document.getElementById('mdlHapus').addEventListener('click', function(){ if (form && !this.disabled) form.submit(); });
   mdl.addEventListener('click', function(e){ if (e.target === mdl) tutup(); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') tutup(); });
 })();

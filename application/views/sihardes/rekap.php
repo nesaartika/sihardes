@@ -7,7 +7,30 @@ td.oleh .aksi button{padding:4px 12px;font-size:12.5px;line-height:1.4;cursor:po
 tr.terkunci .b-simpan,tr.terkunci .b-batal,tr:not(.terkunci) .b-edit,tr:not(.mengedit) .b-batal{display:none}
 .bs tr.kab-head th{padding:10px}
 .bs td.oleh .aksi .btn{padding:3px 10px;font-size:12.5px}
+.cetak-teks,.cetak-judul{display:none}
+.hint.lalu{margin-top:4px;font-size:12px}
+.cepat{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.cepat .chipb{border:0.5px solid var(--bd,#ccc);background:transparent;color:inherit;border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer}
+tr.terkunci .cepat,.pkunci .cepat,.pkunci .b-edit,.pkunci .b-hapus,.pkunci .b-simpan{display:none!important}
+@page{size:A4 landscape;margin:12mm}
+@media print{
+  .side,header.top,#ffilter,#cnt,#bnr,.btn-menu,td.oleh .aksi,.cepat,.stat,.hint.lalu,.aviso-kunci{display:none!important}
+  main{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important}
+  textarea.alasan{display:none!important}
+  .cetak-teks{display:block;white-space:pre-wrap}
+  .cetak-judul{display:block;font-weight:700;font-size:15px;margin-bottom:8px}
+  input.pengisi{border:none!important;background:none!important;padding:0!important;box-shadow:none!important}
+  tr{break-inside:avoid}
+  .tw{overflow:visible!important}
+}
 </style>
+<?php
+$alasan_bawaan = array('Pengaruh cuaca / curah hujan', 'Musim panen', 'Musim tanam', 'Gagal panen / serangan hama', 'Pasokan dari luar daerah berkurang', 'Pasokan melimpah', 'Kenaikan ongkos angkut / BBM', 'Menjelang hari besar keagamaan', 'Permintaan meningkat', 'Mengikuti tren harga nasional');
+$periode_terkunci = ! empty($periode_terkunci);
+$alasan_lalu = isset($alasan_lalu) && is_array($alasan_lalu) ? $alasan_lalu : array();
+$nama_pengisi = trim((string) $this->session->userdata('nama'));
+if ($nama_pengisi === '') $nama_pengisi = (string) $this->session->userdata('username');
+?>
 <?php
 // Hanya komoditas yang dicentang (diarahkan ke kabupaten) yang tampil; dikelompokkan per kabupaten, urut menurut kode kabupaten
 $tampil = array_filter($komoditas, function ($k) { return ! empty($k['kab']); });
@@ -28,7 +51,11 @@ foreach ($tampil as $k)
 }
 ksort($per);
 ?>
-<div class="bs">
+<div class="bs<?= ( ! $admin && $periode_terkunci) ? ' pkunci' : '' ?>">
+<div class="cetak-judul">Rekap Konfirmasi - <?= html_escape(isset($periode['nama']) ? $periode['nama'] : '') ?> &middot; dicetak <?= date('d-m-Y H:i') ?></div>
+<?php if ($periode_terkunci): ?>
+<div class="alert alert-warning py-2 mb-3 aviso-kunci"><?= $admin ? 'Periode ini dikunci: akun kabupaten tidak bisa lagi mengubah alasan. Admin masih bisa mengedit.' : 'Periode ini sudah dikunci oleh admin provinsi, alasan tidak bisa diubah lagi.' ?></div>
+<?php endif; ?>
 <form class="row g-2 align-items-center mb-3" id="ffilter" onsubmit="return false">
   <div class="col-12 col-md-auto"><input type="text" class="form-control form-control-sm" id="q" placeholder="Cari komoditas / kode / kecamatan..." style="min-width:250px"></div>
   <div class="col-auto"><select class="form-select form-select-sm" id="fdok"><option value="">Semua dokumen</option><?php foreach ($dok_daftar as $dk): ?><option><?= html_escape($dk) ?></option><?php endforeach; ?></select></div>
@@ -43,6 +70,8 @@ ksort($per);
   <div class="col-auto d-flex gap-2">
     <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
     <button class="btn btn-outline-secondary btn-sm" type="button" id="breset">Reset</button>
+    <?php if ($admin || ! $periode_terkunci): ?><button class="btn btn-success btn-sm" type="button" id="bsemua" title="Simpan semua alasan yang sudah ditulis">Simpan semua</button><?php endif; ?>
+    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="window.print()" title="Cetak atau simpan sebagai PDF (sesuai filter yang sedang tampil)">Cetak / PDF</button>
     <?php if ($admin): ?><a class="btn btn-outline-primary btn-sm" href="<?= site_url('sihardes/komoditas?p=' . $p) ?>">Atur komoditas &amp; <?= $sheet ? 'wilayah' : 'kabupaten' ?> yang mengisi</a><?php endif; ?>
   </div>
 </form>
@@ -91,11 +120,13 @@ ksort($per);
         <div class="hint"><?= html_escape(Sihardes_harga::teks_rinci($daftar)) ?></div>
       </td>
       <td>
-        <textarea class="form-control form-control-sm alasan" rows="2" data-kode="<?= html_escape($k['kode']) ?>" data-kab="<?= (int) $kb ?>" placeholder="Tulis alasan..." <?= $terkunci ? 'readonly' : '' ?>><?= html_escape($isi) ?></textarea>
+        <textarea class="form-control form-control-sm alasan" rows="2" data-kode="<?= html_escape($k['kode']) ?>" data-kab="<?= (int) $kb ?>" placeholder="Tulis alasan..." data-lalu="<?= html_escape(isset($alasan_lalu[$kunci]) ? $alasan_lalu[$kunci] : '') ?>" <?= ($terkunci || ( ! $admin && $periode_terkunci)) ? 'readonly' : '' ?>><?= html_escape($isi) ?></textarea>
+        <div class="cetak-teks"><?= nl2br(html_escape($isi)) ?></div>
         <div class="stat <?= $terkunci ? 'ok' : 'kosong' ?>"><?= $terkunci ? '&#10003; Tersimpan' . ($m && $m['waktu'] !== '' ? ' &middot; ' . html_escape($m['waktu']) : '') : 'Belum diisi' ?></div>
+        <?php if ( ! empty($alasan_lalu[$kunci])): ?><div class="hint lalu">Periode lalu: <?= html_escape(mb_strimwidth($alasan_lalu[$kunci], 0, 140, '...')) ?></div><?php endif; ?>
       </td>
       <td class="oleh">
-        <input type="text" class="form-control form-control-sm pengisi" maxlength="120" placeholder="Ketik nama pengisi" value="<?= html_escape($m ? $m['oleh'] : '') ?>" <?= $terkunci ? 'readonly' : '' ?>>
+        <input type="text" class="form-control form-control-sm pengisi" maxlength="120" placeholder="Ketik nama pengisi" value="<?= html_escape(($m && $m['oleh'] !== '') ? $m['oleh'] : ($admin ? '' : $nama_pengisi)) ?>" <?= $admin ? '' : 'data-tetap="1" data-def="' . html_escape($nama_pengisi) . '"' ?> <?= ($terkunci || ! $admin) ? 'readonly' : '' ?>>
         <div class="aksi">
           <button type="button" class="btn btn-primary btn-sm b-simpan" data-aksi="simpan">Simpan</button>
           <button type="button" class="btn btn-outline-primary btn-sm b-edit" data-aksi="edit">Edit</button>
@@ -168,7 +199,7 @@ ksort($per);
   var tbl = document.getElementById('tbl');
   function bagian(tr){ return {ta: tr.querySelector('textarea.alasan'), pg: tr.querySelector('input.pengisi'), st: tr.querySelector('.stat')}; }
   function kunci(tr, ya){
-    var x = bagian(tr); x.ta.readOnly = ya; x.pg.readOnly = ya;
+    var x = bagian(tr); x.ta.readOnly = ya; x.pg.readOnly = ya || x.pg.dataset.tetap === '1';
     tr.classList.toggle('terkunci', ya); if (ya) tr.classList.remove('mengedit');
   }
   function tampil(tr){
@@ -192,7 +223,7 @@ ksort($per);
       var b = e.target.closest('button[data-aksi]'); if (!b) return;
       var tr = b.closest('tr'), x = bagian(tr), aksi = b.dataset.aksi;
       if (aksi === 'edit') { kunci(tr, false); tr.classList.add('mengedit'); tampil(tr); x.ta.focus(); return; }
-      if (aksi === 'batal') { x.ta.value = tr._asli.t; x.pg.value = tr._asli.o; kunci(tr, true); tampil(tr); return; }
+      if (aksi === 'batal') { x.ta.value = tr._asli.t; x.pg.value = tr._asli.o; kunci(tr, tr.dataset.status === 'sudah'); tampil(tr); return; }
 
       // kirim ke server (teks & oleh kosong = hapus data tersimpan)
       var kirim = function(teks, oleh, sukses){
@@ -216,12 +247,12 @@ ksort($per);
       };
 
       if (aksi === 'hapus') {
-        var tersimpan = tr._asli.t !== '' || tr._asli.o !== '';
-        if (!tersimpan) { x.ta.value = ''; x.pg.value = ''; tampil(tr); return; }   // belum pernah disimpan: cukup kosongkan isian
+        var tersimpan = tr.dataset.status === 'sudah';
+        if (!tersimpan) { x.ta.value = ''; x.pg.value = x.pg.dataset.def || ''; tampil(tr); return; }   // belum pernah disimpan: cukup kosongkan isian
         if (!confirm('Hapus alasan dan nama pengisi yang sudah tersimpan? Isinya akan kosong kembali.')) return;
         kirim('', '', function(){
-          x.ta.value = ''; x.pg.value = '';
-          tr._asli = {t: '', o: '', w: ''};
+          x.ta.value = ''; x.pg.value = x.pg.dataset.def || '';
+          tr._asli = {t: '', o: x.pg.value, w: ''};
           tr.dataset.status = 'belum';
           kunci(tr, false); tr.classList.remove('mengedit'); tampil(tr); hitung(); ringkasKab(tr);
         });
@@ -238,6 +269,55 @@ ksort($per);
         tr.dataset.status = 'sudah';
         kunci(tr, true); tampil(tr); hitung(); ringkasKab(tr);
       });
+    });
+
+    // alasan bawaan + alasan periode lalu (muncul saat kolom alasan difokuskan)
+    var BAWAAN = <?= json_encode($alasan_bawaan, JSON_UNESCAPED_UNICODE) ?>;
+    tbl.addEventListener('focusin', function(e){
+      var ta = e.target; if (!ta.classList || !ta.classList.contains('alasan') || ta.readOnly) return;
+      var tr = ta.closest('tr'); if (tr.querySelector('.cepat')) return;
+      var c = document.createElement('div'); c.className = 'cepat';
+      var daftar = BAWAAN.map(function(t){ return {l: t, t: t, ganti: false}; });
+      if (ta.dataset.lalu) daftar.unshift({l: 'Pakai alasan periode lalu', t: ta.dataset.lalu, ganti: true});
+      daftar.forEach(function(d){
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chipb'; b.textContent = d.l;
+        b.dataset.t = d.t; b.dataset.ganti = d.ganti ? '1' : ''; c.appendChild(b);
+      });
+      ta.insertAdjacentElement('afterend', c);
+    });
+    tbl.addEventListener('click', function(e){
+      var b = e.target.closest('.chipb'); if (!b) return;
+      var x = bagian(b.closest('tr')); if (x.ta.readOnly) return;
+      var sekarang = x.ta.value.trim();
+      x.ta.value = (b.dataset.ganti === '1' || sekarang === '') ? b.dataset.t : sekarang.replace(/[\s;,.]+$/, '') + '; ' + b.dataset.t;
+      x.ta.dispatchEvent(new Event('input', {bubbles: true})); x.ta.focus();
+    });
+
+    // simpan semua (satu per satu supaya aman)
+    var bsemua = document.getElementById('bsemua');
+    if (bsemua) bsemua.addEventListener('click', function(){
+      var antre = [];
+      [].forEach.call(tbl.querySelectorAll('tr.dat'), function(tr){
+        if (tr.classList.contains('terkunci')) return;
+        var x = bagian(tr); if (x.ta.value.trim() === '' || x.pg.value.trim() === '') return;
+        var b = tr.querySelector('.b-simpan'); if (b) antre.push(b);
+      });
+      if (!antre.length) { alert('Tidak ada alasan baru yang perlu disimpan.'); return; }
+      (function lanjut(){
+        var b = antre.shift(); if (!b) return;
+        b.click();
+        var t = setInterval(function(){ if (!b.disabled) { clearInterval(t); lanjut(); } }, 150);
+      })();
+    });
+
+    // peringatan bila ada isian yang belum disimpan
+    window.addEventListener('beforeunload', function(e){
+      var ada = false;
+      [].forEach.call(tbl.querySelectorAll('tr.dat'), function(tr){
+        var x = bagian(tr), a = tr._asli; if (!a) return;
+        if (x.ta.value !== a.t || (x.pg.dataset.tetap !== '1' && x.pg.value !== a.o)) ada = true;
+      });
+      if (ada) { e.preventDefault(); e.returnValue = ''; }
     });
   }
 })();

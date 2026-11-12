@@ -89,6 +89,8 @@ class Sihardes extends MY_Controller
             'meta'       => $this->data['alasan_meta'],
             'daftar_kab' => $kab,
             'kunci_kab'  => $ku,
+            'periode_terkunci' => $this->periode->terkunci($this->aktif),
+            'alasan_lalu'      => $this->periode->alasan_lalu($this->aktif),
             'ambang'     => $this->data['hasil']['ringkas']['opsi']['ambang_kec'],
         ));
     }
@@ -724,6 +726,10 @@ class Sihardes extends MY_Controller
         {
             return $this->output->set_status_header(403)->set_output(json_encode(array('ok' => false, 'pesan' => 'Bukan kabupaten Anda.')));
         }
+        if ($this->kab_user() > 0 && $this->periode->terkunci($this->aktif))
+        {
+            return $this->output->set_status_header(403)->set_output(json_encode(array('ok' => false, 'pesan' => 'Periode ini sudah dikunci oleh admin provinsi.')));
+        }
         // hanya komoditas x kabupaten yang diarahkan admin provinsi yang boleh diisi
         if (empty($this->data['penugasan'][$kode][$kab]))
         {
@@ -731,11 +737,33 @@ class Sihardes extends MY_Controller
         }
         $lama  = isset($this->data['alasan'][$kode . '|' . $kab]);
         $oleh  = trim((string) $this->input->post('oleh'));     // "Diisi oleh": diketik sendiri oleh pengisi
+        if ($this->kab_user() > 0 && $teks !== '')      // akun kabupaten: nama pengisi otomatis dari akun yang login
+        {
+            $oleh = trim((string) $this->session->userdata('nama'));
+            if ($oleh === '') $oleh = (string) $this->session->userdata('username');
+        }
         $terisi = $this->periode->set_alasan($this->aktif, $kode, $kab, $teks, $oleh);
         $jenis = $teks === '' ? 'dikosongkan' : ($lama ? 'diubah' : 'diisi');
         $this->catatan->catat('isi_alasan', $this->data['nama'] . ' - ' . $kode . ' - ' . Sihardes_harga::nama_kab($kab) . ' (' . $jenis . ')');
         $this->output->set_output(json_encode(array('ok' => true, 'terisi' => $terisi,
             'waktu' => ($teks === '' && $oleh === '') ? '' : date('d-m-Y H:i'))));
+    }
+
+    /** Kunci / buka kunci periode (admin): akun kabupaten tidak bisa mengubah alasan pada periode terkunci. */
+    public function kunci($id = '')
+    {
+        if ($this->kab_user()) show_404();
+        if ($this->input->method() === 'post')
+        {
+            $d = $this->periode->muat($id);
+            if ($d)
+            {
+                $ya = ! $this->periode->terkunci($id);
+                $this->periode->set_kunci($id, $ya);
+                $this->catatan->catat($ya ? 'kunci_periode' : 'buka_kunci', $d['nama'] . ($ya ? ' - dikunci' : ' - kunci dibuka'));
+            }
+        }
+        redirect('sihardes/riwayat');
     }
 
     public function hapus($id = '')

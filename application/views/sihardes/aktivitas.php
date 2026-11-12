@@ -1,7 +1,7 @@
 <?php
 $label = array('login' => 'Masuk', 'login_gagal' => 'Gagal masuk', 'logout' => 'Keluar', 'ganti_sandi' => 'Ganti sandi',
                'unggah' => 'Unggah data', 'isi_alasan' => 'Isi alasan', 'unduh' => 'Unduh Excel', 'hapus_periode' => 'Hapus periode',
-               'buat_akun' => 'Buat akun', 'reset_sandi' => 'Reset sandi', 'ubah_akun' => 'Ubah akun', 'pilih_komoditas' => 'Pilih komoditas', 'reset_log' => 'Reset log', 'edit_akun' => 'Edit akun', 'hapus_akun' => 'Hapus akun');
+               'buat_akun' => 'Buat akun', 'reset_sandi' => 'Reset sandi', 'ubah_akun' => 'Ubah akun', 'pilih_komoditas' => 'Pilih komoditas', 'reset_log' => 'Reset log', 'edit_akun' => 'Edit akun', 'hapus_akun' => 'Hapus akun', 'kunci_periode' => 'Kunci periode', 'buka_kunci' => 'Buka kunci');
 ?>
 <div class="bar">
   <input type="text" id="q" placeholder="Cari keterangan atau pengguna...">
