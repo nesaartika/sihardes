@@ -737,11 +737,6 @@ class Sihardes extends MY_Controller
         }
         $lama  = isset($this->data['alasan'][$kode . '|' . $kab]);
         $oleh  = trim((string) $this->input->post('oleh'));     // "Diisi oleh": diketik sendiri oleh pengisi
-        if ($this->kab_user() > 0 && $teks !== '')      // akun kabupaten: nama pengisi otomatis dari akun yang login
-        {
-            $oleh = trim((string) $this->session->userdata('nama'));
-            if ($oleh === '') $oleh = (string) $this->session->userdata('username');
-        }
         $terisi = $this->periode->set_alasan($this->aktif, $kode, $kab, $teks, $oleh);
         $jenis = $teks === '' ? 'dikosongkan' : ($lama ? 'diubah' : 'diisi');
         $this->catatan->catat('isi_alasan', $this->data['nama'] . ' - ' . $kode . ' - ' . Sihardes_harga::nama_kab($kab) . ' (' . $jenis . ')');

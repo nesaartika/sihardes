@@ -28,8 +28,6 @@ tr.terkunci .cepat,.pkunci .cepat,.pkunci .b-edit,.pkunci .b-hapus,.pkunci .b-si
 $alasan_bawaan = array('Pengaruh cuaca / curah hujan', 'Musim panen', 'Musim tanam', 'Gagal panen / serangan hama', 'Pasokan dari luar daerah berkurang', 'Pasokan melimpah', 'Kenaikan ongkos angkut / BBM', 'Menjelang hari besar keagamaan', 'Permintaan meningkat', 'Mengikuti tren harga nasional');
 $periode_terkunci = ! empty($periode_terkunci);
 $alasan_lalu = isset($alasan_lalu) && is_array($alasan_lalu) ? $alasan_lalu : array();
-$nama_pengisi = trim((string) $this->session->userdata('nama'));
-if ($nama_pengisi === '') $nama_pengisi = (string) $this->session->userdata('username');
 ?>
 <?php
 // Hanya komoditas yang dicentang (diarahkan ke kabupaten) yang tampil; dikelompokkan per kabupaten, urut menurut kode kabupaten
@@ -124,7 +122,7 @@ ksort($per);
         <?php if ( ! empty($alasan_lalu[$kunci])): ?><div class="hint lalu">Periode lalu: <?= html_escape(mb_strimwidth($alasan_lalu[$kunci], 0, 140, '...')) ?></div><?php endif; ?>
       </td>
       <td class="oleh">
-        <input type="text" class="form-control form-control-sm pengisi" maxlength="120" placeholder="Ketik nama pengisi" value="<?= html_escape(($m && $m['oleh'] !== '') ? $m['oleh'] : ($admin ? '' : $nama_pengisi)) ?>" <?= $admin ? '' : 'data-tetap="1" data-def="' . html_escape($nama_pengisi) . '"' ?> <?= ($terkunci || ! $admin) ? 'readonly' : '' ?>>
+        <input type="text" class="form-control form-control-sm pengisi" maxlength="120" placeholder="Ketik nama pengisi" value="<?= html_escape($m ? $m['oleh'] : '') ?>" <?= $terkunci ? 'readonly' : '' ?>>
         <div class="aksi">
           <button type="button" class="btn btn-primary btn-sm b-simpan" data-aksi="simpan">Simpan</button>
           <button type="button" class="btn btn-outline-primary btn-sm b-edit" data-aksi="edit">Edit</button>
@@ -197,7 +195,7 @@ ksort($per);
   var tbl = document.getElementById('tbl');
   function bagian(tr){ return {ta: tr.querySelector('textarea.alasan'), pg: tr.querySelector('input.pengisi'), st: tr.querySelector('.stat')}; }
   function kunci(tr, ya){
-    var x = bagian(tr); x.ta.readOnly = ya; x.pg.readOnly = ya || x.pg.dataset.tetap === '1';
+    var x = bagian(tr); x.ta.readOnly = ya; x.pg.readOnly = ya;
     tr.classList.toggle('terkunci', ya); if (ya) tr.classList.remove('mengedit');
   }
   function tampil(tr){
@@ -246,11 +244,11 @@ ksort($per);
 
       if (aksi === 'hapus') {
         var tersimpan = tr.dataset.status === 'sudah';
-        if (!tersimpan) { x.ta.value = ''; x.pg.value = x.pg.dataset.def || ''; tampil(tr); return; }   // belum pernah disimpan: cukup kosongkan isian
+        if (!tersimpan) { x.ta.value = ''; x.pg.value = ''; tampil(tr); return; }   // belum pernah disimpan: cukup kosongkan isian
         if (!confirm('Hapus alasan dan nama pengisi yang sudah tersimpan? Isinya akan kosong kembali.')) return;
         kirim('', '', function(){
-          x.ta.value = ''; x.pg.value = x.pg.dataset.def || '';
-          tr._asli = {t: '', o: x.pg.value, w: ''};
+          x.ta.value = ''; x.pg.value = '';
+          tr._asli = {t: '', o: '', w: ''};
           tr.dataset.status = 'belum';
           kunci(tr, false); tr.classList.remove('mengedit'); tampil(tr); hitung(); ringkasKab(tr);
         });
@@ -296,7 +294,7 @@ ksort($per);
       var ada = false;
       [].forEach.call(tbl.querySelectorAll('tr.dat'), function(tr){
         var x = bagian(tr), a = tr._asli; if (!a) return;
-        if (x.ta.value !== a.t || (x.pg.dataset.tetap !== '1' && x.pg.value !== a.o)) ada = true;
+        if (x.ta.value !== a.t || x.pg.value !== a.o) ada = true;
       });
       if (ada) { e.preventDefault(); e.returnValue = ''; }
     });
