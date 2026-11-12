@@ -12,7 +12,6 @@
       <td style="white-space:nowrap">
         <a class="btn alt" href="<?= site_url('sihardes/data_asli?p=' . $d['id']) ?>">Buka</a>
         <a class="btn alt" href="<?= site_url('sihardes/unduh_data/' . $d['id']) ?>" title="Unduh file Excel asli yang diunggah (<?= html_escape($d['file_asal']) ?>)">Excel</a>
-        <a class="btn alt" href="<?= site_url('sihardes/unduh/' . $d['id']) ?>" title="Unduh hasil Rekap Konfirmasi">Rekap</a>
         <?= form_open('sihardes/hapus/' . $d['id'], array('style' => 'display:inline', 'class' => 'hapus',
               'data-nama' => html_escape($d['nama']), 'data-file' => html_escape($d['file_asal']))) ?>
           <button class="btn red" type="submit">Hapus</button>
